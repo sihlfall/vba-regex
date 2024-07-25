@@ -1,0 +1,5 @@
+{
+  "name": "TestSuite",
+  "strs": [ "aa", "ba", "ca", "da" ],
+  "regexs": [ "a*", "b*" ]
+}

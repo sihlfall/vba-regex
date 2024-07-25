@@ -1,0 +1,1 @@
+JSON parser/writer from the [stdVBA project](https://github.com/sancarn/stdVBA), as of [2023/06/04](https://github.com/sancarn/stdVBA/tree/30810c75ad8c40cdc5886196fd7e09b0194c7251/src/WIP/stdJSON).
