@@ -255,7 +255,39 @@ TestFail:
 End Sub
 
 '@TestMethod("stdRegex3")
-Private Sub StdRegexThree0031()
+Private Sub StdRegexThree0300()
+    ' method Match, example from the doc comment
+    
+    Dim sPattern As String, sHaystack As String
+    Dim rx As stdRegex3
+    Dim oMatch As Object
+
+    sPattern = "(?<id>\d{5}-ST[A-Z]\d) - (?<desc>.*)"
+    sHaystack = "Some sites were in critical condition" & vbCrLf & _
+        "* 12345-STA1 - Large crack through pipe." & vbCrLf & _
+        "* 12323-STB9 - Acid leakage polluting watercourse." & vbCrLf & _
+        "* and some others were largely ok:" & vbCrLf & _
+        "* 23565-STC2" & vbCrLf & _
+        "* 62346-STZ9"
+        
+    Set rx = stdRegex3.Create(sPattern)
+    Set oMatch = rx.Match(sHaystack)
+    
+    Assert.IsTrue oMatch(0) = "12345-STA1 - Large crack through pipe."
+    Assert.IsTrue oMatch("id") = "12345-STA1"
+    Assert.IsTrue oMatch(1) = "12345-STA1"
+    Assert.IsTrue oMatch("desc") = "Large crack through pipe."
+    Assert.IsTrue oMatch(2) = "Large crack through pipe."
+    Assert.IsTrue oMatch("$COUNT") = 2
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("stdRegex3")
+Private Sub StdRegexThree0310()
     ' method Match, multiline matching
     'On Error GoTo TestFail
     
@@ -286,7 +318,38 @@ TestFail:
 End Sub
 
 '@TestMethod("stdRegex3")
-Private Sub StdRegexThree0032()
+Private Sub StdRegexThree400()
+    ' method MatchAll, example from the doc comment
+    
+    Dim sPattern As String, sHaystack As String
+    Dim rx As stdRegex3
+    Dim oMatchAll As Collection
+
+    sPattern = "\d{5}-ST[A-Z]\d"
+    sHaystack = "Some sites were in critical condition" & vbCrLf & _
+        "* 12345-STA1 - Large crack through pipe." & vbCrLf & _
+        "* 12323-STB9 - Acid leakage polluting watercourse." & vbCrLf & _
+        "* and some others were largely ok:" & vbCrLf & _
+        "* 23565-STC2" & vbCrLf & _
+        "* 62346-STZ9"
+        
+    Set rx = stdRegex3.Create(sPattern)
+    Set oMatchAll = rx.MatchAll(sHaystack)
+    
+    Assert.IsTrue oMatchAll(1)(0) = "12345-STA1"
+    Assert.IsTrue oMatchAll(2)(0) = "12323-STB9"
+    Assert.IsTrue oMatchAll(3)(0) = "23565-STC2"
+    Assert.IsTrue oMatchAll(4)(0) = "62346-STZ9"
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+
+End Sub
+
+'@TestMethod("stdRegex3")
+Private Sub StdRegexThree0410()
     ' method MatchAll, multiline matching
     On Error GoTo TestFail
     
@@ -319,7 +382,7 @@ TestFail:
 End Sub
 
 '@TestMethod("stdRegex3")
-Private Sub StdRegexThree0040()
+Private Sub StdRegexThree0411()
     ' method MatchAll, correctly handles subsequent matches
     On Error GoTo TestFail
     
@@ -345,7 +408,40 @@ TestFail:
 End Sub
 
 '@TestMethod("stdRegex3")
-Private Sub StdRegexThree0050()
+Private Sub StdRegexThree500()
+    ' method Replace, example from the doc comment
+    
+    Dim sPattern As String, sHaystack As String, sReplacer As String, sResult As String
+    Dim rx As stdRegex3
+
+    sPattern = "(?<id>\d{5}-ST[A-Z]\d)\s+(?<count>\d+)\s+(?<date>../../....)"
+    sHaystack = "Here is some cool data:" & vbCrLf & _
+        "12345-STA1  123    10/02/2019" & vbCrLf & _
+        "12323-STB9  2123   01/01/2005" & vbCrLf & _
+        "and here is some more:" & vbCrLf & _
+        "23565-STC2  23     ??/??/????" & vbCrLf & _
+        "62346-STZ9  5      01/05/1932"
+    sReplacer = "$<id>,$<date>,$<count>"
+        
+    Set rx = stdRegex3.Create(sPattern, "g")
+    sResult = rx.Replace(sHaystack, sReplacer)
+    
+    Assert.IsTrue sResult = "Here is some cool data:" & vbCrLf & _
+        "12345-STA1,10/02/2019,123" & vbCrLf & _
+        "12323-STB9,01/01/2005,2123" & vbCrLf & _
+        "and here is some more:" & vbCrLf & _
+        "23565-STC2,??/??/????,23" & vbCrLf & _
+        "62346-STZ9,01/05/1932,5"
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+
+End Sub
+
+'@TestMethod("stdRegex3")
+Private Sub StdRegexThree0510()
     ' method Replace, simple exampleH
     'On Error GoTo TestFail
     
@@ -368,7 +464,7 @@ TestFail:
 End Sub
 
 '@TestMethod("stdRegex3")
-Private Sub StdRegexThree0051()
+Private Sub StdRegexThree0511()
     ' method Replace, simple example with $& and $$
     On Error GoTo TestFail
     
@@ -392,7 +488,7 @@ End Sub
 
 
 '@TestMethod("stdRegex3")
-Private Sub StdRegexThree0052()
+Private Sub StdRegexThree0512()
     ' method Replace, simple example with $`
     On Error GoTo TestFail
     
@@ -415,7 +511,7 @@ TestFail:
 End Sub
 
 '@TestMethod("stdRegex3")
-Private Sub StdRegexThree0053()
+Private Sub StdRegexThree0513()
     ' method Replace, simple example with $'
     On Error GoTo TestFail
     
@@ -438,7 +534,7 @@ TestFail:
 End Sub
 
 '@TestMethod("stdRegex3")
-Private Sub StdRegexThree0054()
+Private Sub StdRegexThree0514()
     ' method Replace, simple example with numbered captures'
     'On Error GoTo TestFail
     
@@ -461,7 +557,7 @@ TestFail:
 End Sub
 
 '@TestMethod("stdRegex3")
-Private Sub StdRegexThree0060()
+Private Sub StdRegexThree0515()
     ' method Replace, simple example with named captures'
     'On Error GoTo TestFail
     
@@ -484,7 +580,35 @@ TestFail:
 End Sub
 
 '@TestMethod("stdRegex3")
-Private Sub StdRegexThree0070()
+Private Sub StdRegexThree600()
+    ' method List, example from the doc comment
+    
+    Dim sPattern As String, sHaystack As String, sFormat As String, sDelimiter As String, sResult As String
+    Dim rx As stdRegex3
+
+    sPattern = "(?<id>\d{5}-ST[A-Z]\d)\s+(?<count>\d+)\s+(?<date>../../....)"
+    sHaystack = "Here is some cool data:" & vbCrLf & _
+        "12345-STA1  123    10/02/2019" & vbCrLf & _
+        "12323-STB9  2123   01/01/2005" & vbCrLf & _
+        "and here is some more:" & vbCrLf & _
+        "23565-STC2  23     ??/??/????" & vbCrLf & _
+        "62346-STZ9  5      01/05/1932"
+    sFormat = "$<id>,$<date>,$<count>"
+    sDelimiter = ";"
+    
+    Set rx = stdRegex3.Create(sPattern, "g")
+    sResult = rx.List(sHaystack, sFormat, sDelimiter)
+    
+    Assert.IsTrue sResult = "12345-STA1,10/02/2019,123;12323-STB9,01/01/2005,2123;23565-STC2,??/??/????,23;62346-STZ9,01/05/1932,5"
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("stdRegex3")
+Private Sub StdRegexThree0610()
     ' method List, simple example with named captures'
     'On Error GoTo TestFail
     
@@ -496,15 +620,89 @@ Private Sub StdRegexThree0070()
         "12323-STB9  2123   01/01/2005" & vbCrLf & _
         "23565-STC2  23     ??/??/????" & vbCrLf & _
         "62346-STZ9  5      01/05/1932"
-    sFormat = "$<id>,$<date>,$<count>" & vbCrLf
+    sFormat = "$<id>,$<date>,$<count>"
     
     Set rx = stdRegex3.Create(sPattern, "g")
     
     sExpected = "12345-STA1,10/02/2019,123" & vbCrLf & _
         "12323-STB9,01/01/2005,2123" & vbCrLf & _
         "23565-STC2,??/??/????,23" & vbCrLf & _
-        "62346-STZ9,01/05/1932,5" & vbCrLf
-    Assert.AreEqual sExpected, rx.List(sHaystack, sFormat)
+        "62346-STZ9,01/05/1932,5"
+    Assert.IsTrue sExpected = rx.List(sHaystack, sFormat)
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+Private Function Make2dStringArray(ByVal nCols As Long, ParamArray strs() As Variant) As String()
+    Dim nStrs As Long, nRows As Long, i As Long, j As Long, k As Long
+    Dim res() As String
+    
+    nStrs = UBound(strs) - LBound(strs) + 1
+    nRows = (nStrs + nCols - 1) \ nCols
+    ReDim res(0 To nRows - 1, 0 To nCols - 1) As String
+    
+    k = LBound(strs)
+    i = 0
+    j = 0
+    Do While k <= UBound(strs)
+        res(i, j) = strs(k)
+        j = j + 1: k = k + 1
+        If j = nCols Then j = 0: i = i + 1
+    Loop
+    
+    Make2dStringArray = res
+End Function
+
+Private Sub AssertEqual2dArrays(ByRef ary1() As String, ByRef ary2() As String)
+    Dim nRows1 As Long, nCols1 As Long
+    Dim nRows2 As Long, nCols2 As Long
+    Dim i As Long, j As Long
+    
+    nRows1 = UBound(ary1, 1) - LBound(ary1, 1) + 1
+    nCols1 = UBound(ary1, 2) - LBound(ary1, 2) + 1
+    nRows2 = UBound(ary2, 1) - LBound(ary2, 1) + 1
+    nCols2 = UBound(ary2, 2) - LBound(ary2, 2) + 1
+    
+    Assert.IsTrue nRows1 = nRows2, "First dimension not equal"
+    Assert.IsTrue nCols1 = nCols2, "Second dimension not equal"
+    For i = 0 To nRows1 - 1
+        For j = 0 To nCols1 - 1
+            Assert.IsTrue _
+                ary1(LBound(ary1, 1) + i, LBound(ary1, 2) + j) = ary2(LBound(ary2, 1) + i, LBound(ary2, 2) + j), _
+                "Mismatch for entry (" & i & "," & j & ")"
+        Next
+    Next
+End Sub
+
+
+'@TestMethod("stdRegex3")
+Private Sub StdRegexThreez00()
+    ' method ListArray, example from the doc comment
+    
+    Dim sPattern As String, sHaystack As String, formats() As String, result() As String
+    Dim rx As stdRegex3
+
+    sPattern = "(?<id>\d{5}-ST[A-Z]\d)\s+(?<count>\d+)\s+(?<date>../../....)"
+    sHaystack = "Here is some cool data:" & vbCrLf & _
+        "12345-STA1  123    10/02/2019" & vbCrLf & _
+        "12323-STB9  2123   01/01/2005" & vbCrLf & _
+        "and here is some more:" & vbCrLf & _
+        "23565-STC2  23     ??/??/????" & vbCrLf & _
+        "62346-STZ9  5      01/05/1932"
+    MakeStringArray formats, "$<date>", "$<id>", "$<count> incidents"
+    
+    Set rx = stdRegex3.Create(sPattern, "g")
+    rx.ListArray result, sHaystack, formats
+    
+    AssertEqual2dArrays result, Make2dStringArray(3, _
+        "10/02/2019", "12345-STA1", "123 incidents", _
+        "01/01/2005", "12323-STB9", "2123 incidents", _
+        "??/??/????", "23565-STC2", "23 incidents", _
+        "01/05/1932", "62346-STZ9", "5 incidents" _
+    )
 TestExit:
     Exit Sub
 TestFail:
@@ -513,7 +711,7 @@ TestFail:
 End Sub
 
 '@TestMethod("stdRegex3")
-Private Sub StdRegexThree0080()
+Private Sub StdRegexThree0710()
     ' method ListArr, simple example with named captures'
     'On Error GoTo TestFail
     
@@ -553,7 +751,7 @@ TestFail:
 End Sub
 
 '@TestMethod("stdRegex3")
-Private Sub StdRegexThree0081()
+Private Sub StdRegexThree0711()
     ' method ListArr, zero matches case'
     'On Error GoTo TestFail
     

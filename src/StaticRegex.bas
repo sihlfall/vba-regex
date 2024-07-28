@@ -168,7 +168,7 @@ Public Sub MatchThenList( _
     ByRef results() As String, _
     ByRef regex As RegexTy, _
     ByRef haystack As String, _
-    formatStrings() As String, _
+    ByRef formatStrings() As String, _
     Optional ByVal localMatch As Boolean = False, _
     Optional ByVal multiline As Boolean = False _
 )

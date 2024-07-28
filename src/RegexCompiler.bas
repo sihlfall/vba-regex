@@ -6,7 +6,7 @@ Public Sub Compile(ByRef outBytecode() As Long, ByRef s As String, Optional ByVa
     Dim ast As ArrayBuffer.Ty
     
     If Not RegexUnicodeSupport.UnicodeInitialized Then RegexUnicodeSupport.UnicodeInitialize
-    If Not RegexRangeConstants.RangeTablesInitialized Then RegexRangeConstants.InitializeRangeTables
+    If Not RegexUnicodeSupport.RangeTablesInitialized Then RegexUnicodeSupport.RangeTablesInitialize
     
     RegexLexer.Initialize lex, s
     Parse lex, caseInsensitive, ast
@@ -315,37 +315,43 @@ ContinueLoop:
         Case RETOK_ATOM_DIGIT
             PerformPotentialConcat ast, potentialConcat2, potentialConcat1
             currentAstNode = ast.Length
-            ArrayBuffer.AppendPrefixedPairsArray ast, AST_RANGES, RegexRangeConstants.RangeTableDigit
+            ArrayBuffer.AppendPrefixedPairsArray ast, AST_RANGES, RegexUnicodeSupport.StaticData, _
+                RegexUnicodeSupport.RANGE_TABLE_DIGIT_START, RegexUnicodeSupport.RANGE_TABLE_DIGIT_LENGTH
             potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
             
         Case RETOK_ATOM_NOT_DIGIT
             PerformPotentialConcat ast, potentialConcat2, potentialConcat1
             currentAstNode = ast.Length
-            ArrayBuffer.AppendPrefixedPairsArray ast, AST_RANGES, RegexRangeConstants.RangeTableNotDigit
+            ArrayBuffer.AppendPrefixedPairsArray ast, AST_RANGES, RegexUnicodeSupport.StaticData, _
+                RegexUnicodeSupport.RANGE_TABLE_NOTDIGIT_START, RegexUnicodeSupport.RANGE_TABLE_NOTDIGIT_LENGTH
             potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
             
         Case RETOK_ATOM_WHITE
             PerformPotentialConcat ast, potentialConcat2, potentialConcat1
             currentAstNode = ast.Length
-            ArrayBuffer.AppendPrefixedPairsArray ast, AST_RANGES, RegexRangeConstants.RangeTableWhite
+            ArrayBuffer.AppendPrefixedPairsArray ast, AST_RANGES, RegexUnicodeSupport.StaticData, _
+                RegexUnicodeSupport.RANGE_TABLE_WHITE_START, RegexUnicodeSupport.RANGE_TABLE_WHITE_LENGTH
             potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
             
         Case RETOK_ATOM_NOT_WHITE
             PerformPotentialConcat ast, potentialConcat2, potentialConcat1
             currentAstNode = ast.Length
-            ArrayBuffer.AppendPrefixedPairsArray ast, AST_RANGES, RegexRangeConstants.RangeTableNotWhite
+            ArrayBuffer.AppendPrefixedPairsArray ast, AST_RANGES, RegexUnicodeSupport.StaticData, _
+                RegexUnicodeSupport.RANGE_TABLE_NOTWHITE_START, RegexUnicodeSupport.RANGE_TABLE_NOTWHITE_LENGTH
             potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
         
         Case RETOK_ATOM_WORD_CHAR
             PerformPotentialConcat ast, potentialConcat2, potentialConcat1
             currentAstNode = ast.Length
-            ArrayBuffer.AppendPrefixedPairsArray ast, AST_RANGES, RegexRangeConstants.RangeTableWordchar
+            ArrayBuffer.AppendPrefixedPairsArray ast, AST_RANGES, RegexUnicodeSupport.StaticData, _
+                RegexUnicodeSupport.RANGE_TABLE_WORDCHAR_START, RegexUnicodeSupport.RANGE_TABLE_WORDCHAR_LENGTH
             potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
         
         Case RETOK_ATOM_NOT_WORD_CHAR
             PerformPotentialConcat ast, potentialConcat2, potentialConcat1
             currentAstNode = ast.Length
-            ArrayBuffer.AppendPrefixedPairsArray ast, AST_RANGES, RegexRangeConstants.RangeTableNotWordChar
+            ArrayBuffer.AppendPrefixedPairsArray ast, AST_RANGES, RegexUnicodeSupport.StaticData, _
+                RegexUnicodeSupport.RANGE_TABLE_NOTWORDCHAR_START, RegexUnicodeSupport.RANGE_TABLE_NOTWORDCHAR_LENGTH
             potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
             
         Case RETOK_EOF

@@ -48,53 +48,62 @@ Private Const NODE_RCHILD As Long = 2
 '   we assume that this will be sufficient for the next stack frame.
 Private Const INITIAL_STACK_CAPACITY As Long = 8 '16
 
-Private AST_TABLE_INITIALIZED As Boolean ' default-initialized to False
+Private Const AST_TABLE_OFFSET_NC As Long = 0
+Private Const AST_TABLE_OFFSET_BLEN As Long = 1
+Private Const AST_TABLE_OFFSET_ESFS As Long = 2
+Private Const AST_TABLE_ENTRY_LENGTH As Long = 3
 
-' .nc: number of children; negative values have special meaning
+Public Const AST_TABLE_LENGTH As Long = AST_TABLE_ENTRY_LENGTH * (MAX_AST_CODE + 1)
+
+Private astTableInitialized As Boolean ' default-initialized to False
+
+' nc: number of children; negative values have special meaning
 '   -2: is AST_STRING
 '   -1: is AST_RANGES or AST_INVRANGES
-' .blen: length of bytecode generated for this node (meaningful only if .nc >= 0)
-' .esfs: extra stack space required when generating bytecode for this node
+' blen: length of bytecode generated for this node (meaningful only if .nc >= 0)
+' esfs: extra stack space required when generating bytecode for this node
 '   Only nodes with children are permitted to require extra stack space.
 '   Hence .esfs > 0 must imply .nc >= 1.
-Private Type AstTableEntry
-    nc As Integer
-    blen As Integer
-    esfs As Integer
-End Type
 
-Private AST_TABLE(MIN_AST_CODE To MAX_AST_CODE) As AstTableEntry
+Public Sub AstTableInitialize()
+    InitializeAstTable RegexUnicodeSupport.StaticData
+End Sub
 
-Private Sub InitializeAstTable()
-    With AST_TABLE(AST_EMPTY):          .nc = 0:  .blen = 0: .esfs = 0: End With
-    With AST_TABLE(AST_STRING):         .nc = -2: .blen = 2: .esfs = 0: End With
-    With AST_TABLE(AST_DISJ):           .nc = 2:  .blen = 4: .esfs = 1: End With
-    With AST_TABLE(AST_CONCAT):         .nc = 2:  .blen = 0: .esfs = 0: End With
-    With AST_TABLE(AST_CHAR):           .nc = 0:  .blen = 2: .esfs = 0: End With
-    With AST_TABLE(AST_CAPTURE):          .nc = 1:  .blen = 4: .esfs = 0: End With
-    With AST_TABLE(AST_REPEAT_EXACTLY): .nc = 1:  .blen = 7: .esfs = 1: End With
-    With AST_TABLE(AST_PERIOD):         .nc = 0:  .blen = 1: .esfs = 0: End With
-    With AST_TABLE(AST_ASSERT_START):   .nc = 0:  .blen = 1: .esfs = 0: End With
-    With AST_TABLE(AST_ASSERT_END):     .nc = 0:  .blen = 1: .esfs = 0: End With
-    With AST_TABLE(AST_ASSERT_WORD_BOUNDARY):     .nc = 0: .blen = 1: .esfs = 0: End With
-    With AST_TABLE(AST_ASSERT_NOT_WORD_BOUNDARY): .nc = 0: .blen = 1: .esfs = 0: End With
-    With AST_TABLE(AST_MATCH):          .nc = 0:  .blen = 1: .esfs = 0: End With
-    With AST_TABLE(AST_ZEROONE_GREEDY): .nc = 1:  .blen = 2: .esfs = 1: End With
-    With AST_TABLE(AST_ZEROONE_HUMBLE): .nc = 1:  .blen = 2: .esfs = 1: End With
-    With AST_TABLE(AST_STAR_GREEDY):    .nc = 1:  .blen = 4: .esfs = 1: End With
-    With AST_TABLE(AST_STAR_HUMBLE):    .nc = 1:  .blen = 4: .esfs = 1: End With
-    With AST_TABLE(AST_REPEAT_MAX_GREEDY): .nc = 1: .blen = 7: .esfs = 1: End With
-    With AST_TABLE(AST_REPEAT_MAX_HUMBLE): .nc = 1: .blen = 7: .esfs = 1: End With
-    With AST_TABLE(AST_RANGES):         .nc = -1: .blen = 2: .esfs = 0: End With
-    With AST_TABLE(AST_INVRANGES):      .nc = -1: .blen = 2: .esfs = 0: End With
-    With AST_TABLE(AST_ASSERT_POS_LOOKAHEAD):   .nc = 1:  .blen = 4: .esfs = 2: End With
-    With AST_TABLE(AST_ASSERT_NEG_LOOKAHEAD):   .nc = 1:  .blen = 4: .esfs = 2: End With
-    With AST_TABLE(AST_ASSERT_POS_LOOKBEHIND):  .nc = 1:  .blen = 4: .esfs = 2: End With
-    With AST_TABLE(AST_ASSERT_NEG_LOOKBEHIND):  .nc = 1:  .blen = 4: .esfs = 2: End With
-    With AST_TABLE(AST_FAIL):           .nc = 0:  .blen = 1: .esfs = 0: End With
-    With AST_TABLE(AST_BACKREFERENCE):  .nc = 0:  .blen = 2: .esfs = 0: End With
-    With AST_TABLE(AST_NAMED):          .nc = 1:  .blen = 3: .esfs = 0: End With
-    AST_TABLE_INITIALIZED = True
+Private Sub InitializeAstTable(ByRef t() As Long)
+    Const b As Long = RegexUnicodeSupport.AST_TABLE_START
+    Const nc As Long = b + AST_TABLE_OFFSET_NC
+    Const blen As Long = b + AST_TABLE_OFFSET_BLEN
+    Const esfs As Long = b + AST_TABLE_OFFSET_ESFS
+    Const e As Long = AST_TABLE_ENTRY_LENGTH
+    
+    t(nc + e * AST_EMPTY) = 0:                    t(blen + e * AST_EMPTY) = 0:                        t(esfs + e * AST_EMPTY) = 0
+    t(nc + e * AST_STRING) = -2:                  t(blen + e * AST_STRING) = 2:                       t(esfs + e * AST_STRING) = 0
+    t(nc + e * AST_DISJ) = 2:                     t(blen + e * AST_DISJ) = 4:                         t(esfs + e * AST_DISJ) = 1
+    t(nc + e * AST_CONCAT) = 2:                   t(blen + e * AST_CONCAT) = 0:                       t(esfs + e * AST_CONCAT) = 0
+    t(nc + e * AST_CHAR) = 0:                     t(blen + e * AST_CHAR) = 2:                         t(esfs + e * AST_CHAR) = 0
+    t(nc + e * AST_CAPTURE) = 1:                  t(blen + e * AST_CAPTURE) = 4:                      t(esfs + e * AST_CAPTURE) = 0
+    t(nc + e * AST_REPEAT_EXACTLY) = 1:           t(blen + e * AST_REPEAT_EXACTLY) = 7:               t(esfs + e * AST_REPEAT_EXACTLY) = 1
+    t(nc + e * AST_PERIOD) = 0:                   t(blen + e * AST_PERIOD) = 1:                       t(esfs + e * AST_PERIOD) = 0
+    t(nc + e * AST_ASSERT_START) = 0:             t(blen + e * AST_ASSERT_START) = 1:                 t(esfs + e * AST_ASSERT_START) = 0
+    t(nc + e * AST_ASSERT_END) = 0:               t(blen + e * AST_ASSERT_END) = 1:                   t(esfs + e * AST_ASSERT_END) = 0
+    t(nc + e * AST_ASSERT_WORD_BOUNDARY) = 0:     t(blen + e * AST_ASSERT_WORD_BOUNDARY) = 1:         t(esfs + e * AST_ASSERT_WORD_BOUNDARY) = 0
+    t(nc + e * AST_ASSERT_NOT_WORD_BOUNDARY) = 0: t(blen + e * AST_ASSERT_NOT_WORD_BOUNDARY) = 1:     t(esfs + e * AST_ASSERT_NOT_WORD_BOUNDARY) = 0
+    t(nc + e * AST_MATCH) = 0:                    t(blen + e * AST_MATCH) = 1:                        t(esfs + e * AST_MATCH) = 0
+    t(nc + e * AST_ZEROONE_GREEDY) = 1:           t(blen + e * AST_ZEROONE_GREEDY) = 2:               t(esfs + e * AST_ZEROONE_GREEDY) = 1
+    t(nc + e * AST_ZEROONE_HUMBLE) = 1:           t(blen + e * AST_ZEROONE_HUMBLE) = 2:               t(esfs + e * AST_ZEROONE_HUMBLE) = 1
+    t(nc + e * AST_STAR_GREEDY) = 1:              t(blen + e * AST_STAR_GREEDY) = 4:                  t(esfs + e * AST_STAR_GREEDY) = 1
+    t(nc + e * AST_STAR_HUMBLE) = 1:              t(blen + e * AST_STAR_HUMBLE) = 4:                  t(esfs + e * AST_STAR_HUMBLE) = 1
+    t(nc + e * AST_REPEAT_MAX_GREEDY) = 1:        t(blen + e * AST_REPEAT_MAX_GREEDY) = 7:            t(esfs + e * AST_REPEAT_MAX_GREEDY) = 1
+    t(nc + e * AST_REPEAT_MAX_HUMBLE) = 1:        t(blen + e * AST_REPEAT_MAX_HUMBLE) = 7:            t(esfs + e * AST_REPEAT_MAX_HUMBLE) = 1
+    t(nc + e * AST_RANGES) = -1:                  t(blen + e * AST_RANGES) = 2:                       t(esfs + e * AST_RANGES) = 0
+    t(nc + e * AST_INVRANGES) = -1:               t(blen + e * AST_INVRANGES) = 2:                    t(esfs + e * AST_INVRANGES) = 0
+    t(nc + e * AST_ASSERT_POS_LOOKAHEAD) = 1:     t(blen + e * AST_ASSERT_POS_LOOKAHEAD) = 4:         t(esfs + e * AST_ASSERT_POS_LOOKAHEAD) = 2
+    t(nc + e * AST_ASSERT_NEG_LOOKAHEAD) = 1:     t(blen + e * AST_ASSERT_NEG_LOOKAHEAD) = 4:         t(esfs + e * AST_ASSERT_NEG_LOOKAHEAD) = 2
+    t(nc + e * AST_ASSERT_POS_LOOKBEHIND) = 1:    t(blen + e * AST_ASSERT_POS_LOOKBEHIND) = 4:        t(esfs + e * AST_ASSERT_POS_LOOKBEHIND) = 2
+    t(nc + e * AST_ASSERT_NEG_LOOKBEHIND) = 1:    t(blen + e * AST_ASSERT_NEG_LOOKBEHIND) = 4:        t(esfs + e * AST_ASSERT_NEG_LOOKBEHIND) = 2
+    t(nc + e * AST_FAIL) = 0:                     t(blen + e * AST_FAIL) = 1:                         t(esfs + e * AST_FAIL) = 0
+    t(nc + e * AST_BACKREFERENCE) = 0:            t(blen + e * AST_BACKREFERENCE) = 2:                t(esfs + e * AST_BACKREFERENCE) = 0
+    t(nc + e * AST_NAMED) = 1:                    t(blen + e * AST_NAMED) = 3:                        t(esfs + e * AST_NAMED) = 0
 End Sub
 
 Public Sub AstToBytecode(ByRef ast() As Long, ByRef identifierTree As RegexIdentifierSupport.IdentifierTreeTy, ByVal caseInsensitive As Boolean, ByRef bytecode() As Long)
@@ -108,7 +117,7 @@ Public Sub AstToBytecode(ByRef ast() As Long, ByRef identifierTree As RegexIdent
     Dim opcode1 As Long, opcode2 As Long, opcode3 As Long, tmp As Long, tmpCnt As Long, _
         e As Long, j As Long, patchPos As Long, maxSave As Long
     
-    If Not AST_TABLE_INITIALIZED Then InitializeAstTable
+    If Not astTableInitialized Then AstTableInitialize
     
     PrepareStackAndBytecodeBuffer ast, identifierTree, caseInsensitive, stack, bytecode
     
@@ -381,7 +390,7 @@ End Sub
 ' This means we can abstain from checking stack capacities later.
 Private Sub PrepareStackAndBytecodeBuffer(ByRef ast() As Long, ByRef identifierTree As RegexIdentifierSupport.IdentifierTreeTy, ByVal caseInsensitive As Boolean, ByRef stack() As Long, ByRef bytecode() As Long)
     Dim sp As Long, prevNode As Long, curNode As Long, esfs As Long, stackCapacity As Long
-    Dim tmp As Long
+    Dim tmp As Long, astTableIdx As Long
     Dim bytecodeLength As Long
     Dim returningFromFirstChild As Long ' 0 = no, LONGTYPE_FIRST_BIT = yes
     
@@ -397,37 +406,36 @@ Private Sub PrepareStackAndBytecodeBuffer(ByRef ast() As Long, ByRef identifierT
     bytecodeLength = 0
     
 ContinueLoop:
-        With AST_TABLE(ast(curNode + NODE_TYPE))
-            esfs = .esfs
-            
-            Select Case .nc
-            Case -2
-                bytecodeLength = bytecodeLength + 2 * ast(curNode + 1)
+        astTableIdx = ast(curNode + NODE_TYPE) * AST_TABLE_ENTRY_LENGTH
+        esfs = RegexUnicodeSupport.StaticData(AST_TABLE_START + astTableIdx + AST_TABLE_OFFSET_ESFS)
+        
+        Select Case RegexUnicodeSupport.StaticData(AST_TABLE_START + astTableIdx + AST_TABLE_OFFSET_NC)
+        Case -2
+            bytecodeLength = bytecodeLength + 2 * ast(curNode + 1)
+            GoTo TurnToParent
+        Case -1
+            bytecodeLength = bytecodeLength + 2 + 2 * ast(curNode + 1)
+            GoTo TurnToParent
+        Case 0
+            bytecodeLength = bytecodeLength + RegexUnicodeSupport.StaticData(AST_TABLE_START + astTableIdx + AST_TABLE_OFFSET_BLEN)
+            GoTo TurnToParent
+        Case 1
+            If returningFromFirstChild Then
                 GoTo TurnToParent
-            Case -1
-                bytecodeLength = bytecodeLength + 2 + 2 * ast(curNode + 1)
+            Else
+                bytecodeLength = bytecodeLength + RegexUnicodeSupport.StaticData(AST_TABLE_START + astTableIdx + AST_TABLE_OFFSET_BLEN)
+                GoTo TurnToLeftChild
+            End If
+        Case 2
+            If returningFromFirstChild Then ' previous was left child
+                GoTo TurnToRightChild
+            ElseIf prevNode = ast(curNode + NODE_RCHILD) Then ' previous was right child
                 GoTo TurnToParent
-            Case 0
-                bytecodeLength = bytecodeLength + .blen
-                GoTo TurnToParent
-            Case 1
-                If returningFromFirstChild Then
-                    GoTo TurnToParent
-                Else
-                    bytecodeLength = bytecodeLength + .blen
-                    GoTo TurnToLeftChild
-                End If
-            Case 2
-                If returningFromFirstChild Then ' previous was left child
-                    GoTo TurnToRightChild
-                ElseIf prevNode = ast(curNode + NODE_RCHILD) Then ' previous was right child
-                    GoTo TurnToParent
-                Else ' previous was parent
-                    bytecodeLength = bytecodeLength + .blen
-                    GoTo TurnToLeftChild
-                End If
-            End Select
-        End With
+            Else ' previous was parent
+                bytecodeLength = bytecodeLength + RegexUnicodeSupport.StaticData(AST_TABLE_START + astTableIdx + AST_TABLE_OFFSET_BLEN)
+                GoTo TurnToLeftChild
+            End If
+        End Select
         
         Err.Raise REGEX_ERR_INTERNAL_LOGIC_ERR ' unreachable
 

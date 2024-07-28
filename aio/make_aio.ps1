@@ -60,18 +60,73 @@ function MakeEverythingPrivate {
     return $lines | ForEach-Object { [regex]::Replace($_, "^Public", "Private") }
 }
 
+function RemoveTopLevelComments {
+    param (
+        [string[]] $lines
+    )
+
+    return $lines | Where-Object { -not ($_ -match "^'") }
+}
+
 function ReadFileAndPerformCommonTasks {
     param (
         [string]$inFilePath
     )
     $lines = Get-Content -Path $inFilePath
     $lines = MakeEverythingPrivate($lines)
+    $lines = RemoveTopLevelComments($lines)
     $parts = SplitBeforeFirstSub $lines
     return @(
         (RemoveOptionAttributeLines $parts[0]),
         $parts[1]
     )
 }
+
+function ReadAndProcessHeaderComment {
+    param (
+        [string]$inFilePath,
+        [string]$scriptName
+    )
+
+    $lines = (Get-Content -Path $inFilePath)
+    $lines = $lines | ForEach-Object { $_ -replace "__SCRIPTNAME__", $scriptName }
+    return $lines
+}
+
+
+# This was mainly ChatGPT. Thank you, system!
+function ReplaceMultipleBlankLines {
+    param (
+        [string[]]$inputLines
+    )
+    
+    # Join the lines into a single string with newlines
+    $inputText = $inputLines -join "`n"
+    
+    # Use regex to replace multiple blank lines with a single blank line
+    $outputText = $inputText -replace '(\r?\n){3,}', "`n`n"
+    
+    # Split the resulting text back into an array of lines
+    $outputLines = $outputText -split "`n"
+    
+    return $outputLines
+}
+
+function InsertBlankLineAfterEndSubAndEndFunction {
+    param (
+        [string[]]$inputLines
+    )
+    
+    $inputText = $inputLines -join "`n"
+    
+    $outputText = $inputText -replace '(?m)\s*End (Sub|Function)\s*', "`$0`n"
+    
+    # Split the resulting text back into an array of lines
+    $outputLines = $outputText -split "`n"
+    
+    return $outputLines
+}
+
 
 function CreateSingleFile {
     $outDirPath = ".\build"
@@ -113,9 +168,8 @@ function CreateSingleFile {
 
     ProcessFile "RegexErrors.bas" { }
     ProcessFile "RegexBytecode.bas" { }
-    ProcessFile "RegexUnicodeSupport.bas" { }
     ProcessFile "RegexAst.bas" { }
-    ProcessFile "RegexRangeConstants.bas" { }
+    ProcessFile "RegexUnicodeSupport.bas" { }
     ProcessFile "RegexRanges.bas" { }
     ProcessFile "RegexIdentifierSupport.bas" { }
 
@@ -156,7 +210,6 @@ function CreateSingleFile {
 
     $complete = @()
     $complete += @(
-        ("Attribute VB_Name=""" + $outModuleName + """"),
         "Option Private Module",
         "Option Explicit",
         "",
@@ -175,7 +228,6 @@ function CreateSingleFile {
         $_ = [regex]::Replace($_, "RegexByteco\.", "")
         $_ = [regex]::Replace($_, "RegexUnicodeSupport\.", "")
         $_ = [regex]::Replace($_, "RegexBytecode\.", "")
-        $_ = [regex]::Replace($_, "RegexRangeConstants\.", "")
         $_ = [regex]::Replace($_, "RegexAst\.", "")
         $_ = [regex]::Replace($_, "RegexRanges\.", "")
         $_ = [regex]::Replace($_, "RegexIdentifierSupport\.", "")
@@ -184,22 +236,31 @@ function CreateSingleFile {
         $_ = [regex]::Replace($_, "RegexCompiler\.", "")
         $_ = [regex]::Replace($_, "RegexDfsMatcher\.", "")
         $_ = [regex]::Replace($_, "RegexReplace\.", "")
-        $_ = [regex]::Replace($_, "Private Sub InitializeRegex",  "Public Sub InitializeRegex")
-        $_ = [regex]::Replace($_, "Private Function TryInitializeRegex",  "Public Function TryInitializeRegex")
-        $_ = [regex]::Replace($_, "Private Function Test",  "Public Function Test")
-        $_ = [regex]::Replace($_, "Private Function Match", "Public Function Match")
-        $_ = [regex]::Replace($_, "Private Function GetCapture", "Public Function GetCapture")
-        $_ = [regex]::Replace($_, "Private Function GetCaptureByName", "Public Function GetCaptureByName")
-        $_ = [regex]::Replace($_, "Private Function MatchNext", "Public Function MatchNext")
-        $_ = [regex]::Replace($_, "Private Function Replace", "Public Function Replace")
-        $_ = [regex]::Replace($_, "Private Function MatchThenJoin", "Public Function MatchThenJoin")
-        $_ = [regex]::Replace($_, "Private Sub MatchThenList", "Public Sub MatchThenList")
-        $_ = [regex]::Replace($_, "Private Sub InitializeMatcherState", "Public Sub InitializeMatcherState")
-        $_ = [regex]::Replace($_, "Private Sub ResetMatcherState", "Public Sub ResetMatcherState")
+        $_ = [regex]::Replace($_, "Private Sub InitializeRegex\(",  "Public Sub InitializeRegex(")
+        $_ = [regex]::Replace($_, "Private Function TryInitializeRegex\(",  "Public Function TryInitializeRegex(")
+        $_ = [regex]::Replace($_, "Private Function Test\(",  "Public Function Test(")
+        $_ = [regex]::Replace($_, "Private Function Match\(", "Public Function Match(")
+        $_ = [regex]::Replace($_, "Private Function GetCapture\(", "Public Function GetCapture(")
+        $_ = [regex]::Replace($_, "Private Function GetCaptureByName\(", "Public Function GetCaptureByName(")
+        $_ = [regex]::Replace($_, "Private Function MatchNext\(", "Public Function MatchNext(")
+        $_ = [regex]::Replace($_, "Private Function Replace\(", "Public Function Replace(")
+        $_ = [regex]::Replace($_, "Private Function MatchThenJoin\(", "Public Function MatchThenJoin(")
+        $_ = [regex]::Replace($_, "Private Sub MatchThenList\(", "Public Sub MatchThenList(")
+        $_ = [regex]::Replace($_, "Private Sub InitializeMatcherState\(", "Public Sub InitializeMatcherState(")
+        $_ = [regex]::Replace($_, "Private Sub ResetMatcherState\(", "Public Sub ResetMatcherState(")
         $_ = [regex]::Replace($_, "Private Type RegexTy", "Public Type RegexTy")
         $_ = [regex]::Replace($_, "Private Type MatcherStateTy", "Public Type MatcherStateTy")
         $_
     }
+
+    $complete = InsertBlankLineAfterEndSubAndEndFunction($complete)
+    $complete = ReplaceMultipleBlankLines($complete)
+
+    $commentSnippetPath = Join-Path -Path $PSScriptRoot -ChildPath ".\HeaderComment.bas"
+    $headerComment = ReadAndProcessHeaderComment -inFilePath $commentSnippetPath -scriptName (Split-Path -Path $MyInvocation.PSCommandPath -Leaf)
+    $complete = $headerComment + $complete
+
+    $complete = (, ("Attribute VB_Name=""" + $outModuleName + """")) + $complete
 
     Set-Content -Path (Join-Path -Path $outDirPath -ChildPath $outFileName) -Value $complete > $null
 }

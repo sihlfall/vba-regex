@@ -146,7 +146,7 @@ cd aio
 
 This will create a file named `StaticRegexSingle.bas` in `aio\build\`, which you can then import into your project. For the module, you can choose whatever name you like, as long as it does not conflict with anything. The module you get will provide the same API as `StaticRegex.bas` does.
 
-The shell script does not do any parsing, but is rather based on simple copy/paste and search/replace, so do not expect the file being generated to be pretty.
+The shell script does not do any parsing, but is rather based on simple copy/paste and search/replace, so changes in the source code may require changes to the script.
 
 ## Tests
 

@@ -1534,7 +1534,7 @@ Private Sub Compiler_Compile0350()
     
     Dim actual() As Long
     
-    RegexRangeConstants.InitializeRangeTables
+    RegexUnicodeSupport.RangeTablesInitialize
     
     RegexCompiler.Compile actual, "a\db"
     
