@@ -2,7 +2,7 @@ Attribute VB_Name = "ArrayBuffer"
 Public Type Ty
     Buffer() As Long
     Capacity As Long
-    Length As Long
+    length As Long
 End Type
 
 Private Const MINIMUM_CAPACITY As Long = 16
@@ -10,153 +10,130 @@ Private Const MINIMUM_CAPACITY As Long = 16
 Public Sub AppendLong(ByRef lab As Ty, ByVal v As Long)
     Dim requiredCapacity As Long
     With lab
-        requiredCapacity = .Length + 1
+        requiredCapacity = .length + 1
         If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
-        .Buffer(.Length) = v
-        .Length = requiredCapacity
+        .Buffer(.length) = v
+        .length = requiredCapacity
     End With
 End Sub
 
 Public Sub AppendTwo(ByRef lab As Ty, ByVal v1 As Long, ByVal v2 As Long)
     Dim requiredCapacity As Long
     With lab
-        requiredCapacity = .Length + 2
+        requiredCapacity = .length + 2
         If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
-        .Buffer(.Length) = v1
-        .Buffer(.Length + 1) = v2
-        .Length = requiredCapacity
+        .Buffer(.length) = v1
+        .Buffer(.length + 1) = v2
+        .length = requiredCapacity
     End With
 End Sub
 
 Public Sub AppendThree(ByRef lab As Ty, ByVal v1 As Long, ByVal v2 As Long, ByVal v3 As Long)
     Dim requiredCapacity As Long
     With lab
-        requiredCapacity = .Length + 3
+        requiredCapacity = .length + 3
         If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
-        .Buffer(.Length) = v1
-        .Buffer(.Length + 1) = v2
-        .Buffer(.Length + 2) = v3
-        .Length = requiredCapacity
+        .Buffer(.length) = v1
+        .Buffer(.length + 1) = v2
+        .Buffer(.length + 2) = v3
+        .length = requiredCapacity
     End With
 End Sub
 
 Public Sub AppendFour(ByRef lab As Ty, ByVal v1 As Long, ByVal v2 As Long, ByVal v3 As Long, ByVal v4 As Long)
     Dim requiredCapacity As Long
     With lab
-        requiredCapacity = .Length + 4
+        requiredCapacity = .length + 4
         If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
-        .Buffer(.Length) = v1
-        .Buffer(.Length + 1) = v2
-        .Buffer(.Length + 2) = v3
-        .Buffer(.Length + 3) = v4
-        .Length = requiredCapacity
+        .Buffer(.length) = v1
+        .Buffer(.length + 1) = v2
+        .Buffer(.length + 2) = v3
+        .Buffer(.length + 3) = v4
+        .length = requiredCapacity
     End With
 End Sub
 
 Public Sub AppendFive(ByRef lab As Ty, ByVal v1 As Long, ByVal v2 As Long, ByVal v3 As Long, ByVal v4 As Long, v5 As Long)
     Dim requiredCapacity As Long
     With lab
-        requiredCapacity = .Length + 5
+        requiredCapacity = .length + 5
         If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
-        .Buffer(.Length) = v1
-        .Buffer(.Length + 1) = v2
-        .Buffer(.Length + 2) = v3
-        .Buffer(.Length + 3) = v4
-        .Buffer(.Length + 4) = v5
-        .Length = requiredCapacity
+        .Buffer(.length) = v1
+        .Buffer(.length + 1) = v2
+        .Buffer(.length + 2) = v3
+        .Buffer(.length + 3) = v4
+        .Buffer(.length + 4) = v5
+        .length = requiredCapacity
     End With
 End Sub
 
 Public Sub AppendEight(ByRef lab As Ty, ByVal v1 As Long, ByVal v2 As Long, ByVal v3 As Long, ByVal v4 As Long, v5 As Long, v6 As Long, v7 As Long, v8 As Long)
     Dim requiredCapacity As Long
     With lab
-        requiredCapacity = .Length + 8
+        requiredCapacity = .length + 8
         If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
-        .Buffer(.Length) = v1
-        .Buffer(.Length + 1) = v2
-        .Buffer(.Length + 2) = v3
-        .Buffer(.Length + 3) = v4
-        .Buffer(.Length + 4) = v5
-        .Buffer(.Length + 5) = v6
-        .Buffer(.Length + 6) = v7
-        .Buffer(.Length + 7) = v8
-        .Length = requiredCapacity
+        .Buffer(.length) = v1
+        .Buffer(.length + 1) = v2
+        .Buffer(.length + 2) = v3
+        .Buffer(.length + 3) = v4
+        .Buffer(.length + 4) = v5
+        .Buffer(.length + 5) = v6
+        .Buffer(.length + 6) = v7
+        .Buffer(.length + 7) = v8
+        .length = requiredCapacity
     End With
 End Sub
 
 Public Sub AppendFill(ByRef lab As Ty, ByVal cnt As Long, ByVal v As Long)
     Dim requiredCapacity As Long, i As Long
     With lab
-        requiredCapacity = .Length + cnt
+        requiredCapacity = .length + cnt
         If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
-        i = .Length
+        i = .length
         Do While i < requiredCapacity: .Buffer(i) = v: i = i + 1: Loop
-        .Length = requiredCapacity
+        .length = requiredCapacity
     End With
 End Sub
 
-Public Sub AppendSlice(ByRef lab As Ty, ByVal offset As Long, ByVal Length As Long)
+Public Sub AppendSlice(ByRef lab As Ty, ByVal offset As Long, ByVal length As Long)
     Dim requiredCapacity As Long, i As Long, j As Long, upper As Long
     With lab
-        requiredCapacity = .Length + Length
+        requiredCapacity = .length + length
         If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
-        upper = offset + Length: i = offset: j = .Length
+        upper = offset + length: i = offset: j = .length
         Do While i < upper
             .Buffer(j) = .Buffer(i)
             i = i + 1: j = j + 1
         Loop
-        .Length = requiredCapacity
+        .length = requiredCapacity
     End With
 End Sub
 
 Public Sub AppendUnspecified(ByRef lab As Ty, ByVal n As Long)
     Dim requiredCapacity As Long
     With lab
-        .Length = .Length + n
-        requiredCapacity = .Length
+        .length = .length + n
+        requiredCapacity = .length
         If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
     End With
 End Sub
 
-Public Sub AppendPrefixedPairsArray(ByRef lab As Ty, ByVal prefix As Long, ByRef ary() As Long)
+Public Sub AppendPrefixedPairsArray(ByRef lab As Ty, ByVal prefix As Long, ByRef ary() As Long, ByVal aryStart As Long, ByVal aryLength As Long)
     ' prefix, number of pairs, pairs
-    Dim requiredCapacity As Long, lb As Long, ub As Long, i As Long, j As Long
+    Dim requiredCapacity As Long, ub As Long, i As Long, j As Long
     With lab
-        lb = LBound(ary)
-        ub = UBound(ary)
-        i = .Length
-        .Length = .Length + ub - lb + 3
-        requiredCapacity = .Length
+        i = .length
+        .length = .length + aryLength + 2
+        requiredCapacity = .length
         If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
         
         .Buffer(i) = prefix: i = i + 1
-        .Buffer(i) = (ub - lb + 1) \ 2: i = i + 1
-        For j = lb To ub
+        .Buffer(i) = aryLength \ 2: i = i + 1
+        ub = aryStart + aryLength - 1
+        For j = aryStart To ub
             .Buffer(i) = ary(j)
             i = i + 1
         Next
-    End With
-End Sub
-
-Public Sub AppendPrefixedPairsArrayBackwards(ByRef lab As Ty, ByVal prefix As Long, ByRef ary() As Long)
-    ' prefix, number of pairs, pairs
-    Dim requiredCapacity As Long, lb As Long, ub As Long, i As Long, j As Long
-    With lab
-        lb = LBound(ary)
-        ub = UBound(ary)
-        i = .Length
-        .Length = .Length + ub - lb + 3
-        requiredCapacity = .Length
-        If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
-        
-        .Buffer(i) = prefix: i = i + 1
-        .Buffer(i) = (ub - lb + 1) \ 2: i = i + 1
-        j = ub - 1
-        Do
-            .Buffer(i) = ary(j): i = i + 1
-            .Buffer(i) = ary(j + 1): i = i + 1
-            j = j - 2
-        Loop Until j < lb
     End With
 End Sub
 

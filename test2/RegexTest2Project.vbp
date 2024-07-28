@@ -13,7 +13,6 @@ Module=CommandLineParser; CommandLineParser.bas
 Module=RegexBytecode; ..\src\RegexBytecode.bas
 Module=RegexAst; ..\src\RegexAst.bas
 Module=RegexUnicodeSupport; ..\src\RegexUnicodeSupport.bas
-Module=RegexRangeConstants; ..\src\RegexRangeConstants.bas
 Module=RegexErrors; ..\src\RegexErrors.bas
 Module=ArrayBuffer; ..\src\ArrayBuffer.bas
 Module=RegexIdentifierSupport; ..\src\RegexIdentifierSupport.bas

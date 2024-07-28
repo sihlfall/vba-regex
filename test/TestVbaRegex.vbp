@@ -8,7 +8,6 @@ Module=RegexDfsMatcher; ..\src\RegexDfsMatcher.bas
 Module=TestDfsMatcher; TestDfsMatcher.bas
 Module=EmptyMain; EmptyMain.bas
 Module=RegexRanges; ..\src\RegexRanges.bas
-Module=RegexRangeConstants; ..\src\RegexRangeConstants.bas
 Module=TestRangeConstants; TestRangeConstants.bas
 Module=RegexUnicodeSupport; ..\src\RegexUnicodeSupport.bas
 Module=RegexBytecode; ..\src\RegexBytecode.bas

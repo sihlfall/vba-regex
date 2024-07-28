@@ -51,8 +51,6 @@ Public Const RETOK_ASSERT_START_POS_LOOKBEHIND As Long = 22
 Public Const RETOK_ASSERT_START_NEG_LOOKBEHIND As Long = 23
 Public Const RETOK_ATOM_END As Long = 24 ' closing parenthesis (ends (POS|NEG)_LOOK(AHEAD|BEHIND), CAPTURE_GROUP, NONCAPTURE_GROUP)
 
-Private EMPTY_RE_TOKEN As ReToken ' effectively a constant -- zeroed out by default
-
 ' Returned by input reading function after end of input has been reached
 ' Since our characters are 16 bit, converted to a positive Long value, and Long is 32 bit, -1 is free to use for us.
 Private Const LEXER_ENDOFINPUT As Long = -1
@@ -139,8 +137,8 @@ Public Sub ParseReToken(ByRef lexCtx As Ty, ByRef outToken As ReToken)
     ' Todo: remove
     Dim slp As RegexIdentifierSupport.StartLengthPair
 
-
-    outToken = EMPTY_RE_TOKEN
+    Dim emptyReToken As ReToken ' effectively a constant -- zeroed out by default
+    outToken = emptyReToken
 
     x = Advance(lexCtx)
     Select Case x
@@ -500,22 +498,22 @@ ContinueLoop:
             Case UNICODE_LC_U
                 ch = LexerParseEscapeU(lexCtx)
             Case UNICODE_LC_D
-                RegexRanges.EmitPredefinedRange outBuffer, RegexRangeConstants.RangeTableDigit
+                RegexRanges.EmitPredefinedRange outBuffer, RegexUnicodeSupport.StaticData, RegexUnicodeSupport.RANGE_TABLE_DIGIT_START, RegexUnicodeSupport.RANGE_TABLE_DIGIT_LENGTH
                 ch = -1
             Case UNICODE_UC_D
-                RegexRanges.EmitPredefinedRange outBuffer, RegexRangeConstants.RangeTableNotDigit
+                RegexRanges.EmitPredefinedRange outBuffer, RegexUnicodeSupport.StaticData, RegexUnicodeSupport.RANGE_TABLE_NOTDIGIT_START, RegexUnicodeSupport.RANGE_TABLE_NOTDIGIT_LENGTH
                 ch = -1
             Case UNICODE_LC_S
-                RegexRanges.EmitPredefinedRange outBuffer, RegexRangeConstants.RangeTableWhite
+                RegexRanges.EmitPredefinedRange outBuffer, RegexUnicodeSupport.StaticData, RegexUnicodeSupport.RANGE_TABLE_WHITE_START, RegexUnicodeSupport.RANGE_TABLE_WHITE_LENGTH
                 ch = -1
             Case UNICODE_UC_S
-                RegexRanges.EmitPredefinedRange outBuffer, RegexRangeConstants.RangeTableNotWhite
+                RegexRanges.EmitPredefinedRange outBuffer, RegexUnicodeSupport.StaticData, RegexUnicodeSupport.RANGE_TABLE_NOTWHITE_START, RegexUnicodeSupport.RANGE_TABLE_NOTWHITE_LENGTH
                 ch = -1
             Case UNICODE_LC_W
-                RegexRanges.EmitPredefinedRange outBuffer, RegexRangeConstants.RangeTableWordchar
+                RegexRanges.EmitPredefinedRange outBuffer, RegexUnicodeSupport.StaticData, RegexUnicodeSupport.RANGE_TABLE_WORDCHAR_START, RegexUnicodeSupport.RANGE_TABLE_WORDCHAR_LENGTH
                 ch = -1
             Case UNICODE_UC_W
-                RegexRanges.EmitPredefinedRange outBuffer, RegexRangeConstants.RangeTableNotWordChar
+                RegexRanges.EmitPredefinedRange outBuffer, RegexUnicodeSupport.StaticData, RegexUnicodeSupport.RANGE_TABLE_NOTWORDCHAR_START, RegexUnicodeSupport.RANGE_TABLE_NOTWORDCHAR_LENGTH
                 ch = -1
             Case Else
                 If x < 0 Then GoTo FailEscape

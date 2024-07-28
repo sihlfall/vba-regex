@@ -1,4 +1,4 @@
-# VbaRegex—A pure-VBA regular expression engine
+# VbaRegex—A regular expression engine written entirely in VBA
 
 ## Overview
 
@@ -39,7 +39,7 @@ exampleString = "On Jul-4-1776, independence was declared. " & _
 Dim regex As StaticRegex.RegexTy
 
 StaticRegex.InitializeRegex regex, _
-   "(?<month>\d{1,2})-(?<day>\d{1,2})-(?<year>\d{4})"
+   "(?<month>\w{3})-(?<day>\d{1,2})-(?<year>\d{4})"
 ```
 
 The regex itself is stateless—you can re-use it as often as you like.
@@ -146,7 +146,7 @@ cd aio
 
 This will create a file named `StaticRegexSingle.bas` in `aio\build\`, which you can then import into your project. For the module, you can choose whatever name you like, as long as it does not conflict with anything. The module you get will provide the same API as `StaticRegex.bas` does.
 
-The shell script does not do any parsing, but is based on simple copy/paste and search/replace, so do not expect the resulting file to be pretty.
+The shell script does not do any parsing, but is rather based on simple copy/paste and search/replace, so changes in the source code may require changes to the script.
 
 ## Tests
 
