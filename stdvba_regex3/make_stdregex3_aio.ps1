@@ -31,9 +31,8 @@ function ReadAndProcessHeaderComment {
         [string]$scriptName
     )
 
-    $lines = (Get-Content -Path $inFilePath)
-    $lines = $lines | ForEach-Object { $_ -replace "__SCRIPTNAME__", $scriptName }
-    return $lines
+    Get-Content -Path $inFilePath |
+        % { $_ -replace "__SCRIPTNAME__", $scriptName }
 }
 
 function SplitBeforeFirstSub {
@@ -67,46 +66,45 @@ function SplitBeforeFirstSub {
 
 function RemoveHeaderAndOptionAttributeLines {
     param (
-        [string[]]$lines
+        [Parameter(Mandatory=$true,ValueFromPipeline=$true)][AllowEmptyString()]
+        [string]$codeLine
     )
 
-    $beforeWithinOrAfterHeader = 0 # before header
-    $res = @()
-    foreach ($line in $lines) {
-        if ($beforeWithinOrAfterHeader -eq 1) {
-            if ($line -match "^END") { $beforeWithinOrAfterHeader = 2 } # after header
-            continue
-        }
-        if (($line -match "^VERSION") -and ($beforeWithinOrAfterHeader -eq 0)) {
-            $beforeWithinOrAfterHeader = 1 # inside header
-            continue
-        }
-        if ($line -match "^option") {
-            continue
-        }
-        if ($line -match "^attribute") {
-            continue
-        }
-        $res += $line
+    begin {
+        $beforeWithinOrAfterHeader = 0 # before header
     }
 
-    return $res
+    process {
+        if ($beforeWithinOrAfterHeader -eq 1) {
+            if ($codeLine -match "^END") { $beforeWithinOrAfterHeader = 2 } # after header
+        } elseif (($codeLine -match "^VERSION") -and ($beforeWithinOrAfterHeader -eq 0)) {
+            $beforeWithinOrAfterHeader = 1 # inside header
+        } elseif ($codeLine -match "^option") {
+        } elseif ($codeLine -match "^attribute") {
+        } else {
+            $codeLine
+        }
+    }
 }
 
 function RemoveTopLevelComments {
     param (
-        [string[]] $lines
+        [Parameter(Mandatory=$true,ValueFromPipeline=$true)][AllowEmptyString()]
+        [string]$codeLine
     )
-
-    return $lines | Where-Object { -not ($_ -match "^'") }
+    process {
+        if ($codeLine -match "^'") { } else { $codeLine }
+    }
 }
 
 function MakeEverythingPrivate {
     param (
-        [string[]] $lines
+        [Parameter(Mandatory=$true,ValueFromPipeline=$true)][AllowEmptyString()]
+        [string]$codeLine
     )
-
-    return $lines | ForEach-Object { [regex]::Replace($_, "^Public", "Private") }
+    process {
+        [regex]::Replace($codeLine, "^Public", "Private")
+    }
 }
 
 function ReadFileAndPerformCommonTasks {
@@ -117,58 +115,55 @@ function ReadFileAndPerformCommonTasks {
 #    $lines = MakeEverythingPrivate($lines)
     $parts = SplitBeforeFirstSub $lines
     return @(
-        (RemoveHeaderAndOptionAttributeLines $parts[0]),
+        ($parts[0] | RemoveHeaderAndOptionAttributeLines),
         $parts[1]
     )
 }
 
 function RemoveAllGlobalVariableDeclarations {
     param (
-        [string[]] $lines
+        [Parameter(Mandatory=$true,ValueFromPipeline=$true)][AllowEmptyString()]
+        [string]$codeLine
+    )
+    process {
+        if ($codeLine -match "^(Private|Public|Dim)\s+(?!(Const|Type|Sub|Function|Enum)\b)") { return }
+        $codeLine
+    }
+}
+        
+function CollapseSubsequentBlankLines {
+    param (
+        [Parameter(Mandatory=$true,ValueFromPipeline=$true)][AllowEmptyString()]
+        [string]$codeLine
     )
 
-    $res = @()
-    foreach ($line in $lines) {
-        if ($line -match "^(Private|Public|Dim)\s+(?!(Const|Type|Sub|Function|Enum)\b)") {
-            continue
-        }
-        $res += $line
+    begin {
+        $lastWasBlank = $false
     }
 
-    return $res
-}
-
-# This was mainly ChatGPT. Thank you, system!
-function ReplaceMultipleBlankLines {
-    param (
-        [string[]]$inputLines
-    )
-    
-    # Join the lines into a single string with newlines
-    $inputText = $inputLines -join "`n"
-    
-    # Use regex to replace multiple blank lines with a single blank line
-    $outputText = $inputText -replace '(\r?\n){3,}', "`n`n"
-    
-    # Split the resulting text back into an array of lines
-    $outputLines = $outputText -split "`n"
-    
-    return $outputLines
+    process {
+        if ($codeLine -match "^\s*$") {
+            if (-not $lastWasBlank) {
+                $lastWasBlank = $true
+                ""
+            }
+        } else {
+            $lastWasBlank = $false
+            $codeLine
+        }
+    }
 }
 
 function InsertBlankLineAfterEndSubAndEndFunction {
     param (
-        [string[]]$inputLines
+        [Parameter(Mandatory=$true,ValueFromPipeline=$true)][AllowEmptyString()]
+        [string]$codeLine
     )
     
-    $inputText = $inputLines -join "`n"
-    
-    $outputText = $inputText -replace '(?m)^\s*End (Sub|Function)\s*', "`$0`n"
-    
-    # Split the resulting text back into an array of lines
-    $outputLines = $outputText -split "`n"
-    
-    return $outputLines
+    process {
+        $codeLine
+        if ($codeLine -match '^\s*End (Sub|Function)') { "" }
+    }
 }
 
 function GetAllPublicProcedureNames {
@@ -198,10 +193,47 @@ function FindEndOfProcDeclarationLine {
     $idx
 }
 
+function WithProcedure {
+    param(
+        [Parameter(Mandatory=$true,ValueFromPipeline=$true)][AllowEmptyString()]
+        [string]$codeLine,
+        [Parameter(Mandatory=$true,Position=0)]
+        [string[]]$procedureNames,
+        [Parameter(Mandatory=$true,Position=1)]
+        [ScriptBlock]$scriptBlock
+    )
+        
+    begin {
+        $weAreWithinProc = $false
+        $procLines = @()
+        $procedureNamesDict = @{}
+        foreach ($procedureName in $procedureNames) { $procedureNamesDict[$procedureName] = 1 }
+    }
+
+    process {
+        if (-not $weAreWithinProc) {
+            [void] ($codeLine -match "^(?:Public|Private|Friend\s)\s*(?:Sub|Function)\s+([A-Za-z0-9_]+)\b")
+            $currentProcedureName = $matches[1]
+            if ($procedureNamesDict[$currentProcedureName]) {
+                $weAreWithinProc = $true
+                $procLines = @( $codeLine )
+            } else {
+                $codeLine
+            }
+        } else {
+            $procLines += $codeLine
+            if ($codeLine -match "^End\s+(Sub|Function)\b") {
+                $scriptBlock.InvokeWithContext($null, [psvariable]::new('_', $procLines))
+                $procLines = @()
+                $weAreWithinProc = $false
+            }
+        }
+    }
+}
+
+
 function CreateStandaloneStdRegex3 {
     if (-not $outFileName.EndsWith(".cls")) { $outFileName += ".cls" }
-
-#    $inDirPath = Join-Path -Path $PSScriptRoot -ChildPath "..\src"
 
 
     $single = @( @(), @() )
@@ -222,38 +254,6 @@ function CreateStandaloneStdRegex3 {
         $single[1] += $parts[1]
     }
 
-    function InProcedure {
-        param(
-            [string]$procedureName,
-            [ScriptBlock]$scriptBlock
-        )
-        
-        $codeLines = @($input)
-
-        $start = -1
-        $end = -1
-        $i = 0
-        for (; $i -lt $codeLines.Length; ++$i) {
-            $line = $codeLines[$i]
-            if ($line -match "^(Public|Private|Friend\s)\s*(Sub|Function)\s+$procedureName\b") {
-                $start = $i
-                break
-            }
-        }
-        if ($start -lt 0) { return $codeLines }
-        for (; $i -lt $codeLines.Length; ++$i) {
-            $line = $codeLines[$i]
-            if ($line -match "^End\s+(Sub|Function)\b") {
-                $end = $i
-                break
-            }
-        }
-        if ($end -lt 0) { return $codeLines }
-
-        $newCode = $scriptBlock.InvokeWithContext($null, [psvariable]::new('lines', $codeLines[$start..$end]))
-
-        return $codeLines[0..($start - 1)] + $newCode + $codeLines[($end + 1)..($codeLines.Length - 1)]
-    }
 
     function MakeProcFriend {
         param(
@@ -269,27 +269,33 @@ function CreateStandaloneStdRegex3 {
     $publicStaticRegexRenameMap = @{}
     function StubbornlyRenameStaticRegexProcs {
         param(
-            [string[]]$lines,
-            [bool]$prefixed = $false
+            [Parameter(Mandatory=$true,ValueFromPipeline=$true)][AllowEmptyString()]
+            [string]$codeLine,
+            [switch]$prefixed = $false
         )
-        $prefixToRemove = ""; if ($prefixed) { $prefixToRemove = 'StaticRegex\.' }
-        $prefixToAdd = ""; if ($prefixed) { $prefixToAdd = 'stdRegex3.' }
-        $lines | ForEach-Object {
+
+        begin {
+            $prefixToRemove = ""; if ($prefixed) { $prefixToRemove = 'StaticRegex\.' }
+            $prefixToAdd = ""; if ($prefixed) { $prefixToAdd = 'stdRegex3.' }
+        }
+
+        process {
             foreach ($procName in $publicStaticRegexProcNames) {
-                $_ = $_ -replace "\b$prefixToRemove$procName\b", ($prefixToAdd + $publicStaticRegexRenameMap[$procName])
+                $codeline = $codeLine -replace "\b$prefixToRemove$procName\b", ($prefixToAdd + $publicStaticRegexRenameMap[$procName])
             }
-            $_
+            $codeLIne
         }
     }
 
     ProcessFile "./build/StaticRegexSingle.bas" {
         $varPart = $_[0]; $procPart = $_[1]
 
-        $varPart = RemoveTopLevelComments $varPart
-        $varPart = RemoveAllGlobalVariableDeclarations $varPart
-        $varPart = MakeEverythingPrivate $varPart
+        $varPart = $varPart |
+            RemoveTopLevelComments |
+            RemoveAllGlobalVariableDeclarations |
+            MakeEverythingPrivate
 
-        $procPart = RemoveTopLevelComments $procPart
+        $procPart = $procPart | RemoveTopLevelComments
 
         # gather proc names to be renamed
         Set-Variable -scope 2 -Name "publicStaticRegexProcNames" -Value (GetAllPublicProcedureNames $procPart)
@@ -300,7 +306,9 @@ function CreateStandaloneStdRegex3 {
 
         foreach ($procName in $publicStaticRegexProcNames) {
             $procPart = MakeProcFriend $procPart $procName
-            $procPart = $procPart | InProcedure $procName {
+            $procPart = $procPart | WithProcedure $procName {
+                $lines = $_
+
                 if ($lines.Length -gt 1) {
                     [void]($lines[0] -match "Function|Sub"); $functionOrSub = $matches[0]
                     $endOfDeclarationIdx = FindEndOfProcDeclarationLine($lines) + 1
@@ -320,45 +328,51 @@ function CreateStandaloneStdRegex3 {
             }
         }
 
-        # remove procedures which we do not *want* to see in the class module
         $procPart = $procPart |
-            InProcedure "UnicodeInitialize" { @() } |
-            InProcedure "RangeTablesInitialize" { @() } |
-            InProcedure "AstTableInitialize" { @() }
 
-        # remove procedures that are currently not used (but could be in the future)
-        $procPart = $procPart |
-            InProcedure "InitializeMatcherState" { @() } |
-            InProcedure "ResetMatcherState" { @() } |
-            InProcedure "GetCapture" { @() } |
-            InProcedure "GetCaptureByName" { @() } |
-            InProcedure "TryInitializeRegex" { @() }
+            # remove procedures ... 
+            WithProcedure (
+                # ... which we do not *want* to see in the class module
+                "UnicodeInitialize",
+                "RangeTablesInitialize",
+                "AstTableInitialize",
 
-        $procPart = $procPart | InProcedure "AstToBytecode" {
-            $lines | ForEach-Object { if($_ -match "If Not astTableInitialized Then") { "'" + $_ } else { $_ } }
-        }
-        $procPart = $procPart | InProcedure "Compile" {
-            $lines | ForEach-Object {
-                if($_ -match "If Not (UnicodeInitialized|RangeTablesInitialized) Then") { "'" + $_ } else { $_ }
+                # ... or which are currently not being used (but could be in the future)
+                "InitializeMatcherState",
+                "ResetMatcherState",
+                "GetCapture",
+                "GetCaptureByName",
+                "TryInitializeRegex"
+            ) { } |
+
+            # remove instructions initializing StaticData, as we will be doing this in Class_Initialize
+            WithProcedure "AstToBytecode" {
+                $_ | ForEach-Object { if($_ -match "If Not astTableInitialized Then") { } else { $_ } }
+            } |
+            WithProcedure "Compile" {
+                $_ | ForEach-Object {
+                    if($_ -match "If Not (UnicodeInitialized|RangeTablesInitialized) Then") { } else { $_ }
+                }
+            } |
+
+            # static data will be stored in the regex.bytecode field of the class instance
+            WithProcedure (
+                "PrepareStackAndBytecodeBuffer",
+                "ReCanonicalizeChar",
+                "RegexpGenerateRanges",
+                "ParseReRanges",
+                "Parse"
+            ) {
+                $_ | ForEach-Object { $_ -replace "StaticData", "This.regex.bytecode" }
+            } |
+
+            # rename procedures of the static API, as they will conflict with the method names of our object;
+            # since these procedures should not be called from lower-level functions, restrict the renaming
+            # to the API procedures, to reduce artifacts
+            WithProcedure $publicStaticRegexProcNames {
+                $_ | StubbornlyRenameStaticRegexProcs
             }
-        }
-        $procPart = $procPart | InProcedure "PrepareStackAndBytecodeBuffer" {
-            $lines | ForEach-Object { $_ -replace "StaticData", "This.regex.bytecode" }
-        }
-        $procPart = $procPart | InProcedure "ReCanonicalizeChar" {
-            $lines | ForEach-Object { $_ -replace "StaticData", "This.regex.bytecode" }
-        }
-        $procPart = $procPart | InProcedure "RegexpGenerateRanges" {
-            $lines | ForEach-Object { $_ -replace "StaticData", "This.regex.bytecode" }
-        }
-        $procPart = $procPart | InProcedure "ParseReRanges" {
-            $lines | ForEach-Object { $_ -replace "StaticData", "This.regex.bytecode" }
-        }
-        $procPart = $procPart | InProcedure "Parse" {
-            $lines | ForEach-Object { $_ -replace "StaticData", "This.regex.bytecode" }
-        }
 
-        $procPart = StubbornlyRenameStaticRegexProcs $procPart
         $_[0] = $varPart; $_[1] = $procPart
     }
 
@@ -367,6 +381,7 @@ function CreateStandaloneStdRegex3 {
         "",
         "Private Sub Class_Initialize()",
         "    If Me Is stdRegex3 Then",
+        "        ' We use the otherwise unused .regex.bytecode field of the class instance to store the static data.",
         "        ReDim This.regex.bytecode(0 To STATIC_DATA_LENGTH - 1) As Long",
         "        InitializeUnicodeCanonLookupTable This.regex.bytecode",
         "        InitializeUnicodeCanonRunsTable This.regex.bytecode",
@@ -381,53 +396,45 @@ function CreateStandaloneStdRegex3 {
     ProcessFile "./stdRegex3.cls" {
         $varPart = $_[0]; $procPart = $_[1]
 
-        $varPart = RemoveTopLevelComments $varPart
-
-        $varPart = $varPart | ForEach-Object {
-            $_ -replace "\bStaticRegex\.", ""
-        }
-
-        $procPart = StubbornlyRenameStaticRegexProcs $procPart -prefixed $true
-        $procPart = $procPart | ForEach-Object {
-            $_ -replace "\b(StaticRegex|Regex(Bytecode|Errors|DfsMatcher))\.", ""
-        }
+        $varPart = $varPart |
+            RemoveTopLevelComments |
+            ForEach-Object { $_ -replace "\bStaticRegex\.", "" }
+        $procPart = $procPart | StubbornlyRenameStaticRegexProcs -prefixed |
+            ForEach-Object { $_ -replace "\b(StaticRegex|Regex(Bytecode|Errors|DfsMatcher))\.", "" }
 
         $_[0] = $varPart; $_[1] = $procPart
     }
 
+    $commentSnippetPath = Join-Path -Path $PSScriptRoot -ChildPath ".\HeaderCommentStdRegex3Standalone.bas"
+    $headerComment = ReadAndProcessHeaderComment -inFilePath $commentSnippetPath -scriptName (Split-Path -Path $MyInvocation.PSCommandPath -Leaf)
 
-    $complete = @()
+    $complete = @(
+            "VERSION 1.0 CLASS",
+            "BEGIN",
+            "  MultiUse = -1  'True",
+            "  Persistable = 0  'NotPersistable",
+            "  DataBindingBehavior = 0  'vbNone",
+            "  DataSourceBehavior  = 0  'vbNone",
+            "  MTSTransactionMode  = 0  'NotAnMTSObject",
+            "END",
+            "Attribute VB_Name=""stdRegex3""",
+            "Attribute VB_GlobalNameSpace = False",
+            "Attribute VB_Creatable = True",
+            "Attribute VB_PredeclaredId = True",
+            "Attribute VB_Exposed = False"
+        )
+    $complete += $headerComment
     $complete += @(
-        "Option Explicit",
-        "",
-        ""
-    )
+            "Option Explicit",
+            "",
+            ""
+        )
     $complete += $single[0]
     $complete += $single[1]
 
-    $complete = InsertBlankLineAfterEndSubAndEndFunction($complete)
-    $complete = ReplaceMultipleBlankLines($complete)
-
-
-    $commentSnippetPath = Join-Path -Path $PSScriptRoot -ChildPath ".\HeaderCommentStdRegex3Standalone.bas"
-    $headerComment = ReadAndProcessHeaderComment -inFilePath $commentSnippetPath -scriptName (Split-Path -Path $MyInvocation.PSCommandPath -Leaf)
-    $complete = $headerComment + $complete
-
-    $complete = @(
-        "VERSION 1.0 CLASS",
-        "BEGIN",
-        "  MultiUse = -1  'True",
-        "  Persistable = 0  'NotPersistable",
-        "  DataBindingBehavior = 0  'vbNone",
-        "  DataSourceBehavior  = 0  'vbNone",
-        "  MTSTransactionMode  = 0  'NotAnMTSObject",
-        "END",
-        "Attribute VB_Name=""stdRegex3""",
-        "Attribute VB_GlobalNameSpace = False",
-        "Attribute VB_Creatable = True",
-        "Attribute VB_PredeclaredId = True",
-        "Attribute VB_Exposed = False"
-    ) + $complete
+    $complete = $complete |
+        InsertBlankLineAfterEndSubAndEndFunction |
+        CollapseSubsequentBlankLines
 
     Set-Content -Path (Join-Path -Path $outDirPath -ChildPath $outFileName) -Value $complete > $null
 }
