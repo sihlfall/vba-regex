@@ -26,6 +26,7 @@ Module=StaticRegex; ..\src\StaticRegex.bas
 Module=TestStaticRegex; ..\test\TestStaticRegex.bas
 Module=ArrayBuffer; ..\src\ArrayBuffer.bas
 Module=TestArrayBuffer; ..\test\TestArrayBuffer.bas
+Module=RegexNumericConstants; ..\src\RegexNumericConstants.bas
 Startup="Sub Main"
 Command32=""
 Name="TestStdVBARegex3"
