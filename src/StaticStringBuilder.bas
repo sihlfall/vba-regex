@@ -20,8 +20,10 @@ Attribute VB_Name = "StaticStringBuilder"
 '
 Option Explicit
 
-' Must be at least 2.
-Public Const DEFAULT_MINIMUM_CAPACITY As Long = 16
+Public Enum StaticStringBuilderConstant
+    ' Must be at least 2.
+    STATIC_STRING_BUILDER_DEFAULT_MINIMUM_CAPACITY = 16
+End Enum
 
 ' The StaticStringBuilder type.
 ' Best do not access its fields directly, but rather use the below subroutines.
@@ -95,7 +97,7 @@ Private Sub SwitchToLargerBuffer(ByRef sb As Ty, ByVal nRequired As Long)
     ' Copy string over to the new buffer.
     ' Deallocate the old buffer.
     With sb
-        If .MinimumCapacity <= 1 Then .MinimumCapacity = DEFAULT_MINIMUM_CAPACITY
+        If .MinimumCapacity <= 1 Then .MinimumCapacity = STATIC_STRING_BUILDER_DEFAULT_MINIMUM_CAPACITY
         If .Capacity < .MinimumCapacity Then .Capacity = .MinimumCapacity
         Do
             If .Capacity >= nRequired Then Exit Do

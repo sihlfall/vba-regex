@@ -1,69 +1,56 @@
 Attribute VB_Name = "RegexAst"
 Option Explicit
 
-' Guarantee: All AST_ASSERT_LOOKAHEAD and LOOKBEHIND constants are > 0.
-'   Parser relies on this.
-Public Const MIN_AST_CODE As Long = 0
+Public Enum AstNodeType
+    ' We guarantee: All AST_ constants are > 0.
+    ' ! The parser relies on AST_ASSERT_LOOKAHEAD and LOOKBEHIND being > 0.
+    MIN_AST_CODE = 0
+    AST_EMPTY = 0
+    AST_STRING = 1
+    AST_DISJ = 2
+    AST_CONCAT = 3
+    AST_CHAR = 4
+    AST_CAPTURE = 5
+    AST_REPEAT_EXACTLY = 6
+    AST_PERIOD = 7
+    AST_ASSERT_START = 8
+    AST_ASSERT_END = 9
+    AST_ASSERT_WORD_BOUNDARY = 10
+    AST_ASSERT_NOT_WORD_BOUNDARY = 11
+    AST_MATCH = 12
+    AST_ZEROONE_GREEDY = 13
+    AST_ZEROONE_HUMBLE = 14
+    AST_STAR_GREEDY = 15
+    AST_STAR_HUMBLE = 16
+    AST_REPEAT_MAX_GREEDY = 17
+    AST_REPEAT_MAX_HUMBLE = 18
+    AST_RANGES = 19
+    AST_INVRANGES = 20
+    AST_ASSERT_POS_LOOKAHEAD = 21
+    AST_ASSERT_NEG_LOOKAHEAD = 22
+    AST_ASSERT_POS_LOOKBEHIND = 23
+    AST_ASSERT_NEG_LOOKBEHIND = 24
+    AST_FAIL = 25
+    AST_BACKREFERENCE = 26
+    AST_NAMED = 27
+    MAX_AST_CODE = 27
+End Enum
 
-Public Const AST_EMPTY As Long = 0
-Public Const AST_STRING As Long = 1
-Public Const AST_DISJ As Long = 2
-Public Const AST_CONCAT As Long = 3
-Public Const AST_CHAR As Long = 4
-Public Const AST_CAPTURE As Long = 5
-Public Const AST_REPEAT_EXACTLY As Long = 6
-Public Const AST_PERIOD As Long = 7
-Public Const AST_ASSERT_START As Long = 8
-Public Const AST_ASSERT_END As Long = 9
-Public Const AST_ASSERT_WORD_BOUNDARY As Long = 10
-Public Const AST_ASSERT_NOT_WORD_BOUNDARY As Long = 11
-Public Const AST_MATCH As Long = 12
-Public Const AST_ZEROONE_GREEDY As Long = 13
-Public Const AST_ZEROONE_HUMBLE As Long = 14
-Public Const AST_STAR_GREEDY As Long = 15
-Public Const AST_STAR_HUMBLE As Long = 16
-Public Const AST_REPEAT_MAX_GREEDY As Long = 17
-Public Const AST_REPEAT_MAX_HUMBLE As Long = 18
-Public Const AST_RANGES As Long = 19
-Public Const AST_INVRANGES As Long = 20
-Public Const AST_ASSERT_POS_LOOKAHEAD As Long = 21
-Public Const AST_ASSERT_NEG_LOOKAHEAD As Long = 22
-Public Const AST_ASSERT_POS_LOOKBEHIND As Long = 23
-Public Const AST_ASSERT_NEG_LOOKBEHIND As Long = 24
-Public Const AST_FAIL As Long = 25
-Public Const AST_BACKREFERENCE As Long = 26
-Public Const AST_NAMED As Long = 27
+Private Enum AstNodeDescriptionConstant
+    NODE_TYPE = 0
+    NODE_LCHILD = 1
+    NODE_RCHILD = 2
+End Enum
 
-Public Const MAX_AST_CODE As Long = 27
-
-Private Const LONGTYPE_FIRST_BIT As Long = &H80000000
-Private Const LONGTYPE_ALL_BUT_FIRST_BIT As Long = Not LONGTYPE_FIRST_BIT
-
-Private Const NODE_TYPE As Long = 0
-Private Const NODE_LCHILD As Long = 1
-Private Const NODE_RCHILD As Long = 2
-
-' The initial stack capacity must be >= 2 * max([1 + entry.esfs for entry in AST_TABLE]),
-'   since when increasing the stack capacity, we increase by (current size \ 2) and
-'   we assume that this will be sufficient for the next stack frame.
-Private Const INITIAL_STACK_CAPACITY As Long = 8 '16
-
-Private Const AST_TABLE_OFFSET_NC As Long = 0
-Private Const AST_TABLE_OFFSET_BLEN As Long = 1
-Private Const AST_TABLE_OFFSET_ESFS As Long = 2
-Private Const AST_TABLE_ENTRY_LENGTH As Long = 3
-
-Public Const AST_TABLE_LENGTH As Long = AST_TABLE_ENTRY_LENGTH * (MAX_AST_CODE + 1)
+Public Enum AstTableDescriptionConstant
+    AST_TABLE_OFFSET_NC = 0
+    AST_TABLE_OFFSET_BLEN = 1
+    AST_TABLE_OFFSET_ESFS = 2
+    AST_TABLE_ENTRY_LENGTH = 3
+    AST_TABLE_LENGTH = AST_TABLE_ENTRY_LENGTH * (MAX_AST_CODE + 1)
+End Enum
 
 Private astTableInitialized As Boolean ' default-initialized to False
-
-' nc: number of children; negative values have special meaning
-'   -2: is AST_STRING
-'   -1: is AST_RANGES or AST_INVRANGES
-' blen: length of bytecode generated for this node (meaningful only if .nc >= 0)
-' esfs: extra stack space required when generating bytecode for this node
-'   Only nodes with children are permitted to require extra stack space.
-'   Hence .esfs > 0 must imply .nc >= 1.
 
 Public Sub AstTableInitialize()
     InitializeAstTable RegexUnicodeSupport.StaticData
@@ -75,6 +62,17 @@ Private Sub InitializeAstTable(ByRef t() As Long)
     Const blen As Long = b + AST_TABLE_OFFSET_BLEN
     Const esfs As Long = b + AST_TABLE_OFFSET_ESFS
     Const e As Long = AST_TABLE_ENTRY_LENGTH
+    
+    ' nc: number of children; negative values have special meaning
+    '   -2: is AST_STRING
+    '   -1: is AST_RANGES or AST_INVRANGES
+    ' blen: length of bytecode generated for this node (meaningful only if .nc >= 0)
+    ' esfs: extra stack space required when generating bytecode for this node
+    '   Only nodes with children are permitted to require extra stack space.
+    '   Hence .esfs > 0 must imply .nc >= 1.
+    
+    ' ! When adding new entries, make sure to adjust BYTECODE_GENERATOR_INITIAL_STACK_CAPACITY below, if necessary!
+    ' ! See comment on BYTECODE_GENERATOR_INITIAL_STACK_CAPACITY below.
     
     t(nc + e * AST_EMPTY) = 0:                    t(blen + e * AST_EMPTY) = 0:                        t(esfs + e * AST_EMPTY) = 0
     t(nc + e * AST_STRING) = -2:                  t(blen + e * AST_STRING) = 2:                       t(esfs + e * AST_STRING) = 0
@@ -111,7 +109,7 @@ Public Sub AstToBytecode(ByRef ast() As Long, ByRef identifierTree As RegexIdent
     Dim curNode As Long, prevNode As Long
     Dim stack() As Long, sp As Long
     Dim direction As Long ' 0 = left before right, -1 = right before left
-    Dim returningFromFirstChild As Long ' 0 = no, LONGTYPE_FIRST_BIT = yes
+    Dim returningFromFirstChild As Long ' 0 = no, RegexNumericConstants.LONG_FIRST_BIT = yes
     
     ' temporaries, do not survive over more than one iteration
     Dim opcode1 As Long, opcode2 As Long, opcode3 As Long, tmp As Long, tmpCnt As Long, _
@@ -357,27 +355,32 @@ TurnToParent:
     prevNode = curNode
     If sp = 0 Then GoTo BreakLoop
     sp = sp - 1: tmp = stack(sp)
-    curNode = tmp And LONGTYPE_ALL_BUT_FIRST_BIT: returningFromFirstChild = tmp And LONGTYPE_FIRST_BIT
+    curNode = tmp And RegexNumericConstants.LONG_ALL_BUT_FIRST_BIT
+    returningFromFirstChild = tmp And RegexNumericConstants.LONG_FIRST_BIT
     GoTo ContinueLoop
 TurnToLeftChild:
     prevNode = curNode
-    stack(sp) = curNode Or LONGTYPE_FIRST_BIT: sp = sp + 1
-    curNode = ast(curNode + NODE_LCHILD): returningFromFirstChild = 0
+    stack(sp) = curNode Or RegexNumericConstants.LONG_FIRST_BIT: sp = sp + 1
+    curNode = ast(curNode + NODE_LCHILD)
+    returningFromFirstChild = 0
     GoTo ContinueLoop
 TurnToRightChild:
     prevNode = curNode
     stack(sp) = curNode: sp = sp + 1
-    curNode = ast(curNode + NODE_RCHILD): returningFromFirstChild = 0
+    curNode = ast(curNode + NODE_RCHILD)
+    returningFromFirstChild = 0
     GoTo ContinueLoop
 TurnToFirstChild:
     prevNode = curNode
-    stack(sp) = curNode Or LONGTYPE_FIRST_BIT: sp = sp + 1
-    curNode = ast(curNode + NODE_LCHILD - direction): returningFromFirstChild = 0
+    stack(sp) = curNode Or RegexNumericConstants.LONG_FIRST_BIT: sp = sp + 1
+    curNode = ast(curNode + NODE_LCHILD - direction)
+    returningFromFirstChild = 0
     GoTo ContinueLoop
 TurnToSecondChild:
     prevNode = curNode
     stack(sp) = curNode: sp = sp + 1
-    curNode = ast(curNode + NODE_RCHILD + direction): returningFromFirstChild = 0
+    curNode = ast(curNode + NODE_RCHILD + direction)
+    returningFromFirstChild = 0
     GoTo ContinueLoop
     
 BreakLoop:
@@ -392,10 +395,15 @@ Private Sub PrepareStackAndBytecodeBuffer(ByRef ast() As Long, ByRef identifierT
     Dim sp As Long, prevNode As Long, curNode As Long, esfs As Long, stackCapacity As Long
     Dim tmp As Long, astTableIdx As Long
     Dim bytecodeLength As Long
-    Dim returningFromFirstChild As Long ' 0 = no, LONGTYPE_FIRST_BIT = yes
+    Dim returningFromFirstChild As Long ' 0 = no, RegexNumericConstants.LONG_FIRST_BIT = yes
     
-    stackCapacity = INITIAL_STACK_CAPACITY
-    ReDim stack(0 To INITIAL_STACK_CAPACITY - 1) As Long
+    ' The initial stack capacity must be >= 2 * max([1 + entry.esfs for entry in AST_TABLE]),
+    '   since when increasing the stack capacity, we increase by (current size \ 2) and
+    '   we assume that this will be sufficient for the next stack frame.
+    Const BYTECODE_GENERATOR_INITIAL_STACK_CAPACITY As Long = 8
+    
+    stackCapacity = BYTECODE_GENERATOR_INITIAL_STACK_CAPACITY
+    ReDim stack(0 To BYTECODE_GENERATOR_INITIAL_STACK_CAPACITY - 1) As Long
 
     sp = 0
     
@@ -444,7 +452,7 @@ TurnToParent:
     If sp = 0 Then GoTo BreakLoop
     prevNode = curNode
     sp = sp - 1: tmp = stack(sp)
-    returningFromFirstChild = tmp And LONGTYPE_FIRST_BIT: curNode = tmp And LONGTYPE_ALL_BUT_FIRST_BIT
+    returningFromFirstChild = tmp And RegexNumericConstants.LONG_FIRST_BIT: curNode = tmp And RegexNumericConstants.LONG_ALL_BUT_FIRST_BIT
     GoTo ContinueLoop
 TurnToLeftChild:
     If sp >= stackCapacity - esfs Then
@@ -452,7 +460,7 @@ TurnToLeftChild:
         ReDim Preserve stack(0 To stackCapacity - 1) As Long
     End If
     prevNode = curNode
-    sp = sp + esfs: stack(sp) = curNode Or LONGTYPE_FIRST_BIT: sp = sp + 1
+    sp = sp + esfs: stack(sp) = curNode Or RegexNumericConstants.LONG_FIRST_BIT: sp = sp + 1
     returningFromFirstChild = 0: curNode = ast(curNode + NODE_LCHILD)
     GoTo ContinueLoop
 TurnToRightChild:

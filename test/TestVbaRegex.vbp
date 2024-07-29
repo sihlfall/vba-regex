@@ -22,6 +22,7 @@ Module=ArrayBuffer; ..\src\ArrayBuffer.bas
 Module=StaticRegex; ..\src\StaticRegex.bas
 Module=TestArrayBuffer; TestArrayBuffer.bas
 Module=TestStaticRegex; TestStaticRegex.bas
+Module=RegexNumericConstants; ..\src\RegexNumericConstants.bas
 Startup="Sub Main"
 HelpFile=""
 Command32=""

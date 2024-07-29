@@ -1,15 +1,19 @@
 Attribute VB_Name = "RegexBytecode"
 Option Explicit
 
-Public Const BYTECODE_IDX_MAX_PROPER_CAPTURE_SLOT As Long = 0
-Public Const BYTECODE_IDX_N_IDENTIFIERS As Long = 1
-Public Const BYTECODE_IDX_CASE_INSENSITIVE_INDICATOR As Long = 2
-Public Const BYTECODE_IDENTIFIER_MAP_BEGIN As Long = 3
-Public Const BYTECODE_IDENTIFIER_MAP_ENTRY_SIZE As Long = 3
-Public Const BYTECODE_IDENTIFIER_MAP_ENTRY_START_IN_PATTERN As Long = 0
-Public Const BYTECODE_IDENTIFIER_MAP_ENTRY_LENGTH_IN_PATTERN As Long = 1
-Public Const BYTECODE_IDENTIFIER_MAP_ENTRY_ID As Long = 2
-
+Public Enum BytecodeDescriptionConstant
+    BYTECODE_IDX_MAX_PROPER_CAPTURE_SLOT = 0
+    BYTECODE_IDX_N_IDENTIFIERS = 1
+    BYTECODE_IDX_CASE_INSENSITIVE_INDICATOR = 2
+    BYTECODE_IDENTIFIER_MAP_BEGIN = 3
+    BYTECODE_IDENTIFIER_MAP_ENTRY_SIZE = 3
+    BYTECODE_IDENTIFIER_MAP_ENTRY_START_IN_PATTERN = 0
+    BYTECODE_IDENTIFIER_MAP_ENTRY_LENGTH_IN_PATTERN = 1
+    BYTECODE_IDENTIFIER_MAP_ENTRY_ID = 2
+    
+    ' Todo: Introduce special value or restrict max. explicit quantifier value to RegexNumericConstants.LONG_MAX - 1
+    RE_QUANTIFIER_INFINITE = &H7FFFFFFF
+End Enum
 
 ' regexp opcodes
 Public Enum ReOpType
@@ -45,9 +49,6 @@ Public Enum ReOpType
     REOP_END_LOOKNEG = 32 ' <none>
     REOP_FAIL = 33
 End Enum
-
-' Todo: Introduce special value or restrict max. explicit quantifier value to MAX_LONG - 1
-Public Const RE_QUANTIFIER_INFINITE As Long = &H7FFFFFFF
 
 Public Function isCaseInsensitive(ByRef bytecode() As Long) As Boolean
     isCaseInsensitive = bytecode(BYTECODE_IDX_CASE_INSENSITIVE_INDICATOR) <> 0

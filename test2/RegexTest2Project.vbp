@@ -17,6 +17,7 @@ Module=RegexErrors; ..\src\RegexErrors.bas
 Module=ArrayBuffer; ..\src\ArrayBuffer.bas
 Module=RegexIdentifierSupport; ..\src\RegexIdentifierSupport.bas
 Module=StaticStringBuilder; ..\src\StaticStringBuilder.bas
+Module=RegexNumericConstants; ..\src\RegexNumericConstants.bas
 Startup="Sub Main"
 HelpFile=""
 Title="RegexTest2Project"

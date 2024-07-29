@@ -1,15 +1,16 @@
 Attribute VB_Name = "RegexReplace"
 Option Explicit
-Option Private Module
 
-Public Const REPL_END As Long = 0
-Public Const REPL_DOLLAR As Long = 1
-Public Const REPL_SUBSTR As Long = 2
-Public Const REPL_PREFIX As Long = 3
-Public Const REPL_SUFFIX As Long = 4
-Public Const REPL_ACTUAL As Long = 5
-Public Const REPL_NUMBERED As Long = 6
-Public Const REPL_NAMED As Long = 7
+Public Enum ReplType
+    REPL_END = 0
+    REPL_DOLLAR = 1
+    REPL_SUBSTR = 2
+    REPL_PREFIX = 3
+    REPL_SUFFIX = 4
+    REPL_ACTUAL = 5
+    REPL_NUMBERED = 6
+    REPL_NAMED = 7
+End Enum
 
 Public Sub ParseFormatString(ByRef parsedFormat As ArrayBuffer.Ty, ByRef formatString As String, ByRef bytecode() As Long, ByRef pattern As String)
     Dim curPos As Long, lastPos As Long, c As Long, formatStringLen As Long, num As Long, substrLen As Long, identifierId As Long
@@ -22,8 +23,6 @@ Public Sub ParseFormatString(ByRef parsedFormat As ArrayBuffer.Ty, ByRef formatS
     Const UNICODE_LT As Long = 60
     Const UNICODE_BACKTICK As Long = 96
     Const UNICODE_TILDE As Long = 126
-    Const MAX_LONG As Long = &H7FFFFFFF
-    Const MAX_LONG_DIV_10 As Long = &H7FFFFFFF \ 10
     
     
     formatStringLen = Len(formatString)
@@ -74,12 +73,12 @@ Public Sub ParseFormatString(ByRef parsedFormat As ArrayBuffer.Ty, ByRef formatS
                 If c > UNICODE_DIGIT_9 Then GoTo InvalidReplacementString
                 num = 0
                 Do
-                    If num > MAX_LONG_DIV_10 Then GoTo InvalidReplacementString
+                    If num > RegexNumericConstants.LONG_MAX_DIV_10 Then GoTo InvalidReplacementString
                     
                     num = 10 * num
                     c = c - UNICODE_DIGIT_0
                     
-                    If num > MAX_LONG - c Then GoTo InvalidReplacementString
+                    If num > RegexNumericConstants.LONG_MAX - c Then GoTo InvalidReplacementString
                     
                     num = num + c
                     

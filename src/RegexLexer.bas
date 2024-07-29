@@ -25,87 +25,88 @@ Public Type ReToken
     qmax As Long
 End Type
 
-Public Const RETOK_EOF As Long = 0
-Public Const RETOK_DISJUNCTION As Long = 1
-Public Const RETOK_QUANTIFIER As Long = 2
-Public Const RETOK_ASSERT_START As Long = 3
-Public Const RETOK_ASSERT_END As Long = 4
-Public Const RETOK_ASSERT_WORD_BOUNDARY As Long = 5
-Public Const RETOK_ASSERT_NOT_WORD_BOUNDARY As Long = 6
-Public Const RETOK_ASSERT_START_POS_LOOKAHEAD As Long = 7
-Public Const RETOK_ASSERT_START_NEG_LOOKAHEAD As Long = 8
-Public Const RETOK_ATOM_PERIOD As Long = 9
-Public Const RETOK_ATOM_CHAR As Long = 10
-Public Const RETOK_ATOM_DIGIT As Long = 11                   ' assumptions in regexp compiler
-Public Const RETOK_ATOM_NOT_DIGIT As Long = 12               ' -""-
-Public Const RETOK_ATOM_WHITE As Long = 13                   ' -""-
-Public Const RETOK_ATOM_NOT_WHITE As Long = 14               ' -""-
-Public Const RETOK_ATOM_WORD_CHAR As Long = 15               ' -""-
-Public Const RETOK_ATOM_NOT_WORD_CHAR As Long = 16           ' -""-
-Public Const RETOK_ATOM_BACKREFERENCE As Long = 17
-Public Const RETOK_ATOM_START_CAPTURE_GROUP As Long = 18
-Public Const RETOK_ATOM_START_NONCAPTURE_GROUP As Long = 19
-Public Const RETOK_ATOM_START_CHARCLASS As Long = 20
-Public Const RETOK_ATOM_START_CHARCLASS_INVERTED As Long = 21
-Public Const RETOK_ASSERT_START_POS_LOOKBEHIND As Long = 22
-Public Const RETOK_ASSERT_START_NEG_LOOKBEHIND As Long = 23
-Public Const RETOK_ATOM_END As Long = 24 ' closing parenthesis (ends (POS|NEG)_LOOK(AHEAD|BEHIND), CAPTURE_GROUP, NONCAPTURE_GROUP)
+Public Enum TokenTypeIdType
+    RETOK_EOF = 0
+    RETOK_DISJUNCTION = 1
+    RETOK_QUANTIFIER = 2
+    RETOK_ASSERT_START = 3
+    RETOK_ASSERT_END = 4
+    RETOK_ASSERT_WORD_BOUNDARY = 5
+    RETOK_ASSERT_NOT_WORD_BOUNDARY = 6
+    RETOK_ASSERT_START_POS_LOOKAHEAD = 7
+    RETOK_ASSERT_START_NEG_LOOKAHEAD = 8
+    RETOK_ATOM_PERIOD = 9
+    RETOK_ATOM_CHAR = 10
+    RETOK_ATOM_DIGIT = 11                   ' assumptions in regexp compiler
+    RETOK_ATOM_NOT_DIGIT = 12               ' -""-
+    RETOK_ATOM_WHITE = 13                   ' -""-
+    RETOK_ATOM_NOT_WHITE = 14               ' -""-
+    RETOK_ATOM_WORD_CHAR = 15               ' -""-
+    RETOK_ATOM_NOT_WORD_CHAR = 16           ' -""-
+    RETOK_ATOM_BACKREFERENCE = 17
+    RETOK_ATOM_START_CAPTURE_GROUP = 18
+    RETOK_ATOM_START_NONCAPTURE_GROUP = 19
+    RETOK_ATOM_START_CHARCLASS = 20
+    RETOK_ATOM_START_CHARCLASS_INVERTED = 21
+    RETOK_ASSERT_START_POS_LOOKBEHIND = 22
+    RETOK_ASSERT_START_NEG_LOOKBEHIND = 23
+    RETOK_ATOM_END = 24 ' closing parenthesis (ends (POS|NEG)_LOOK(AHEAD|BEHIND), CAPTURE_GROUP, NONCAPTURE_GROUP)
+End Enum
 
 ' Returned by input reading function after end of input has been reached
 ' Since our characters are 16 bit, converted to a positive Long value, and Long is 32 bit, -1 is free to use for us.
 Private Const LEXER_ENDOFINPUT As Long = -1
 
-Private Const MAX_LONG As Long = &H7FFFFFFF
-Private Const MAX_LONG_DIV_10 As Long = MAX_LONG \ 10
-
-Private Const UNICODE_EXCLAMATION As Long = 33  ' !
-Private Const UNICODE_DOLLAR As Long = 36  ' $
-Private Const UNICODE_LPAREN As Long = 40  ' (
-Private Const UNICODE_RPAREN As Long = 41  ' )
-Private Const UNICODE_STAR As Long = 42  ' *
-Private Const UNICODE_PLUS As Long = 43  ' +
-Private Const UNICODE_COMMA As Long = 44  ' ,
-Private Const UNICODE_MINUS As Long = 45  ' -
-Private Const UNICODE_PERIOD As Long = 46  ' .
-Private Const UNICODE_0 As Long = 48  ' 0
-Private Const UNICODE_1 As Long = 49  ' 1
-Private Const UNICODE_7 As Long = 55  ' 7
-Private Const UNICODE_9 As Long = 57  ' 9
-Private Const UNICODE_COLON As Long = 58  ' :
-Private Const UNICODE_LT As Long = 60  ' <
-Private Const UNICODE_EQUALS As Long = 61  ' =
-Private Const UNICODE_GT As Long = 62  ' >
-Private Const UNICODE_QUESTION As Long = 63  ' ?
-Private Const UNICODE_UC_A As Long = 65  ' A
-Private Const UNICODE_UC_B As Long = 66  ' B
-Private Const UNICODE_UC_D As Long = 68  ' D
-Private Const UNICODE_UC_F As Long = 70  ' F
-Private Const UNICODE_UC_S As Long = 83  ' S
-Private Const UNICODE_UC_W As Long = 87  ' W
-Private Const UNICODE_UC_Z As Long = 90  ' Z
-Private Const UNICODE_LBRACKET As Long = 91  ' [
-Private Const UNICODE_BACKSLASH As Long = 92  ' \
-Private Const UNICODE_RBRACKET As Long = 93  ' ]
-Private Const UNICODE_CARET As Long = 94  ' ^
-Private Const UNICODE_LC_A As Long = 97  ' a
-Private Const UNICODE_LC_B As Long = 98  ' b
-Private Const UNICODE_LC_C As Long = 99  ' c
-Private Const UNICODE_LC_D As Long = 100  ' d
-Private Const UNICODE_LC_F As Long = 102  ' f
-Private Const UNICODE_LC_N As Long = 110  ' n
-Private Const UNICODE_LC_R As Long = 114  ' r
-Private Const UNICODE_LC_S As Long = 115  ' s
-Private Const UNICODE_LC_T As Long = 116  ' t
-Private Const UNICODE_LC_U As Long = 117  ' u
-Private Const UNICODE_LC_V As Long = 118  ' v
-Private Const UNICODE_LC_W As Long = 119  ' w
-Private Const UNICODE_LC_X As Long = 120  ' x
-Private Const UNICODE_LC_Z As Long = 122  ' z
-Private Const UNICODE_LCURLY As Long = 123  ' {
-Private Const UNICODE_PIPE As Long = 124  ' |
-Private Const UNICODE_RCURLY As Long = 125  ' }
-Private Const UNICODE_CP_ZWNJ As Long = &H200C& ' zero-width non-joiner
-Private Const UNICODE_CP_ZWJ As Long = &H200D&  ' zero-width joiner
+Private Enum LexerUnicodeCodepointConstant
+    UNICODE_EXCLAMATION = 33  ' !
+    UNICODE_DOLLAR = 36  ' $
+    UNICODE_LPAREN = 40  ' (
+    UNICODE_RPAREN = 41  ' )
+    UNICODE_STAR = 42  ' *
+    UNICODE_PLUS = 43  ' +
+    UNICODE_COMMA = 44  ' ,
+    UNICODE_MINUS = 45  ' -
+    UNICODE_PERIOD = 46  ' .
+    UNICODE_0 = 48  ' 0
+    UNICODE_1 = 49  ' 1
+    UNICODE_7 = 55  ' 7
+    UNICODE_9 = 57  ' 9
+    UNICODE_COLON = 58  ' :
+    UNICODE_LT = 60  ' <
+    UNICODE_EQUALS = 61  ' =
+    UNICODE_GT = 62  ' >
+    UNICODE_QUESTION = 63  ' ?
+    UNICODE_UC_A = 65  ' A
+    UNICODE_UC_B = 66  ' B
+    UNICODE_UC_D = 68  ' D
+    UNICODE_UC_F = 70  ' F
+    UNICODE_UC_S = 83  ' S
+    UNICODE_UC_W = 87  ' W
+    UNICODE_UC_Z = 90  ' Z
+    UNICODE_LBRACKET = 91  ' [
+    UNICODE_BACKSLASH = 92  ' \
+    UNICODE_RBRACKET = 93  ' ]
+    UNICODE_CARET = 94  ' ^
+    UNICODE_LC_A = 97  ' a
+    UNICODE_LC_B = 98  ' b
+    UNICODE_LC_C = 99  ' c
+    UNICODE_LC_D = 100  ' d
+    UNICODE_LC_F = 102  ' f
+    UNICODE_LC_N = 110  ' n
+    UNICODE_LC_R = 114  ' r
+    UNICODE_LC_S = 115  ' s
+    UNICODE_LC_T = 116  ' t
+    UNICODE_LC_U = 117  ' u
+    UNICODE_LC_V = 118  ' v
+    UNICODE_LC_W = 119  ' w
+    UNICODE_LC_X = 120  ' x
+    UNICODE_LC_Z = 122  ' z
+    UNICODE_LCURLY = 123  ' {
+    UNICODE_PIPE = 124  ' |
+    UNICODE_RCURLY = 125  ' }
+    UNICODE_CP_ZWNJ = &H200C& ' zero-width non-joiner
+    UNICODE_CP_ZWJ = &H200D&  ' zero-width joiner
+End Enum
 
 Public Sub Initialize(ByRef lexCtx As Ty, ByRef inputStr As String)
     With lexCtx
@@ -199,10 +200,10 @@ Public Sub ParseReToken(ByRef lexCtx As Ty, ByRef outToken As ReToken)
             If (x >= UNICODE_0) And (x <= UNICODE_9) Then
                 digits = digits + 1
                 ' Be careful to prevent overflow
-                If val1 > MAX_LONG_DIV_10 Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER
+                If val1 > RegexNumericConstants.LONG_MAX_DIV_10 Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER
                 val1 = val1 * 10
                 tmp = x - UNICODE_0
-                If MAX_LONG - val1 < tmp Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER
+                If RegexNumericConstants.LONG_MAX - val1 < tmp Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER
                 val1 = val1 + tmp
             ElseIf x = UNICODE_COMMA Then
                 If val2 <> RE_QUANTIFIER_INFINITE Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER
@@ -315,10 +316,10 @@ Public Sub ParseReToken(ByRef lexCtx As Ty, ByRef outToken As ReToken)
                 Do
                     ' We have to be careful here to make sure there will be no overflow.
                     ' 2^31 - 1 backreferences is a bit ridiculous, though.
-                    If val1 > MAX_LONG_DIV_10 Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
+                    If val1 > RegexNumericConstants.LONG_MAX_DIV_10 Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
                     val1 = val1 * 10
                     tmp = x - UNICODE_0
-                    If MAX_LONG - val1 < tmp Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
+                    If RegexNumericConstants.LONG_MAX - val1 < tmp Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
                     val1 = val1 + tmp
                     x = lexCtx.currentCharacter
                     If x < UNICODE_0 Or x > UNICODE_9 Then Exit Do

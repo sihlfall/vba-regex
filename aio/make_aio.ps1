@@ -166,6 +166,7 @@ function CreateSingleFile {
         $_[1] = $_[1] | ForEach-Object { [regex]::Replace($_, "\bTy\b", "ArrayBuffer") }    
     }
 
+    ProcessFile "RegexNumericConstants.bas" { }
     ProcessFile "RegexErrors.bas" { }
     ProcessFile "RegexBytecode.bas" { }
     ProcessFile "RegexAst.bas" { }
@@ -176,15 +177,10 @@ function CreateSingleFile {
     ProcessFile "RegexLexer.bas" {
         $_[0] = $_[0] | ForEach-Object { [regex]::Replace($_, "(?<!\.)\bTy\b", "LexerContext") }
         $_[1] = $_[1] | ForEach-Object { [regex]::Replace($_, "(?<!\.)\bTy\b", "LexerContext") }
-
-        $_[0] = $_[0] | Where-Object { -not ($_ -match "Const MAX_LONG As Long =") }   # duplicate
     }
     ProcessFile "RegexCompiler.bas" { }
 
     ProcessFile "RegexDfsMatcher.bas" {
-        $_[0] = $_[0] | Where-Object { -not ($_ -match "Const LONGTYPE_FIRST_BIT As Long =") }   # duplicate    
-        $_[0] = $_[0] | Where-Object { -not ($_ -match "Const LONGTYPE_ALL_BUT_FIRST_BIT As Long =") }   # duplicate
-        
         $startIdx = -1
         $endIdx = -1
         for ($i = 0; $i -lt $_[0].Count; $i++) {
@@ -224,8 +220,9 @@ function CreateSingleFile {
         $_ = [regex]::Replace($_, "StaticStringBuilder\.", "")
         $_ = [regex]::Replace($_, "ArrayBuffer\.Ty", "ArrayBuffer")
         $_ = [regex]::Replace($_, "ArrayBuffer\.", "")
+        $_ = [regex]::Replace($_, "RegexNumericConstants\.", "")
         $_ = [regex]::Replace($_, "RegexErrors\.", "")
-        $_ = [regex]::Replace($_, "RegexByteco\.", "")
+        $_ = [regex]::Replace($_, "RegexBytecode\.", "")
         $_ = [regex]::Replace($_, "RegexUnicodeSupport\.", "")
         $_ = [regex]::Replace($_, "RegexBytecode\.", "")
         $_ = [regex]::Replace($_, "RegexAst\.", "")

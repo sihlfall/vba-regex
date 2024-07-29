@@ -1,19 +1,16 @@
 Attribute VB_Name = "RegexDfsMatcher"
 Option Explicit
 
+Public Enum DfsMatcherSharedConstant
+    DEFAULT_STEPS_LIMIT = 10000
+End Enum
 
-Public Const DFS_FLAGS_NONE As Long = 0
-
-Public Const DEFAULT_STEPS_LIMIT As Long = 10000
-Private Const DEFAULT_MINIMUM_THREADSTACK_CAPACITY As Long = 16
-Private Const Q_NONE As Long = -2
-
-Private Const LONGTYPE_FIRST_BIT As Long = &H80000000
-Private Const LONGTYPE_ALL_BUT_FIRST_BIT As Long = &H7FFFFFFF
-
-Private Const DFS_MATCHER_STACK_MINIMUM_CAPACITY As Long = 16
-
-Private Const DFS_ENDOFINPUT As Long = -1
+Private Enum DfsMatcherPrivateConstant
+    DEFAULT_MINIMUM_THREADSTACK_CAPACITY = 16
+    Q_NONE = -2
+    DFS_MATCHER_STACK_MINIMUM_CAPACITY = 16
+    DFS_ENDOFINPUT = -1
+End Enum
 
 Public Type StartLengthPair
     start As Long
@@ -173,7 +170,7 @@ Private Sub PushMatcherStackFrame( _
         End If
         With .Buffer(.Length)
            .master = context.master
-           .capturesStackState = context.capturesStack.Length Or (context.capturesRequireCoW And LONGTYPE_FIRST_BIT)
+           .capturesStackState = context.capturesStack.Length Or (context.capturesRequireCoW And RegexNumericConstants.LONG_FIRST_BIT)
            .qStackLength = context.qstack.Length
            .pc = pc
            .sp = sp
@@ -199,9 +196,9 @@ Private Function PopMatcherStackFrame(ByRef context As DfsMatcherContext, ByRef 
         .Length = .Length - 1
         With .Buffer(.Length)
             context.master = .master
-            context.capturesStack.Length = .capturesStackState And LONGTYPE_ALL_BUT_FIRST_BIT
+            context.capturesStack.Length = .capturesStackState And RegexNumericConstants.LONG_ALL_BUT_FIRST_BIT
             context.qstack.Length = .qStackLength
-            context.capturesRequireCoW = (.capturesStackState And LONGTYPE_FIRST_BIT) <> 0
+            context.capturesRequireCoW = (.capturesStackState And RegexNumericConstants.LONG_FIRST_BIT) <> 0
             pc = .pc
             sp = .sp
             pcLandmark = .pcLandmark
@@ -219,9 +216,9 @@ Private Sub ReturnToMasterDiscardCaptures(ByRef context As DfsMatcherContext, By
         .Length = context.master
         With .Buffer(.Length)
             context.master = .master
-            context.capturesStack.Length = .capturesStackState And LONGTYPE_ALL_BUT_FIRST_BIT
+            context.capturesStack.Length = .capturesStackState And RegexNumericConstants.LONG_ALL_BUT_FIRST_BIT
             context.qstack.Length = .qStackLength
-            context.capturesRequireCoW = (.capturesStackState And LONGTYPE_FIRST_BIT) <> 0
+            context.capturesRequireCoW = (.capturesStackState And RegexNumericConstants.LONG_FIRST_BIT) <> 0
             pc = .pc
             sp = .sp
             pcLandmark = .pcLandmark
@@ -239,9 +236,9 @@ Private Sub ReturnToMasterPreserveCaptures(ByRef context As DfsMatcherContext, B
         .Length = context.master
         With .Buffer(.Length)
             context.master = .master
-            masterCapturesStackLength = .capturesStackState And LONGTYPE_ALL_BUT_FIRST_BIT
+            masterCapturesStackLength = .capturesStackState And RegexNumericConstants.LONG_ALL_BUT_FIRST_BIT
             context.qstack.Length = .qStackLength
-            context.capturesRequireCoW = (.capturesStackState And LONGTYPE_FIRST_BIT) <> 0
+            context.capturesRequireCoW = (.capturesStackState And RegexNumericConstants.LONG_FIRST_BIT) <> 0
             pc = .pc
             sp = .sp
             pcLandmark = .pcLandmark
