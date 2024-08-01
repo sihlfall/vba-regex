@@ -20,7 +20,7 @@ End Type
 Public Type ReToken
     t As Long ' token type
     greedy As Boolean
-    num As Long ' numeric value (character, count, id for named capture group, -1 for non-named capture group)
+    num As Long ' numeric value (character, count, id for named capture group, -1 for non-named capture group, modifiers for non-capture group)
     qmin As Long
     qmax As Long
 End Type
@@ -92,6 +92,8 @@ Private Enum LexerUnicodeCodepointConstant
     UNICODE_LC_C = 99  ' c
     UNICODE_LC_D = 100  ' d
     UNICODE_LC_F = 102  ' f
+    UNICODE_LC_I = 105  ' i
+    UNICODE_LC_M = 109  ' m
     UNICODE_LC_N = 110  ' n
     UNICODE_LC_R = 114  ' r
     UNICODE_LC_S = 115  ' s
@@ -352,6 +354,7 @@ Public Sub ParseReToken(ByRef lexCtx As Ty, ByRef outToken As ReToken)
             Case UNICODE_COLON
                 ' (?:
                 outToken.t = RETOK_ATOM_START_NONCAPTURE_GROUP
+                outToken.num = 0 ' no modifiers
             Case UNICODE_LT
                 x = Advance(lexCtx)
                 If x = UNICODE_EQUALS Then
@@ -382,7 +385,53 @@ Public Sub ParseReToken(ByRef lexCtx As Ty, ByRef outToken As ReToken)
                     Err.Raise REGEX_ERR_INVALID_REGEXP_GROUP
                 End If
             Case Else
-                Err.Raise REGEX_ERR_INVALID_REGEXP_GROUP
+                ' modifier
+
+                tmp = 0
+                Do
+                    If x = UNICODE_LC_I Then
+                        If tmp And RegexBytecode.MODIFIER_I_WRITE Then Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
+                        tmp = tmp Or (RegexBytecode.MODIFIER_I_WRITE Or RegexBytecode.MODIFIER_I_ACTIVE)
+                    ElseIf x = UNICODE_LC_M Then
+                        If tmp And RegexBytecode.MODIFIER_M_WRITE Then Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
+                        tmp = tmp Or (RegexBytecode.MODIFIER_M_WRITE Or RegexBytecode.MODIFIER_M_ACTIVE)
+                    ElseIf x = UNICODE_LC_S Then
+                        If tmp And RegexBytecode.MODIFIER_S_WRITE Then Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
+                        tmp = tmp Or (RegexBytecode.MODIFIER_S_WRITE Or RegexBytecode.MODIFIER_S_ACTIVE)
+                    ElseIf x = UNICODE_MINUS Then
+                        Exit Do
+                    ElseIf x = UNICODE_COLON Then
+                        GoTo EndOfModifier
+                    Else
+                        Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
+                    End If
+                    
+                    x = Advance(lexCtx)
+                Loop
+                
+                x = Advance(lexCtx) ' skip dash
+                
+                Do
+                    If x = UNICODE_LC_I Then
+                        If tmp And RegexBytecode.MODIFIER_I_WRITE Then Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
+                        tmp = tmp Or RegexBytecode.MODIFIER_I_WRITE
+                    ElseIf x = UNICODE_LC_M Then
+                        If tmp And RegexBytecode.MODIFIER_M_WRITE Then Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
+                        tmp = tmp Or RegexBytecode.MODIFIER_M_WRITE
+                    ElseIf x = UNICODE_LC_S Then
+                        If tmp And RegexBytecode.MODIFIER_S_WRITE Then Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
+                        tmp = tmp Or RegexBytecode.MODIFIER_S_WRITE
+                    ElseIf x = UNICODE_COLON Then
+                        GoTo EndOfModifier
+                    Else
+                        Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
+                    End If
+                    
+                    x = Advance(lexCtx)
+                Loop
+EndOfModifier:
+                outToken.t = RETOK_ATOM_START_NONCAPTURE_GROUP
+                outToken.num = tmp ' no modifiers
             End Select
         Else
             ' (

@@ -15,11 +15,25 @@ Public Enum BytecodeDescriptionConstant
     RE_QUANTIFIER_INFINITE = &H7FFFFFFF
 End Enum
 
+Public Enum ModifierMaskConstant
+    MODIFIER_I_WRITE = 1
+    MODIFIER_I_ACTIVE = 2
+    MODIFIER_M_WRITE = 4
+    MODIFIER_M_ACTIVE = 8
+    MODIFIER_S_WRITE = 16
+    MODIFIER_S_ACTIVE = 32
+    
+    ' ! We guarantee that MODIFIER_WRITE_MASK * 2 = MODIFIER_ACTIVE_MASK.
+    ' Our code relies on this.
+    MODIFIER_WRITE_MASK = &H15555555
+    MODIFIER_ACTIVE_MASK = &H2AAAAAAA
+End Enum
+
 ' regexp opcodes
 Public Enum ReOpType
     REOP_MATCH = 1
     REOP_CHAR = 2
-    REOP_PERIOD = 3
+    REOP_DOT = 3
     REOP_RANGES = 4 ' nranges [must be >= 1], chfrom, chto, chfrom, chto, ...
     REOP_INVRANGES = 5
     REOP_JUMP = 6
@@ -47,7 +61,9 @@ Public Enum ReOpType
     REOP_CHECK_LOOKBEHIND = 30 ' <none>
     REOP_END_LOOKPOS = 31 ' <none>
     REOP_END_LOOKNEG = 32 ' <none>
-    REOP_FAIL = 33
+    REOP_CHANGE_MODIFIERS = 33 ' mask
+    REOP_RESTORE_MODIFIERS = 34 ' <none>
+    REOP_FAIL = 35
 End Enum
 
 Public Function isCaseInsensitive(ByRef bytecode() As Long) As Boolean

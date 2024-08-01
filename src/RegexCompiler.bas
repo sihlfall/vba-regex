@@ -30,6 +30,7 @@ Private Sub Parse(ByRef lex As RegexLexer.Ty, ByVal caseInsensitive As Boolean, 
     Dim nCaptures As Long
     Dim tmp As Long, i As Long, qmin As Long, qmax As Long, n1 As Long, n2 As Long
     Dim parseStack As ArrayBuffer.Ty
+    Dim modifierMask As Long
     
     nCaptures = 0
     
@@ -37,6 +38,7 @@ Private Sub Parse(ByRef lex As RegexLexer.Ty, ByVal caseInsensitive As Boolean, 
     potentialConcat2 = -1
     potentialConcat1 = -1
     currentDisjunction = -1
+    modifierMask = RegexBytecode.MODIFIER_I_ACTIVE And caseInsensitive
     
     ArrayBuffer.AppendLong ast, 0 ' first word will be index of the root node, to be patched in the end
 
@@ -145,9 +147,30 @@ ContinueLoop:
         Case RETOK_ATOM_START_NONCAPTURE_GROUP
             PerformPotentialConcat ast, potentialConcat2, potentialConcat1
         
+            ' n1 is being used to temporarily store the new modifierMask.
+            ' Effectively, we set
+            '   n1[x_ACTIVE] := currentToken.num[x_WRITE] ? currentToken.num[x_ACTIVE] : modifierMask[x_ACTIVE].
+            ' We make use of the fact that for b1, b2, b3 in {0, 1},
+            '   b1 ? b2 : b3   is equivalent to   b3 xor [b1 and (b2 xor b3)].
+            '
+            ' Note that modifierMask[x_WRITE] = 0, i.e. (modifierMask and MODIFIER_WRITE_MASK) = 0, and that
+            ' the same holds for n1 after the assignment.
+            n1 = modifierMask Xor _
+                (((currToken.num And RegexBytecode.MODIFIER_WRITE_MASK) * 2) And (currToken.num Xor modifierMask))
+        
+            ' Since modifierMask uses only ACTIVE bit positions (and no WRITE bit positions),
+            '   i.e. since (modifierMask and MODIFIER_WRITE_MASK) = 0,
+            '   the WRITE bit positions are free for storing the WRITE bits of currToken.num on the stack.
+            ' In the ACTIVE bit positions, we store the xor difference between the the old and the new
+            '   modifier mask (i.e. the difference between modifierMask and n1).
+            ' When popping from the stack, we will be able to restore the ACTIVE bits of currToken.num from
+            '   the new modifierMask together with the WRITE bits popped from the stack.
             ArrayBuffer.AppendFive parseStack, _
-                -1, -1, pendingDisjunction, currentDisjunction, potentialConcat1
-                
+                -1, _
+                (currToken.num And RegexBytecode.MODIFIER_WRITE_MASK) Or (modifierMask Xor n1), _
+                pendingDisjunction, currentDisjunction, potentialConcat1
+            
+            modifierMask = n1
             pendingDisjunction = -1
             potentialConcat2 = -1
             potentialConcat1 = -1
@@ -240,7 +263,13 @@ ContinueLoop:
                 ArrayBuffer.AppendThree ast, AST_CAPTURE, potentialConcat1, tmp
                 potentialConcat1 = currentAstNode
             ElseIf tmp = -1 Then ' non-capture group
-                ' don't do anything
+                If n1 <> 0 Then ' the group has modifiers
+                    currentAstNode = ast.Length
+                    ArrayBuffer.AppendThree ast, AST_MODIFIER_SCOPE, potentialConcat1, _
+                        (n1 And MODIFIER_WRITE_MASK) Or (((n1 And MODIFIER_WRITE_MASK) * 2) And modifierMask)
+                    potentialConcat1 = currentAstNode
+                    modifierMask = modifierMask Xor (n1 And MODIFIER_ACTIVE_MASK)
+                End If
             Else ' lookahead or lookbehind
                 currentAstNode = ast.Length
                 ArrayBuffer.AppendTwo ast, -(tmp + 2) + MIN_AST_CODE, potentialConcat1
@@ -252,7 +281,9 @@ ContinueLoop:
             
             currentAstNode = ast.Length
             tmp = currToken.num
-            If caseInsensitive Then tmp = RegexUnicodeSupport.ReCanonicalizeChar(tmp)
+            If modifierMask And RegexBytecode.MODIFIER_I_ACTIVE Then
+                tmp = RegexUnicodeSupport.ReCanonicalizeChar(tmp)
+            End If
             ArrayBuffer.AppendTwo ast, RegexAst.AST_CHAR, tmp
                 
             potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
@@ -293,7 +324,7 @@ ContinueLoop:
             tmp = 0 ' unnecessary, tmp is an output parameter indicating the number of ranges
             ' Todo: Remove that parameter from ParseReRanges -- we can calculate it by comparing
             '   old and new buffer length.
-            RegexLexer.ParseReRanges lex, ast, tmp, caseInsensitive
+            RegexLexer.ParseReRanges lex, ast, tmp, (modifierMask And RegexBytecode.MODIFIER_I_ACTIVE) <> 0
             
             ' patch range count
             ast.Buffer(currentAstNode + 1) = tmp

@@ -10,8 +10,9 @@ The engine supports most of the JavaScript regular expression syntax.
 
 Currently _not_ supported are, in particular,
 * named backreferences like `\k<name>` (but named capturing groups _are_ supported);
-* unicode categories like `\p{L}`;
-* mode modifiers like `(?i)`.
+* unicode categories like `\p{L}`.
+
+In line with the JavaScript regex specification, [bounded modifiers](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Modifier) of the form `(?flags1-flags2:...)` are supported, but unbounded modifiers (such as `(?i)`) are not.
 
 Your experience with case-insensitive matching may vary—that probably depends on which characters are involved. Please do not expect great results for non-latin characters (but give it a try).
 

@@ -33,7 +33,8 @@ Public Enum AstNodeType
     AST_FAIL = 25
     AST_BACKREFERENCE = 26
     AST_NAMED = 27
-    MAX_AST_CODE = 27
+    AST_MODIFIER_SCOPE = 28
+    MAX_AST_CODE = 28
 End Enum
 
 Private Enum AstNodeDescriptionConstant
@@ -102,6 +103,7 @@ Private Sub InitializeAstTable(ByRef t() As Long)
     t(nc + e * AST_FAIL) = 0:                     t(blen + e * AST_FAIL) = 1:                         t(esfs + e * AST_FAIL) = 0
     t(nc + e * AST_BACKREFERENCE) = 0:            t(blen + e * AST_BACKREFERENCE) = 2:                t(esfs + e * AST_BACKREFERENCE) = 0
     t(nc + e * AST_NAMED) = 1:                    t(blen + e * AST_NAMED) = 3:                        t(esfs + e * AST_NAMED) = 0
+    t(nc + e * AST_MODIFIER_SCOPE) = 1:           t(blen + e * AST_MODIFIER_SCOPE) = 3:               t(esfs + e * AST_MODIFIER_SCOPE) = 0
 End Sub
 
 Public Sub AstToBytecode(ByRef ast() As Long, ByRef identifierTree As RegexIdentifierSupport.IdentifierTreeTy, ByVal caseInsensitive As Boolean, ByRef bytecode() As Long)
@@ -153,7 +155,7 @@ ContinueLoop:
             bytecode(bytecodePtr) = ast(curNode + 1): bytecodePtr = bytecodePtr + 1
             GoTo TurnToParent
         Case AST_PERIOD
-            bytecode(bytecodePtr) = REOP_PERIOD: bytecodePtr = bytecodePtr + 1
+            bytecode(bytecodePtr) = REOP_DOT: bytecodePtr = bytecodePtr + 1
             GoTo TurnToParent
         Case AST_MATCH
             bytecode(bytecodePtr) = REOP_MATCH: bytecodePtr = bytecodePtr + 1
@@ -258,6 +260,15 @@ ContinueLoop:
                 bytecode(bytecodePtr) = REOP_SET_NAMED: bytecodePtr = bytecodePtr + 1
                 bytecode(bytecodePtr) = ast(curNode + 2): bytecodePtr = bytecodePtr + 1
                 bytecode(bytecodePtr) = ast(curNode + 3): bytecodePtr = bytecodePtr + 1
+                GoTo TurnToLeftChild
+            End If
+        Case AST_MODIFIER_SCOPE
+            If returningFromFirstChild Then
+                bytecode(bytecodePtr) = REOP_RESTORE_MODIFIERS: bytecodePtr = bytecodePtr + 1
+                GoTo TurnToParent
+            Else
+                bytecode(bytecodePtr) = REOP_CHANGE_MODIFIERS: bytecodePtr = bytecodePtr + 1
+                bytecode(bytecodePtr) = ast(curNode + 2): bytecodePtr = bytecodePtr + 1
                 GoTo TurnToLeftChild
             End If
         

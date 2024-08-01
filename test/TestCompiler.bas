@@ -928,7 +928,7 @@ Private Sub Compiler_Compile0204()
         1, 0, 0, _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
-        REOP_PERIOD, _
+        REOP_DOT, _
         REOP_CHAR, AscW("b"), _
         REOP_SAVE, 1, _
         REOP_MATCH
@@ -1087,7 +1087,7 @@ Private Sub Compiler_Compile0303()
         1, 0, 0, _
         REOP_SAVE, 0, _
         REOP_SPLIT1, 3, _
-        REOP_PERIOD, _
+        REOP_DOT, _
         REOP_JUMP, 6, _
         REOP_RANGES, 2, AscW("]"), AscW("]"), AscW("a"), AscW("a"), _
         REOP_ASSERT_END, _
@@ -1968,6 +1968,72 @@ Private Sub Compiler_Compile0452()
         REOP_CHAR, AscW("c"), _
         REOP_BACKREFERENCE, 1, _
         REOP_CHAR, AscW("d"), _
+        REOP_SAVE, 1, _
+        REOP_MATCH
+    Assert.SequenceEquals expected, bytecode
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("Compiler")
+Private Sub Compiler_Compile0500()
+    ' i modifier
+    On Error GoTo TestFail
+    
+    Dim bytecode() As Long
+    RegexCompiler.Compile bytecode, "a(?i:bCdeF)gh"
+    
+    Dim expected() As Long
+    MakeArray expected, _
+        1, 0, 0, _
+        REOP_SAVE, 0, _
+        REOP_CHAR, AscW("a"), _
+        REOP_CHANGE_MODIFIERS, RegexBytecode.MODIFIER_I_WRITE Or RegexBytecode.MODIFIER_I_ACTIVE, _
+        REOP_CHAR, AscW("B"), _
+        REOP_CHAR, AscW("C"), _
+        REOP_CHAR, AscW("D"), _
+        REOP_CHAR, AscW("E"), _
+        REOP_CHAR, AscW("F"), _
+        REOP_RESTORE_MODIFIERS, _
+        REOP_CHAR, AscW("g"), _
+        REOP_CHAR, AscW("h"), _
+        REOP_SAVE, 1, _
+        REOP_MATCH
+    Assert.SequenceEquals expected, bytecode
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("Compiler")
+Private Sub Compiler_Compile0501()
+    ' i and -i modifiers
+    On Error GoTo TestFail
+    
+    Dim bytecode() As Long
+    RegexCompiler.Compile bytecode, "a(?i:b(?-i:cd)ef)gh"
+    
+    Dim expected() As Long
+    MakeArray expected, _
+        1, 0, 0, _
+        REOP_SAVE, 0, _
+        REOP_CHAR, AscW("a"), _
+        REOP_CHANGE_MODIFIERS, RegexBytecode.MODIFIER_I_WRITE Or RegexBytecode.MODIFIER_I_ACTIVE, _
+        REOP_CHAR, AscW("B"), _
+        REOP_CHANGE_MODIFIERS, RegexBytecode.MODIFIER_I_WRITE, _
+        REOP_CHAR, AscW("c"), _
+        REOP_CHAR, AscW("d"), _
+        REOP_RESTORE_MODIFIERS, _
+        REOP_CHAR, AscW("E"), _
+        REOP_CHAR, AscW("F"), _
+        REOP_RESTORE_MODIFIERS, _
+        REOP_CHAR, AscW("g"), _
+        REOP_CHAR, AscW("h"), _
         REOP_SAVE, 1, _
         REOP_MATCH
     Assert.SequenceEquals expected, bytecode

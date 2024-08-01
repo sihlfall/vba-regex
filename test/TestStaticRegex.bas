@@ -60,7 +60,6 @@ TestFail:
     Resume TestExit
 End Sub
 
-
 Private Sub MakeArray(ByRef outAry() As String, ParamArray p() As Variant)
     ReDim outAry(0 To UBound(p)) As String
     Dim i As Long
@@ -125,4 +124,139 @@ TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
     Resume TestExit
 End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Features_100()
+    ' Modifiers: i
+    Dim r As StaticRegex.RegexTy
+    On Error GoTo TestFail
+    
+    StaticRegex.InitializeRegex r, "aBcD(?i:eFgH)iJkL", caseInsensitive:=False
+    Assert.IsTrue StaticRegex.Test(r, "aBcDeFgHiJkL")
+    Assert.IsTrue StaticRegex.Test(r, "aBcDEFGHiJkL")
+    Assert.IsTrue StaticRegex.Test(r, "aBcDefghiJkL")
+    
+    Assert.IsFalse StaticRegex.Test(r, "aBcdeFgHiJkL")
+    Assert.IsFalse StaticRegex.Test(r, "aBcdeFgHIjkL")
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Features_101()
+    ' Modifiers: -i
+    Dim r As StaticRegex.RegexTy
+    On Error GoTo TestFail
+    
+    StaticRegex.InitializeRegex r, "aBcD(?-i:eFgH)iJkL", caseInsensitive:=True
+    Assert.IsTrue StaticRegex.Test(r, "aBcDeFgHiJkL")
+    Assert.IsTrue StaticRegex.Test(r, "abcdeFgHijkl")
+    Assert.IsTrue StaticRegex.Test(r, "ABCDeFgHIJKL")
+    
+    Assert.IsFalse StaticRegex.Test(r, "aBcDefghiJkL")
+    Assert.IsFalse StaticRegex.Test(r, "aBcDEFGHiJkL")
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Features_103()
+    ' Modifiers: i inside -i
+    Dim r As StaticRegex.RegexTy
+    On Error GoTo TestFail
+    
+    StaticRegex.InitializeRegex r, "aBcD(?-i:e(?i:Fg)H)iJkL", caseInsensitive:=True
+    Assert.IsTrue StaticRegex.Test(r, "aBcDeFGHiJkL")
+    Assert.IsTrue StaticRegex.Test(r, "abcdefgHijkl")
+    Assert.IsTrue StaticRegex.Test(r, "ABCDefgHIJKL")
+    
+    Assert.IsFalse StaticRegex.Test(r, "aBcDEfgHiJkL")
+    Assert.IsFalse StaticRegex.Test(r, "aBcDeFGhiJkL")
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Features_104()
+    ' Modifiers: i applied to range
+    Dim r As StaticRegex.RegexTy
+    On Error GoTo TestFail
+    
+    StaticRegex.InitializeRegex r, "aBcD(?i:[A-Z]{4})iJkL", caseInsensitive:=False
+    Assert.IsTrue StaticRegex.Test(r, "aBcDeFgHiJkL")
+    
+    Assert.IsFalse StaticRegex.Test(r, "abcdEfgHIJKL")
+    Assert.IsFalse StaticRegex.Test(r, "ABCDeFGhijkl")
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Features_105()
+    ' Modifiers: status of i correctly restored after failing alternative
+    Dim r As StaticRegex.RegexTy
+    On Error GoTo TestFail
+    
+    StaticRegex.InitializeRegex r, "aB(?:cD(?i:eFgH)|cDxYz)", caseInsensitive:=False
+    Assert.IsTrue StaticRegex.Test(r, "aBcDefgh")
+    Assert.IsTrue StaticRegex.Test(r, "aBcDxYz")
+    Assert.IsFalse StaticRegex.Test(r, "aBcDxyz")
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Features_106()
+    ' Modifiers: m and -m
+    Dim r As StaticRegex.RegexTy
+    On Error GoTo TestFail
+    
+    StaticRegex.InitializeRegex r, "(?m:^abc$)"
+    Assert.IsTrue StaticRegex.Test(r, "xy" & vbCrLf & "abc" & vbCrLf & "xy", multiline:=False)
+    
+    StaticRegex.InitializeRegex r, "(?-m:^abc$)"
+    Assert.IsFalse StaticRegex.Test(r, "xy" & vbCrLf & "abc" & vbCrLf & "xy", multiline:=True)
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Features_107()
+    ' Modifiers: s
+    Dim r As StaticRegex.RegexTy
+    On Error GoTo TestFail
+    
+    StaticRegex.InitializeRegex r, "^ab.+yz$"
+    Assert.IsFalse StaticRegex.Test(r, "abcde" & vbCrLf & "uvwxyz", multiline:=False)
+    
+    StaticRegex.InitializeRegex r, "(?s:^ab.+yz$)"
+    Assert.IsTrue StaticRegex.Test(r, "abcde" & vbCrLf & "uvwxyz", multiline:=False)
+    
+    StaticRegex.InitializeRegex r, "(?-s:^ab.+yz$)"
+    Assert.IsFalse StaticRegex.Test(r, "abcde" & vbCrLf & "uvwxyz", multiline:=False, dotAll:=True)
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
 
