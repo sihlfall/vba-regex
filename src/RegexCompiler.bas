@@ -1,6 +1,31 @@
 Attribute VB_Name = "RegexCompiler"
 Option Explicit
 
+' The last word of each parse stack frame indicates the type t of the frame.
+' t > 0 -> capturing group
+'   In this case, t indicates the number of the capture.
+' t = - AST_ASSERT_POS_LOOKAHEAD -> lookahead                                         |
+' t = - AST_ASSERT_NEG_LOOKAHEAD -> lookbehind                                        |
+' t = - AST_ASSERT_POS_LOOKBEHIND -> lookahead                                        |
+' t = - AST_ASSERT_NEG_LOOKBEHIND -> lookbehin                                        |
+' t = - (MAX_AST_CODE + 1) -> non-capturing group              PSF_NONCAPTURE         | PSF_MIN_EXPLICIT   | PSF_MAX_WITH_MODIFIERS
+' t = - (MAX_AST_CODE + 2) -> modifier scope not ending at |   PSF_MODSCOPE_SPANNING                       |
+' t = - (MAX_AST_CODE + 3) -> modifier scope ending at |       PSF_MODSCOPE_LOCAL                          |
+Private Enum ParseStackFrameTypeConstant
+    PSF_NONCAPTURE = -(RegexAst.MAX_AST_CODE + 1)
+    PSF_MAX_WITH_MODIFIERS = PSF_NONCAPTURE
+    PSF_MIN_EXPLICIT = PSF_NONCAPTURE
+    
+    PSF_MODSCOPE_SPANNING = -(RegexAst.MAX_AST_CODE + 2)
+    PSF_MODSCOPE_LOCAL = -(RegexAst.MAX_AST_CODE + 3)
+    
+    PSF_NONE = RegexNumericConstants.LONG_MIN ' not a valid stack frame type, for indicating nothing has been handled
+    
+    HANDLE_IMPLICIT_LOCAL = PSF_MODSCOPE_LOCAL
+    HANDLE_IMPLICIT = PSF_MODSCOPE_SPANNING
+    HANDLE_UP_TO_EXPLICIT = RegexNumericConstants.LONG_MAX
+End Enum
+
 Public Sub Compile(ByRef outBytecode() As Long, ByRef s As String, Optional ByVal caseInsensitive As Boolean = False)
     Dim lex As RegexLexer.Ty
     Dim ast As ArrayBuffer.Ty
@@ -13,7 +38,9 @@ Public Sub Compile(ByRef outBytecode() As Long, ByRef s As String, Optional ByVa
     RegexAst.AstToBytecode ast.Buffer, lex.identifierTree, caseInsensitive, outBytecode
 End Sub
 
-Private Sub PerformPotentialConcat(ByRef ast As ArrayBuffer.Ty, ByRef potentialConcat2 As Long, ByRef potentialConcat1 As Long)
+Private Sub PerformPotentialConcat( _
+    ByRef ast As ArrayBuffer.Ty, ByRef potentialConcat2 As Long, ByRef potentialConcat1 As Long _
+)
     Dim tmp As Long
     If potentialConcat2 <> -1 Then
         tmp = ast.Length
@@ -23,14 +50,91 @@ Private Sub PerformPotentialConcat(ByRef ast As ArrayBuffer.Ty, ByRef potentialC
     End If
 End Sub
 
+' implicit groups are removed from the stack, explicit groups are left on the stack
+' returns: stack frame type of last stack frame that was considered
+' spilloverWriteMask is an output parameter, contains all WRITE bits that were present in the removed frames
+Private Function CloseGroups( _
+    ByRef ast As ArrayBuffer.Ty, _
+    ByRef parseStack As ArrayBuffer.Ty, _
+    ByRef pendingDisjunction As Long, _
+    ByRef currentDisjunction As Long, _
+    ByRef potentialConcat2 As Long, _
+    ByRef potentialConcat1 As Long, _
+    ByRef modifierMask As Long, _
+    ByRef spilloverWriteMask As Long, _
+    ByVal whatToHandle As Long _
+) As Long
+    Dim currentAstNode As Long ' local helper variable
+    Dim stackFrameType As Long
+    Dim modifierEntry As Long, modifierEntryWriteMask As Long, accumulatedWriteMask As Long
+    
+    CloseGroups = PSF_NONE
+    spilloverWriteMask = 0
+    
+    Do
+        If potentialConcat1 = -1 Then
+            currentAstNode = ast.Length
+            ArrayBuffer.AppendLong ast, AST_EMPTY
+            potentialConcat1 = currentAstNode
+        Else
+            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+        End If
+        
+        With parseStack
+            If .Length = 0 Then Exit Function
+
+            stackFrameType = .Buffer(.Length - 1)
+            If stackFrameType > whatToHandle Then Exit Function
+            CloseGroups = stackFrameType
+            
+            ' Close pending disjunction, if there is one
+            If pendingDisjunction <> -1 Then
+                ast.Buffer(pendingDisjunction + 2) = potentialConcat1
+                potentialConcat1 = currentDisjunction
+            End If
+
+            ' Pop stack frame and restore variables
+            With parseStack
+                pendingDisjunction = .Buffer(.Length - 4)
+                currentDisjunction = .Buffer(.Length - 3)
+                potentialConcat2 = .Buffer(.Length - 2)
+            End With
+            
+            If stackFrameType <= PSF_MAX_WITH_MODIFIERS Then
+                modifierEntry = .Buffer(.Length - 5)
+                If modifierEntry <> 0 Then ' the group has modifiers
+                    modifierEntryWriteMask = modifierEntry And MODIFIER_WRITE_MASK
+                    currentAstNode = ast.Length
+                    ArrayBuffer.AppendThree ast, AST_MODIFIER_SCOPE, potentialConcat1, _
+                        modifierEntryWriteMask _
+                            Or _
+                        modifierEntryWriteMask * 2 And modifierMask
+                    potentialConcat1 = currentAstNode
+                    modifierMask = modifierMask Xor (modifierEntry And MODIFIER_ACTIVE_MASK)
+                    spilloverWriteMask = spilloverWriteMask Or modifierEntryWriteMask
+                End If
+            End If
+            
+            ' Stop at explicit group; explicit groups are never popped from the stack.
+            ' There is no spillover from explicit groups, hence we can exit the function.
+            If stackFrameType >= PSF_MIN_EXPLICIT Then Exit Function
+            
+            .Length = .Length - 5
+        End With
+    Loop
+End Function
+
 Private Sub Parse(ByRef lex As RegexLexer.Ty, ByVal caseInsensitive As Boolean, ByRef ast As ArrayBuffer.Ty)
+    ' carry information througout the function
     Dim currToken As RegexLexer.ReToken
-    Dim currentAstNode As Long
-    Dim potentialConcat2 As Long, potentialConcat1 As Long, pendingDisjunction As Long, currentDisjunction As Long
-    Dim nCaptures As Long
-    Dim tmp As Long, i As Long, qmin As Long, qmax As Long, n1 As Long, n2 As Long
     Dim parseStack As ArrayBuffer.Ty
     Dim modifierMask As Long
+    Dim potentialConcat2 As Long, potentialConcat1 As Long, pendingDisjunction As Long, currentDisjunction As Long
+    Dim nCaptures As Long
+    
+    ' only locally used
+    Dim currentAstNode As Long, spilloverWriteMask As Long
+    Dim tmp As Long, i As Long, qmin As Long, qmax As Long, n1 As Long, n2 As Long
     
     nCaptures = 0
     
@@ -48,13 +152,10 @@ ContinueLoop:
         
         Select Case currToken.t
         Case RETOK_DISJUNCTION
-            If potentialConcat1 = -1 Then
-                currentAstNode = ast.Length
-                ArrayBuffer.AppendLong ast, AST_EMPTY
-                potentialConcat1 = currentAstNode
-            Else
-                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-            End If
+            n2 = modifierMask ' save modifier mask for later
+            
+            CloseGroups ast, parseStack, pendingDisjunction, currentDisjunction, potentialConcat2, potentialConcat1, _
+                modifierMask, spilloverWriteMask, HANDLE_IMPLICIT_LOCAL
             
             currentAstNode = ast.Length
             ArrayBuffer.AppendThree ast, AST_DISJ, potentialConcat1, -1
@@ -68,6 +169,27 @@ ContinueLoop:
         
             pendingDisjunction = currentAstNode
         
+            If spilloverWriteMask Then
+                ' Create a modifier scope
+                ' See comment in Case RETOK_ATOM_START_NONCAPTURE_GROUP, RETOK_UNBOUNDED_MODIFIER for a description.
+                ' Remember: n2 is the modifier mask at the end of the last alternative.
+                ' Hence the following n1 is that ACTIVE part of the xor difference between n2 and the new modifierMask
+                '   that spills over.
+                n1 = spilloverWriteMask * 2 And (n2 Xor modifierMask)
+                ' We push this xor difference as well as the WRITE part of the spillover.
+                ArrayBuffer.AppendFive parseStack, _
+                    spilloverWriteMask Or n1, _
+                    pendingDisjunction, currentDisjunction, potentialConcat1, _
+                    PSF_MODSCOPE_SPANNING
+                
+                ' We apply the spillover to the modifierMask.
+                modifierMask = modifierMask Xor n1
+                pendingDisjunction = -1
+                potentialConcat2 = -1
+                potentialConcat1 = -1
+                currentDisjunction = -1
+            End If
+            
         Case RETOK_QUANTIFIER
             If potentialConcat1 = -1 Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER_NO_ATOM
             
@@ -137,14 +259,15 @@ ContinueLoop:
         
             nCaptures = nCaptures + 1
             ArrayBuffer.AppendFive parseStack, _
-                nCaptures, currToken.num, pendingDisjunction, currentDisjunction, potentialConcat1
+                currToken.num, pendingDisjunction, currentDisjunction, potentialConcat1, _
+                nCaptures
                 
             pendingDisjunction = -1
             potentialConcat2 = -1
             potentialConcat1 = -1
             currentDisjunction = -1
                 
-        Case RETOK_ATOM_START_NONCAPTURE_GROUP
+        Case RETOK_ATOM_START_NONCAPTURE_GROUP, RETOK_UNBOUNDED_MODIFIER
             PerformPotentialConcat ast, potentialConcat2, potentialConcat1
         
             ' n1 is being used to temporarily store the new modifierMask.
@@ -166,9 +289,9 @@ ContinueLoop:
             ' When popping from the stack, we will be able to restore the ACTIVE bits of currToken.num from
             '   the new modifierMask together with the WRITE bits popped from the stack.
             ArrayBuffer.AppendFive parseStack, _
-                -1, _
                 (currToken.num And RegexBytecode.MODIFIER_WRITE_MASK) Or (modifierMask Xor n1), _
-                pendingDisjunction, currentDisjunction, potentialConcat1
+                pendingDisjunction, currentDisjunction, potentialConcat1, _
+                IIf(currToken.t = RETOK_ATOM_START_NONCAPTURE_GROUP, PSF_NONCAPTURE, PSF_MODSCOPE_LOCAL)
             
             modifierMask = n1
             pendingDisjunction = -1
@@ -180,7 +303,8 @@ ContinueLoop:
             PerformPotentialConcat ast, potentialConcat2, potentialConcat1
         
             ArrayBuffer.AppendFive parseStack, _
-                -(AST_ASSERT_POS_LOOKAHEAD - MIN_AST_CODE) - 2, -1, pendingDisjunction, currentDisjunction, potentialConcat1
+                -1, pendingDisjunction, currentDisjunction, potentialConcat1, _
+                -AST_ASSERT_POS_LOOKAHEAD
                 
             pendingDisjunction = -1
             potentialConcat2 = -1
@@ -190,9 +314,9 @@ ContinueLoop:
         Case RETOK_ASSERT_START_NEG_LOOKAHEAD
             PerformPotentialConcat ast, potentialConcat2, potentialConcat1
         
-            nCaptures = nCaptures + 1
             ArrayBuffer.AppendFive parseStack, _
-                -(AST_ASSERT_NEG_LOOKAHEAD - MIN_AST_CODE) - 2, -1, pendingDisjunction, currentDisjunction, potentialConcat1
+                -1, pendingDisjunction, currentDisjunction, potentialConcat1, _
+                -AST_ASSERT_NEG_LOOKAHEAD
                 
             pendingDisjunction = -1
             potentialConcat2 = -1
@@ -203,7 +327,8 @@ ContinueLoop:
             PerformPotentialConcat ast, potentialConcat2, potentialConcat1
         
             ArrayBuffer.AppendFive parseStack, _
-                -(AST_ASSERT_POS_LOOKBEHIND - MIN_AST_CODE) - 2, -1, pendingDisjunction, currentDisjunction, potentialConcat1
+                -1, pendingDisjunction, currentDisjunction, potentialConcat1, _
+                -AST_ASSERT_POS_LOOKBEHIND
                 
             pendingDisjunction = -1
             potentialConcat2 = -1
@@ -213,47 +338,23 @@ ContinueLoop:
         Case RETOK_ASSERT_START_NEG_LOOKBEHIND
             PerformPotentialConcat ast, potentialConcat2, potentialConcat1
         
-            nCaptures = nCaptures + 1
             ArrayBuffer.AppendFive parseStack, _
-                -(AST_ASSERT_NEG_LOOKBEHIND - MIN_AST_CODE) - 2, -1, pendingDisjunction, currentDisjunction, potentialConcat1
+                -1, pendingDisjunction, currentDisjunction, potentialConcat1, _
+                -AST_ASSERT_NEG_LOOKBEHIND
                 
             pendingDisjunction = -1
             potentialConcat2 = -1
             potentialConcat1 = -1
             currentDisjunction = -1
         
-        
         Case RETOK_ATOM_END
-            If parseStack.Length = 0 Then Err.Raise REGEX_ERR_UNEXPECTED_CLOSING_PAREN
-            
-            ' Close disjunction
-            If potentialConcat1 = -1 Then
-                currentAstNode = ast.Length
-                ArrayBuffer.AppendLong ast, AST_EMPTY
-                potentialConcat1 = currentAstNode
-            Else
-                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-            End If
-            
-            If pendingDisjunction = -1 Then
-                currentDisjunction = potentialConcat1
-            Else
-                ast.Buffer(pendingDisjunction + 2) = potentialConcat1
-            End If
+            tmp = CloseGroups(ast, parseStack, pendingDisjunction, currentDisjunction, _
+                potentialConcat2, potentialConcat1, modifierMask, 0, HANDLE_UP_TO_EXPLICIT)
 
-            potentialConcat1 = currentDisjunction
-            
-            ' Restore variables
-            With parseStack
-                .Length = .Length - 5
-                tmp = .Buffer(.Length)
-                n1 = .Buffer(.Length + 1)
-                pendingDisjunction = .Buffer(.Length + 2)
-                currentDisjunction = .Buffer(.Length + 3)
-                potentialConcat2 = .Buffer(.Length + 4) ' This is correct, potentialConcat1 is the new node!
-            End With
-            
-            If tmp > 0 Then ' capture group
+            If tmp < PSF_MIN_EXPLICIT Then
+                Err.Raise REGEX_ERR_UNEXPECTED_CLOSING_PAREN
+            ElseIf tmp > 0 Then ' capture group
+                n1 = parseStack.Buffer(parseStack.Length - 5)
                 If n1 <> -1 Then
                     currentAstNode = ast.Length
                     ArrayBuffer.AppendFour ast, AST_NAMED, potentialConcat1, n1, tmp
@@ -262,19 +363,14 @@ ContinueLoop:
                 currentAstNode = ast.Length
                 ArrayBuffer.AppendThree ast, AST_CAPTURE, potentialConcat1, tmp
                 potentialConcat1 = currentAstNode
-            ElseIf tmp = -1 Then ' non-capture group
-                If n1 <> 0 Then ' the group has modifiers
-                    currentAstNode = ast.Length
-                    ArrayBuffer.AppendThree ast, AST_MODIFIER_SCOPE, potentialConcat1, _
-                        (n1 And MODIFIER_WRITE_MASK) Or (((n1 And MODIFIER_WRITE_MASK) * 2) And modifierMask)
-                    potentialConcat1 = currentAstNode
-                    modifierMask = modifierMask Xor (n1 And MODIFIER_ACTIVE_MASK)
-                End If
+            ElseIf tmp = PSF_NONCAPTURE Then ' non-capture group
+                ' nothing to do
             Else ' lookahead or lookbehind
                 currentAstNode = ast.Length
-                ArrayBuffer.AppendTwo ast, -(tmp + 2) + MIN_AST_CODE, potentialConcat1
+                ArrayBuffer.AppendTwo ast, -tmp, potentialConcat1
                 potentialConcat1 = currentAstNode
             End If
+            parseStack.Length = parseStack.Length - 5 ' pop stack frame
 
         Case RETOK_ATOM_CHAR
             PerformPotentialConcat ast, potentialConcat2, potentialConcat1
@@ -386,17 +482,12 @@ ContinueLoop:
             potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
             
         Case RETOK_EOF
-            ' Todo: If Not expectEof Then Err.Raise REGEX_ERR_UNEXPECTED_END_OF_PATTERN
+            CloseGroups ast, parseStack, pendingDisjunction, currentDisjunction, potentialConcat2, potentialConcat1, _
+                modifierMask, 0, HANDLE_IMPLICIT
+                        
+            If Not parseStack.Length = 0 Then Err.Raise REGEX_ERR_UNEXPECTED_END_OF_PATTERN
             
             ' Close disjunction
-            If potentialConcat1 = -1 Then
-                currentAstNode = ast.Length
-                ArrayBuffer.AppendLong ast, AST_EMPTY
-                potentialConcat1 = currentAstNode
-            Else
-                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-            End If
-            
             If pendingDisjunction = -1 Then
                 currentDisjunction = potentialConcat1
             Else

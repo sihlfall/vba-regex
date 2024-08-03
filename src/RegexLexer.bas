@@ -51,6 +51,7 @@ Public Enum TokenTypeIdType
     RETOK_ASSERT_START_POS_LOOKBEHIND = 22
     RETOK_ASSERT_START_NEG_LOOKBEHIND = 23
     RETOK_ATOM_END = 24 ' closing parenthesis (ends (POS|NEG)_LOOK(AHEAD|BEHIND), CAPTURE_GROUP, NONCAPTURE_GROUP)
+    RETOK_UNBOUNDED_MODIFIER = 25
 End Enum
 
 ' Returned by input reading function after end of input has been reached
@@ -401,7 +402,9 @@ Public Sub ParseReToken(ByRef lexCtx As Ty, ByRef outToken As ReToken)
                     ElseIf x = UNICODE_MINUS Then
                         Exit Do
                     ElseIf x = UNICODE_COLON Then
-                        GoTo EndOfModifier
+                        GoTo EndOfBoundedModifier
+                    ElseIf x = UNICODE_RPAREN Then
+                        GoTo EndOfUnboundedModifier
                     Else
                         Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
                     End If
@@ -422,16 +425,23 @@ Public Sub ParseReToken(ByRef lexCtx As Ty, ByRef outToken As ReToken)
                         If tmp And RegexBytecode.MODIFIER_S_WRITE Then Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
                         tmp = tmp Or RegexBytecode.MODIFIER_S_WRITE
                     ElseIf x = UNICODE_COLON Then
-                        GoTo EndOfModifier
+                        GoTo EndOfBoundedModifier
+                    ElseIf x = UNICODE_RPAREN Then
+                        GoTo EndOfUnboundedModifier
                     Else
                         Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
                     End If
                     
                     x = Advance(lexCtx)
                 Loop
-EndOfModifier:
+EndOfBoundedModifier:
                 outToken.t = RETOK_ATOM_START_NONCAPTURE_GROUP
                 outToken.num = tmp ' no modifiers
+                GoTo EndModifierHandling
+EndOfUnboundedModifier:
+                outToken.t = RETOK_UNBOUNDED_MODIFIER
+                outToken.num = tmp
+EndModifierHandling:
             End Select
         Else
             ' (
