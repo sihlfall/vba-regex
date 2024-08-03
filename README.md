@@ -9,10 +9,11 @@ VbaRegex is a regular expression engine written entirely in VBA/VB 6. It is inte
 The engine supports most of the JavaScript regular expression syntax.
 
 Currently _not_ supported are, in particular,
+
 * named backreferences like `\k<name>` (but named capturing groups _are_ supported);
 * unicode categories like `\p{L}`.
 
-In line with the JavaScript regex specification, [bounded modifiers](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Modifier) of the form `(?flags1-flags2:...)` are supported, but unbounded modifiers (such as `(?i)`) are not.
+In line with the JavaScript regex specification, [bounded modifiers](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Modifier) of the form `(?flags1-flags2:...)` are supported. As an extension to the JavaScript specification, we also support unbounded modifiers (such as `(?i)`).
 
 Your experience with case-insensitive matching may vary—that probably depends on which characters are involved. Please do not expect great results for non-latin characters (but give it a try).
 
@@ -74,7 +75,7 @@ Debug.Print StaticRegex.GetCaptureByName(matcherState, regex, exampleString, "mo
 #### Example 3: Getting all matching substrings, as well as submatches
 
 ```vbnet
-Dim matcherState As MatcherStateTy
+Dim matcherState As StaticRegex.MatcherStateTy
 
 Do While StaticRegex.MatchNext(matcherState, regex, exampleString)
    Debug.Print StaticRegex.GetCapture(matcherState, exampleString)
@@ -189,3 +190,4 @@ cd test2
   * Part 2: “Regular expression matching: The virtual machine approach.” Dec 2009. – [https://swtch.com/~rsc/regexp/regexp2.html](https://swtch.com/~rsc/regexp/regexp2.html).
   * Part 3: “Regular expression matching in the wild.” Mar 2010. – [https://swtch.com/~rsc/regexp/regexp3.html](https://swtch.com/~rsc/regexp/regexp3.html).
   * Part 4: “Regular expression matching with a trigram index. Or: How Google code search worked.” Jan 2012. – [https://swtch.com/~rsc/regexp/regexp4.html](https://swtch.com/~rsc/regexp/regexp4.html).
+* [RegularExpressions.info](https://www.regular-expressions.info/), containing a [reference](https://www.regular-expressions.info/refflavors.html) of the different flavours of regular expressions, listing which features are supported by which engine.
