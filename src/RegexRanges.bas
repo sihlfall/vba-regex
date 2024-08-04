@@ -7,7 +7,7 @@ Public Sub EmitPredefinedRange( _
     Dim i As Long, j As Long
     
     With outBuffer
-        i = .length
+        i = .Length
         ArrayBuffer.AppendUnspecified outBuffer, sourceLength
         j = sourceStart + sourceLength - 2
         Do While j >= sourceStart
@@ -17,10 +17,6 @@ Public Sub EmitPredefinedRange( _
         Loop
     End With
 End Sub
-
-Public Function UnicodeIsIdentifierPart(x As Long) As Boolean
-    UnicodeIsIdentifierPart = False
-End Function
 
 Public Sub RegexpGenerateRanges(ByRef outBuffer As ArrayBuffer.Ty, _
     ByVal caseInsensitive As Boolean, ByVal r1 As Long, ByVal r2 As Long _

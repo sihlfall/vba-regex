@@ -253,12 +253,58 @@ Public Sub ParseReToken(ByRef lexCtx As Ty, ByRef outToken As ReToken)
         ' Many other implementations (including V8 and Rhino, for instance) do
         ' accept '\$' as a valid identity escape, which is quite pragmatic, and
         ' ES2015 Annex B relaxes the rules to allow these (and other) real world forms.
+        '
+        ' Here, we use a Perl-like convention:
+        '   \<character> is an identity escape (= represents the character itself)
+        '   unless the character is within [0-9A-Za-z];
+        '   we hope that this will not require any breaking changes in the future.
         x = Advance(lexCtx)
+        
+        If x >= UNICODE_UC_A Then
+            If x < UNICODE_LC_A Then
+                If x > UNICODE_UC_Z Then GoTo IdentityEscape Else GoTo EscapeUppercaseLetter
+            Else
+                If x <= UNICODE_LC_Z Then GoTo EscapeLowercaseLetter Else GoTo IdentityEscape
+            End If
+        Else
+            If x < UNICODE_0 Then
+                If x < 0 Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE Else GoTo IdentityEscape
+            Else
+                If x <= UNICODE_9 Then GoTo EscapeDigit Else GoTo IdentityEscape
+            End If
+        End If
+        Err.Raise REGEX_ERR_INTERNAL_LOGIC_ERR
+        ' unreachable
+        
+EscapeUppercaseLetter:
+        Select Case x
+        Case UNICODE_UC_B
+            outToken.t = RETOK_ASSERT_NOT_WORD_BOUNDARY
+        Case UNICODE_UC_D
+            outToken.t = RETOK_ATOM_NOT_DIGIT
+        Case UNICODE_UC_S
+            outToken.t = RETOK_ATOM_NOT_WHITE
+        Case UNICODE_UC_W
+            outToken.t = RETOK_ATOM_NOT_WORD_CHAR
+        Case Else
+            Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
+        End Select
+        GoTo EndEscapeHandling
+        
+EscapeLowercaseLetter:
         Select Case x
         Case UNICODE_LC_B
             outToken.t = RETOK_ASSERT_WORD_BOUNDARY
-        Case UNICODE_UC_B
-            outToken.t = RETOK_ASSERT_NOT_WORD_BOUNDARY
+        Case UNICODE_LC_C
+            x = Advance(lexCtx)
+            If (x >= UNICODE_LC_A And x <= UNICODE_LC_Z) Or (x >= UNICODE_UC_A And x <= UNICODE_UC_Z) Then
+                outToken.num = x \ 32
+                outToken.t = RETOK_ATOM_CHAR
+            Else
+                Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
+            End If
+        Case UNICODE_LC_D
+            outToken.t = RETOK_ATOM_DIGIT
         Case UNICODE_LC_F
             outToken.num = &HC&
             outToken.t = RETOK_ATOM_CHAR
@@ -271,20 +317,8 @@ Public Sub ParseReToken(ByRef lexCtx As Ty, ByRef outToken As ReToken)
         Case UNICODE_LC_R
             outToken.num = &HD&
             outToken.t = RETOK_ATOM_CHAR
-        Case UNICODE_LC_V
-            outToken.num = &HB&
-            outToken.t = RETOK_ATOM_CHAR
-        Case UNICODE_LC_C
-            x = Advance(lexCtx)
-            If (x >= UNICODE_LC_A And x <= UNICODE_LC_Z) Or (x >= UNICODE_UC_A And x <= UNICODE_UC_Z) Then
-                outToken.num = x \ 32
-                outToken.t = RETOK_ATOM_CHAR
-            Else
-                Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
-            End If
-        Case UNICODE_LC_X
-            outToken.num = LexerParseEscapeX(lexCtx)
-            outToken.t = RETOK_ATOM_CHAR
+        Case UNICODE_LC_S
+            outToken.t = RETOK_ATOM_WHITE
         Case UNICODE_LC_U
             ' Todo: What does the following mean?
             ' The token value is the Unicode codepoint without
@@ -293,54 +327,55 @@ Public Sub ParseReToken(ByRef lexCtx As Ty, ByRef outToken As ReToken)
             ' which we don't support yet.
             outToken.num = LexerParseEscapeU(lexCtx)
             outToken.t = RETOK_ATOM_CHAR
-        Case UNICODE_LC_D
-            outToken.t = RETOK_ATOM_DIGIT
-        Case UNICODE_UC_D
-            outToken.t = RETOK_ATOM_NOT_DIGIT
-        Case UNICODE_LC_S
-            outToken.t = RETOK_ATOM_WHITE
-        Case UNICODE_UC_S
-            outToken.t = RETOK_ATOM_NOT_WHITE
+        Case UNICODE_LC_V
+            outToken.num = &HB&
+            outToken.t = RETOK_ATOM_CHAR
         Case UNICODE_LC_W
             outToken.t = RETOK_ATOM_WORD_CHAR
-        Case UNICODE_UC_W
-            outToken.t = RETOK_ATOM_NOT_WORD_CHAR
-        Case UNICODE_0
+        Case UNICODE_LC_X
+            outToken.num = LexerParseEscapeX(lexCtx)
+            outToken.t = RETOK_ATOM_CHAR
+        Case Else
+            Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
+        End Select
+        GoTo EndEscapeHandling
+        
+EscapeDigit:
+        If x = UNICODE_0 Then
             x = Advance(lexCtx)
             
             ' E5 Section 15.10.2.11
             If x >= UNICODE_0 And x <= UNICODE_9 Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
             outToken.num = 0
             outToken.t = RETOK_ATOM_CHAR
-        Case Else
-            If x >= UNICODE_1 And x <= UNICODE_9 Then
-                val1 = 0
-                i = 0
-                Do
-                    ' We have to be careful here to make sure there will be no overflow.
-                    ' 2^31 - 1 backreferences is a bit ridiculous, though.
-                    If val1 > RegexNumericConstants.LONG_MAX_DIV_10 Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
-                    val1 = val1 * 10
-                    tmp = x - UNICODE_0
-                    If RegexNumericConstants.LONG_MAX - val1 < tmp Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
-                    val1 = val1 + tmp
-                    x = lexCtx.currentCharacter
-                    If x < UNICODE_0 Or x > UNICODE_9 Then Exit Do
-                    Advance lexCtx
-                    i = i + 1
-                Loop
-                outToken.t = RETOK_ATOM_BACKREFERENCE
-                outToken.num = val1
-            ElseIf (x >= 0 And Not UnicodeIsIdentifierPart(0)) Or x = UNICODE_CP_ZWNJ Or x = UNICODE_CP_ZWJ Then
-                ' For ES5.1 identity escapes are not allowed for identifier
-                ' parts.  This conflicts with a lot of real world code as this
-                ' doesn't e.g. allow escaping a dollar sign as /\$/.
-                outToken.num = x
-                outToken.t = RETOK_ATOM_CHAR
-            Else
-                Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
-            End If
-        End Select
+        Else
+            val1 = 0
+            i = 0
+            Do
+                ' We have to be careful here to make sure there will be no overflow.
+                ' 2^31 - 1 backreferences is a bit ridiculous, though.
+                If val1 > RegexNumericConstants.LONG_MAX_DIV_10 Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
+                val1 = val1 * 10
+                tmp = x - UNICODE_0
+                If RegexNumericConstants.LONG_MAX - val1 < tmp Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
+                val1 = val1 + tmp
+                x = lexCtx.currentCharacter
+                If x < UNICODE_0 Or x > UNICODE_9 Then Exit Do
+                Advance lexCtx
+                i = i + 1
+            Loop
+            outToken.t = RETOK_ATOM_BACKREFERENCE
+            outToken.num = val1
+        End If
+        GoTo EndEscapeHandling
+        
+IdentityEscape:
+        outToken.num = x
+        outToken.t = RETOK_ATOM_CHAR
+        
+EndEscapeHandling:
+        ' end case
+        
     Case UNICODE_LPAREN
         If lexCtx.currentCharacter = UNICODE_QUESTION Then
             Advance lexCtx
