@@ -238,7 +238,7 @@ Public Sub MatchThenList( _
     
     If nMatches = 0 Then
         ' hack to create a zero-length array
-        results = Split(vbNullString)
+        results = VBA.Split(vbNullString)
     Else
         ReDim results(0 To nMatches - 1, cola To colb) As String
         m = resultBuilder.Length
