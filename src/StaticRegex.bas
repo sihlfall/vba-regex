@@ -153,6 +153,39 @@ Public Function Replace( _
     Replace = StaticStringBuilder.GetStr(resultBuilder)
 End Function
 
+Public Function Split( _
+    ByRef regex As RegexTy, _
+    ByRef haystack As String, _
+    Optional ByVal localMatch As Boolean = False, _
+    Optional ByVal multiline As Boolean = False _
+) As Collection
+    Dim matcherState As MatcherStateTy
+    Dim matchedIndex As Long
+    Dim notMatched As String
+    Dim notMatchedIndex As Long
+    Dim colStrings As Collection
+    Dim i As Long
+
+    Set colStrings = New Collection
+    matcherState.localMatch = localMatch
+    matcherState.multiline = multiline
+    
+    Do While MatchNext(matcherState, regex, haystack)
+        matchedIndex = matcherState.captures.entireMatch.start - 1
+        notMatched = Mid$(haystack, notMatchedIndex + 1, matchedIndex - notMatchedIndex)
+        notMatchedIndex = matchedIndex + matcherState.captures.entireMatch.Length
+        colStrings.Add notMatched
+        With matcherState.captures
+            For i = 0 To .nNumberedCaptures - 1
+                If .numberedCaptures(i).start > 0 Then colStrings.Add Mid$(haystack, .numberedCaptures(i).start, .numberedCaptures(i).Length)
+            Next i
+        End With
+    Loop
+    colStrings.Add Mid$(haystack, notMatchedIndex + 1, Len$(haystack) - notMatchedIndex)
+    
+    Set Split = colStrings
+End Function
+
 Public Function MatchThenJoin( _
     ByRef regex As RegexTy, _
     ByRef haystack As String, _
