@@ -758,7 +758,7 @@ End Sub
 
 ' assert: t > b
 ' return: index of first element of last pair
-Private Function Unionize(ByRef ary() As Long, ByVal b As Long, ByVal t As Long)
+Private Function Unionize(ByRef ary() As Long, ByVal b As Long, ByVal t As Long) As Long
     Dim i As Long, j As Long, lower As Long, upper As Long, nextLower As Long, nextUpper As Long
     
     lower = ary(b): upper = ary(b + 1)
@@ -866,7 +866,7 @@ End Function
 ' RegExp octal escape parsing.
 ' x is the first digit, which must have already been validated to be in [0-7] by the caller.
 '
-Private Function LexerParseLegacyOctal(ByRef lexCtx As Ty, ByVal x As Long)
+Private Function LexerParseLegacyOctal(ByRef lexCtx As Ty, ByVal x As Long) As Long
     Dim cp As Long, tmp As Long, i As Long
 
     cp = x - UNICODE_0

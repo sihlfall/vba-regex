@@ -21,7 +21,7 @@ Public Function TryInitializeRegex( _
     ByRef regex As RegexTy, _
     ByRef pattern As String, _
     Optional ByVal caseInsensitive As Boolean = False _
-)
+) As Boolean
     ' Todo:
     '   Actually, this is not what we want to have.
     '   We should change the compiler so that it reports syntax errors in the regex via a channel
@@ -238,9 +238,9 @@ End Sub
 
 Public Sub InitializeMatcherState( _
     ByRef matcherState As MatcherStateTy, _
-    Optional ByVal localMatch = False, _
-    Optional ByVal multiline = False, _
-    Optional ByVal dotAll = False _
+    Optional ByVal localMatch As Boolean = False, _
+    Optional ByVal multiline As Boolean = False, _
+    Optional ByVal dotAll As Boolean = False _
 )
     matcherState.current = 0
     matcherState.localMatch = localMatch

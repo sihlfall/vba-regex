@@ -61,7 +61,7 @@ Public Function DfsMatch( _
     ByRef outCaptures As CapturesTy, _
     ByRef bytecode() As Long, _
     ByRef inputStr As String, _
-    Optional ByVal stepsLimit = DEFAULT_STEPS_LIMIT, _
+    Optional ByVal stepsLimit As Long = DEFAULT_STEPS_LIMIT, _
     Optional ByVal multiline As Boolean = False, _
     Optional ByVal dotAll As Boolean = False _
 ) As Long
@@ -135,7 +135,7 @@ Private Function PeekInputCharCode(ByRef inputStr As String, ByRef sp As Long) A
 End Function
 
 
-Private Function UnicodeReIsWordchar(c As Long)
+Private Function UnicodeReIsWordchar(c As Long) As Boolean
     'TODO: Temporary hack
     UnicodeReIsWordchar = ((c >= AscW("A")) And (c <= AscW("Z"))) Or ((c >= AscW("a") And (c <= AscW("z"))))
 End Function
