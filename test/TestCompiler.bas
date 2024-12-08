@@ -1445,17 +1445,18 @@ Private Sub Compiler_Compile0330()
     
     
     Dim expected() As Long
+    Const REOP_CHAR_I As Long = REOP_CHAR Or MODIFIER_I_ACTIVE
     
     MakeArray expected, _
         1, 0, 1, _
         REOP_SAVE, 0, _
-        REOP_CHAR, AscW("A"), _
-        REOP_CHAR, AscW("B"), _
-        REOP_CHAR, AscW("U"), _
-        REOP_CHAR, AscW("Z"), _
-        REOP_CHAR, AscW("Ä"), _
-        REOP_CHAR, AscW("Ö"), _
-        REOP_CHAR, AscW("Ü"), _
+        REOP_CHAR_I, AscW("A"), _
+        REOP_CHAR_I, AscW("B"), _
+        REOP_CHAR_I, AscW("U"), _
+        REOP_CHAR_I, AscW("Z"), _
+        REOP_CHAR_I, AscW("Ä"), _
+        REOP_CHAR_I, AscW("Ö"), _
+        REOP_CHAR_I, AscW("Ü"), _
         REOP_SAVE, 1, _
         REOP_MATCH
     
@@ -1478,13 +1479,15 @@ Private Sub Compiler_Compile0331()
     
     
     Dim expected() As Long
-    
+    Const REOP_CHAR_I As Long = REOP_CHAR Or MODIFIER_I_ACTIVE
+    Const REOP_RANGES_I As Long = REOP_RANGES Or MODIFIER_I_ACTIVE
+
     MakeArray expected, _
         1, 0, 1, _
         REOP_SAVE, 0, _
-        REOP_CHAR, AscW("A"), _
-        REOP_RANGES, 1, AscW("A"), AscW("Z"), _
-        REOP_CHAR, AscW("B"), _
+        REOP_CHAR_I, AscW("A"), _
+        REOP_RANGES_I, 1, AscW("A"), AscW("Z"), _
+        REOP_CHAR_I, AscW("B"), _
         REOP_SAVE, 1, _
         REOP_MATCH
     
@@ -1507,13 +1510,15 @@ Private Sub Compiler_Compile0332()
     
     
     Dim expected() As Long
+    Const REOP_CHAR_I As Long = REOP_CHAR Or MODIFIER_I_ACTIVE
+    Const REOP_RANGES_I As Long = REOP_RANGES Or MODIFIER_I_ACTIVE
     
     MakeArray expected, _
         1, 0, 1, _
         REOP_SAVE, 0, _
-        REOP_CHAR, AscW("A"), _
-        REOP_RANGES, 2, AscW("X"), AscW("Z"), AscW("{"), AscW("{"), _
-        REOP_CHAR, AscW("B"), _
+        REOP_CHAR_I, AscW("A"), _
+        REOP_RANGES_I, 2, AscW("X"), AscW("Z"), AscW("{"), AscW("{"), _
+        REOP_CHAR_I, AscW("B"), _
         REOP_SAVE, 1, _
         REOP_MATCH
     
@@ -2055,17 +2060,17 @@ Private Sub Compiler_Compile0500()
     RegexCompiler.Compile bytecode, "a(?i:bCdeF)gh"
     
     Dim expected() As Long
+    Const REOP_CHAR_I As Long = REOP_CHAR Or MODIFIER_I_ACTIVE
+    
     MakeArray expected, _
         1, 0, 0, _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
-        REOP_CHANGE_MODIFIERS, RegexBytecode.MODIFIER_I_WRITE Or RegexBytecode.MODIFIER_I_ACTIVE, _
-        REOP_CHAR, AscW("B"), _
-        REOP_CHAR, AscW("C"), _
-        REOP_CHAR, AscW("D"), _
-        REOP_CHAR, AscW("E"), _
-        REOP_CHAR, AscW("F"), _
-        REOP_RESTORE_MODIFIERS, _
+        REOP_CHAR_I, AscW("B"), _
+        REOP_CHAR_I, AscW("C"), _
+        REOP_CHAR_I, AscW("D"), _
+        REOP_CHAR_I, AscW("E"), _
+        REOP_CHAR_I, AscW("F"), _
         REOP_CHAR, AscW("g"), _
         REOP_CHAR, AscW("h"), _
         REOP_SAVE, 1, _
@@ -2087,19 +2092,17 @@ Private Sub Compiler_Compile0501()
     RegexCompiler.Compile bytecode, "a(?i:b(?-i:cd)ef)gh"
     
     Dim expected() As Long
+    Const REOP_CHAR_I As Long = REOP_CHAR Or MODIFIER_I_ACTIVE
+    
     MakeArray expected, _
         1, 0, 0, _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
-        REOP_CHANGE_MODIFIERS, RegexBytecode.MODIFIER_I_WRITE Or RegexBytecode.MODIFIER_I_ACTIVE, _
-        REOP_CHAR, AscW("B"), _
-        REOP_CHANGE_MODIFIERS, RegexBytecode.MODIFIER_I_WRITE, _
+        REOP_CHAR_I, AscW("B"), _
         REOP_CHAR, AscW("c"), _
         REOP_CHAR, AscW("d"), _
-        REOP_RESTORE_MODIFIERS, _
-        REOP_CHAR, AscW("E"), _
-        REOP_CHAR, AscW("F"), _
-        REOP_RESTORE_MODIFIERS, _
+        REOP_CHAR_I, AscW("E"), _
+        REOP_CHAR_I, AscW("F"), _
         REOP_CHAR, AscW("g"), _
         REOP_CHAR, AscW("h"), _
         REOP_SAVE, 1, _
@@ -2121,20 +2124,18 @@ Private Sub Compiler_Compile0510()
     RegexCompiler.Compile bytecode, "a(?i)bc|ef"
     
     Dim expected() As Long
+    Const REOP_CHAR_I As Long = REOP_CHAR Or MODIFIER_I_ACTIVE
+    
     MakeArray expected, _
         1, 0, 0, _
         REOP_SAVE, 0, _
-        REOP_SPLIT1, 11, _
+        REOP_SPLIT1, 8, _
         REOP_CHAR, AscW("a"), _
-        REOP_CHANGE_MODIFIERS, RegexBytecode.MODIFIER_I_WRITE Or RegexBytecode.MODIFIER_I_ACTIVE, _
-        REOP_CHAR, AscW("B"), _
-        REOP_CHAR, AscW("C"), _
-        REOP_RESTORE_MODIFIERS, _
-        REOP_JUMP, 7, _
-        REOP_CHANGE_MODIFIERS, RegexBytecode.MODIFIER_I_WRITE Or RegexBytecode.MODIFIER_I_ACTIVE, _
-        REOP_CHAR, AscW("E"), _
-        REOP_CHAR, AscW("F"), _
-        REOP_RESTORE_MODIFIERS, _
+        REOP_CHAR_I, AscW("B"), _
+        REOP_CHAR_I, AscW("C"), _
+        REOP_JUMP, 4, _
+        REOP_CHAR_I, AscW("E"), _
+        REOP_CHAR_I, AscW("F"), _
         REOP_SAVE, 1, _
         REOP_MATCH
     Assert.SequenceEquals expected, bytecode
@@ -2154,28 +2155,22 @@ Private Sub Compiler_Compile0511()
     RegexCompiler.Compile bytecode, "a(?i)bc|e(?m)f|gh"
     
     Dim expected() As Long
+    Const REOP_CHAR_I As Long = REOP_CHAR Or MODIFIER_I_ACTIVE
+    
     MakeArray expected, _
         1, 0, 0, _
         REOP_SAVE, 0, _
-        REOP_SPLIT1, 11, _
+        REOP_SPLIT1, 8, _
         REOP_CHAR, AscW("a"), _
-        REOP_CHANGE_MODIFIERS, RegexBytecode.MODIFIER_I_WRITE Or RegexBytecode.MODIFIER_I_ACTIVE, _
-        REOP_CHAR, AscW("B"), _
-        REOP_CHAR, AscW("C"), _
-        REOP_RESTORE_MODIFIERS, _
-        REOP_JUMP, 21, _
-        REOP_CHANGE_MODIFIERS, RegexBytecode.MODIFIER_I_WRITE Or RegexBytecode.MODIFIER_I_ACTIVE, _
-        REOP_SPLIT1, 9, _
-        REOP_CHAR, AscW("E"), _
-        REOP_CHANGE_MODIFIERS, RegexBytecode.MODIFIER_M_WRITE Or RegexBytecode.MODIFIER_M_ACTIVE, _
-        REOP_CHAR, AscW("F"), _
-        REOP_RESTORE_MODIFIERS, _
-        REOP_JUMP, 7, _
-        REOP_CHANGE_MODIFIERS, RegexBytecode.MODIFIER_M_WRITE Or RegexBytecode.MODIFIER_M_ACTIVE, _
-        REOP_CHAR, AscW("G"), _
-        REOP_CHAR, AscW("H"), _
-        REOP_RESTORE_MODIFIERS, _
-        REOP_RESTORE_MODIFIERS, _
+        REOP_CHAR_I, AscW("B"), _
+        REOP_CHAR_I, AscW("C"), _
+        REOP_JUMP, 12, _
+        REOP_SPLIT1, 6, _
+        REOP_CHAR_I, AscW("E"), _
+        REOP_CHAR_I, AscW("F"), _
+        REOP_JUMP, 4, _
+        REOP_CHAR_I, AscW("G"), _
+        REOP_CHAR_I, AscW("H"), _
         REOP_SAVE, 1, _
         REOP_MATCH
     Assert.SequenceEquals expected, bytecode

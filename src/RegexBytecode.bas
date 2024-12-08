@@ -16,12 +16,15 @@ Public Enum BytecodeDescriptionConstant
 End Enum
 
 Public Enum ModifierMaskConstant
-    MODIFIER_I_WRITE = 1
-    MODIFIER_I_ACTIVE = 2
-    MODIFIER_M_WRITE = 4
-    MODIFIER_M_ACTIVE = 8
-    MODIFIER_S_WRITE = 16
-    MODIFIER_S_ACTIVE = 32
+    MODIFIER_I_WRITE = &H100&
+    MODIFIER_I_ACTIVE = &H200&
+    MODIFIER_I_MASK = MODIFIER_I_ACTIVE Or MODIFIER_I_WRITE
+    MODIFIER_M_WRITE = &H400&
+    MODIFIER_M_ACTIVE = &H800&
+    MODIFIER_M_MASK = MODIFIER_M_ACTIVE Or MODIFIER_M_WRITE
+    MODIFIER_S_WRITE = &H1000&
+    MODIFIER_S_ACTIVE = &H2000&
+    MODIFIER_S_MASK = MODIFIER_S_ACTIVE Or MODIFIER_S_WRITE
     
     ' ! We guarantee that MODIFIER_WRITE_MASK * 2 = MODIFIER_ACTIVE_MASK.
     ' Our code relies on this.
@@ -31,6 +34,8 @@ End Enum
 
 ' regexp opcodes
 Public Enum ReOpType
+    REOP_OPCODE_MASK = &HFF&
+    REOP_INVALID_OPCODE = 0
     REOP_MATCH = 1
     REOP_CHAR = 2
     REOP_DOT = 3
@@ -61,9 +66,7 @@ Public Enum ReOpType
     REOP_CHECK_LOOKBEHIND = 30 ' <none>
     REOP_END_LOOKPOS = 31 ' <none>
     REOP_END_LOOKNEG = 32 ' <none>
-    REOP_CHANGE_MODIFIERS = 33 ' mask
-    REOP_RESTORE_MODIFIERS = 34 ' <none>
-    REOP_FAIL = 35
+    REOP_FAIL = 33
 End Enum
 
 Public Function isCaseInsensitive(ByRef bytecode() As Long) As Boolean

@@ -2,8 +2,8 @@ Attribute VB_Name = "RegexAst"
 Option Explicit
 
 Public Enum AstNodeType
-    ' We guarantee: All AST_ constants are > 0.
-    ' ! The parser relies on AST_ASSERT_LOOKAHEAD and LOOKBEHIND being > 0.
+    ' We guarantee: All AST_ constants are >= 0.
+    ' ! The parser relies on AST_ASSERT_LOOKAHEAD and LOOKBEHIND being >= 0.
     MIN_AST_CODE = 0
     AST_EMPTY = 0
     AST_STRING = 1
@@ -103,7 +103,7 @@ Private Sub InitializeAstTable(ByRef t() As Long)
     t(nc + e * AST_FAIL) = 0:                     t(blen + e * AST_FAIL) = 1:                         t(esfs + e * AST_FAIL) = 0
     t(nc + e * AST_BACKREFERENCE) = 0:            t(blen + e * AST_BACKREFERENCE) = 2:                t(esfs + e * AST_BACKREFERENCE) = 0
     t(nc + e * AST_NAMED) = 1:                    t(blen + e * AST_NAMED) = 3:                        t(esfs + e * AST_NAMED) = 0
-    t(nc + e * AST_MODIFIER_SCOPE) = 1:           t(blen + e * AST_MODIFIER_SCOPE) = 3:               t(esfs + e * AST_MODIFIER_SCOPE) = 0
+    t(nc + e * AST_MODIFIER_SCOPE) = 1:           t(blen + e * AST_MODIFIER_SCOPE) = 0:               t(esfs + e * AST_MODIFIER_SCOPE) = 1
 End Sub
 
 Public Sub AstToBytecode(ByRef ast() As Long, ByRef identifierTree As RegexIdentifierSupport.IdentifierTreeTy, ByVal caseInsensitive As Boolean, ByRef bytecode() As Long)
@@ -112,6 +112,7 @@ Public Sub AstToBytecode(ByRef ast() As Long, ByRef identifierTree As RegexIdent
     Dim stack() As Long, sp As Long
     Dim direction As Long ' 0 = left before right, -1 = right before left
     Dim returningFromFirstChild As Long ' 0 = no, RegexNumericConstants.LONG_FIRST_BIT = yes
+    Dim modifiers As Long
     
     ' temporaries, do not survive over more than one iteration
     Dim opcode1 As Long, opcode2 As Long, opcode3 As Long, tmp As Long, tmpCnt As Long, _
@@ -121,6 +122,7 @@ Public Sub AstToBytecode(ByRef ast() As Long, ByRef identifierTree As RegexIdent
     
     PrepareStackAndBytecodeBuffer ast, identifierTree, caseInsensitive, stack, bytecode
     
+    modifiers = caseInsensitive And RegexBytecode.MODIFIER_I_MASK
     sp = 0
     
     prevNode = -1
@@ -138,33 +140,40 @@ ContinueLoop:
             e = curNode + 1 + tmpCnt - ((tmpCnt - 1) And direction)
             tmp = 1 + 2 * direction
             Do
-                bytecode(bytecodePtr) = REOP_CHAR: bytecodePtr = bytecodePtr + 1
-                bytecode(bytecodePtr) = ast(j): bytecodePtr = bytecodePtr + 1
+                bytecode(bytecodePtr) = REOP_CHAR Or modifiers And RegexBytecode.MODIFIER_I_ACTIVE
+                bytecodePtr = bytecodePtr + 1
+                bytecode(bytecodePtr) = ast(j)
+                bytecodePtr = bytecodePtr + 1
                 If j = e Then Exit Do
                 j = j + tmp
             Loop
             GoTo TurnToParent
         Case AST_RANGES
-            opcode1 = REOP_RANGES
+            opcode1 = REOP_RANGES Or modifiers And RegexBytecode.MODIFIER_I_ACTIVE
             GoTo HandleRanges
         Case AST_INVRANGES
-            opcode1 = REOP_INVRANGES
+            opcode1 = REOP_INVRANGES Or modifiers And RegexBytecode.MODIFIER_I_ACTIVE
             GoTo HandleRanges
         Case AST_CHAR
-            bytecode(bytecodePtr) = REOP_CHAR: bytecodePtr = bytecodePtr + 1
-            bytecode(bytecodePtr) = ast(curNode + 1): bytecodePtr = bytecodePtr + 1
+            bytecode(bytecodePtr) = REOP_CHAR Or modifiers And RegexBytecode.MODIFIER_I_ACTIVE
+            bytecodePtr = bytecodePtr + 1
+            bytecode(bytecodePtr) = ast(curNode + 1)
+            bytecodePtr = bytecodePtr + 1
             GoTo TurnToParent
         Case AST_PERIOD
-            bytecode(bytecodePtr) = REOP_DOT: bytecodePtr = bytecodePtr + 1
+            bytecode(bytecodePtr) = REOP_DOT Or modifiers And RegexBytecode.MODIFIER_S_MASK
+            bytecodePtr = bytecodePtr + 1
             GoTo TurnToParent
         Case AST_MATCH
             bytecode(bytecodePtr) = REOP_MATCH: bytecodePtr = bytecodePtr + 1
             GoTo TurnToParent
         Case AST_ASSERT_START
-            bytecode(bytecodePtr) = REOP_ASSERT_START: bytecodePtr = bytecodePtr + 1
+            bytecode(bytecodePtr) = REOP_ASSERT_START Or modifiers And RegexBytecode.MODIFIER_M_MASK
+            bytecodePtr = bytecodePtr + 1
             GoTo TurnToParent
         Case AST_ASSERT_END
-            bytecode(bytecodePtr) = REOP_ASSERT_END: bytecodePtr = bytecodePtr + 1
+            bytecode(bytecodePtr) = REOP_ASSERT_END Or modifiers And RegexBytecode.MODIFIER_M_MASK
+            bytecodePtr = bytecodePtr + 1
             GoTo TurnToParent
         Case AST_ASSERT_WORD_BOUNDARY
             bytecode(bytecodePtr) = REOP_ASSERT_WORD_BOUNDARY: bytecodePtr = bytecodePtr + 1
@@ -249,7 +258,8 @@ ContinueLoop:
             bytecode(bytecodePtr) = REOP_FAIL: bytecodePtr = bytecodePtr + 1
             GoTo TurnToParent
         Case AST_BACKREFERENCE
-            bytecode(bytecodePtr) = REOP_BACKREFERENCE: bytecodePtr = bytecodePtr + 1
+            bytecode(bytecodePtr) = REOP_BACKREFERENCE Or modifiers And RegexBytecode.MODIFIER_I_ACTIVE
+            bytecodePtr = bytecodePtr + 1
             bytecode(bytecodePtr) = ast(curNode + 1): bytecodePtr = bytecodePtr + 1
             GoTo TurnToParent
         Case AST_NAMED
@@ -264,14 +274,17 @@ ContinueLoop:
             End If
         Case AST_MODIFIER_SCOPE
             If returningFromFirstChild Then
-                bytecode(bytecodePtr) = REOP_RESTORE_MODIFIERS: bytecodePtr = bytecodePtr + 1
+                sp = sp - 1: modifiers = stack(sp)
                 GoTo TurnToParent
             Else
-                bytecode(bytecodePtr) = REOP_CHANGE_MODIFIERS: bytecodePtr = bytecodePtr + 1
-                bytecode(bytecodePtr) = ast(curNode + 2): bytecodePtr = bytecodePtr + 1
+                stack(sp) = modifiers: sp = sp + 1
+                tmp = ast(curNode + 2)
+                modifiers = RegexBytecode.MODIFIER_WRITE_MASK And (modifiers Or tmp) Or _
+                    RegexBytecode.MODIFIER_ACTIVE_MASK And ( _
+                        modifiers Xor tmp * 2 And (tmp Xor modifiers) _
+                    )
                 GoTo TurnToLeftChild
             End If
-        
         End Select
         
         Err.Raise REGEX_ERR_INTERNAL_LOGIC_ERR ' unreachable
