@@ -60,8 +60,9 @@ Public Function DfsMatch( _
     ByRef outCaptures As CapturesTy, _
     ByRef bytecode() As Long, _
     ByRef inputStr As String, _
-    Optional ByVal stepsLimit = DEFAULT_STEPS_LIMIT, _
-    Optional ByVal multiline As Boolean = False _
+    Optional ByVal stepsLimit As Long = DEFAULT_STEPS_LIMIT, _
+    Optional ByVal multiline As Boolean = False, _
+    Optional ByVal dotAll As Boolean = False _
 ) As Long
     Dim context As DfsMatcherContext
     DfsMatch = DfsMatchFrom(context, outCaptures, bytecode, inputStr, 0, stepsLimit, multiline:=multiline)
@@ -74,7 +75,8 @@ Public Function DfsMatchFrom( _
     ByRef inputStr As String, _
     ByVal sp As Long, _
     Optional ByVal stepsLimit As Long = DEFAULT_STEPS_LIMIT, _
-    Optional ByVal multiline As Boolean = False _
+    Optional ByVal multiline As Boolean = False, _
+    Optional ByVal dotAll As Boolean = False _
 ) As Long
     Dim nNamedCaptures As Long, nProperCapturePoints As Long, res As Long
     
@@ -90,7 +92,7 @@ Public Function DfsMatchFrom( _
     
     Do While sp <= Len(inputStr)
         InitializeMatcherContext context, nProperCapturePoints, nProperCapturePoints + nNamedCaptures
-        res = DfsRunThreads(outCaptures, context, bytecode, inputStr, sp, stepsLimit, multiline)
+        res = DfsRunThreads(outCaptures, context, bytecode, inputStr, sp, stepsLimit, multiline, dotAll)
         If res <> -1 Then
             DfsMatchFrom = res
             Exit Function
@@ -102,10 +104,7 @@ Public Function DfsMatchFrom( _
 End Function
 
 Private Function GetBc(ByRef bytecode() As Long, ByRef pc As Long) As Long
-    If pc > UBound(bytecode) Then
-        GetBc = 0 ' Todo: ??????
-        Exit Function
-    End If
+    If pc > UBound(bytecode) Then GetBc = REOP_INVALID_OPCODE: Exit Function
     GetBc = bytecode(pc)
     pc = pc + 1
 End Function
@@ -132,7 +131,7 @@ Private Function PeekInputCharCode(ByRef inputStr As String, ByRef sp As Long) A
 End Function
 
 
-Private Function UnicodeReIsWordchar(c As Long)
+Private Function UnicodeReIsWordchar(c As Long) As Boolean
     'TODO: Temporary hack
     UnicodeReIsWordchar = ((c >= AscW("A")) And (c <= AscW("Z"))) Or ((c >= AscW("a") And (c <= AscW("z"))))
 End Function
@@ -186,7 +185,14 @@ Private Sub PushMatcherStackFrame( _
 End Sub
 
 ' If current frame is the last remaining frame, returns false
-Private Function PopMatcherStackFrame(ByRef context As DfsMatcherContext, ByRef pc As Long, ByRef sp As Long, ByRef pcLandmark As Long, ByRef spDelta As Long, ByRef q As Long) As Boolean
+Private Function PopMatcherStackFrame( _
+    ByRef context As DfsMatcherContext, _
+    ByRef pc As Long, _
+    ByRef sp As Long, _
+    ByRef pcLandmark As Long, _
+    ByRef spDelta As Long, _
+    ByRef q As Long _
+) As Boolean
     With context.matcherStack
         If .Length = 0 Then
             PopMatcherStackFrame = False
@@ -211,7 +217,14 @@ Private Function PopMatcherStackFrame(ByRef context As DfsMatcherContext, ByRef 
     End With
 End Function
 
-Private Sub ReturnToMasterDiscardCaptures(ByRef context As DfsMatcherContext, ByRef pc As Long, ByRef sp As Long, ByRef pcLandmark As Long, ByRef spDelta As Long, ByRef q As Long)
+Private Sub ReturnToMasterDiscardCaptures( _
+    ByRef context As DfsMatcherContext, _
+    ByRef pc As Long, _
+    ByRef sp As Long, _
+    ByRef pcLandmark As Long, _
+    ByRef spDelta As Long, _
+    ByRef q As Long _
+)
     With context.matcherStack
         .Length = context.master
         With .Buffer(.Length)
@@ -229,7 +242,14 @@ Private Sub ReturnToMasterDiscardCaptures(ByRef context As DfsMatcherContext, By
     End With
 End Sub
 
-Private Sub ReturnToMasterPreserveCaptures(ByRef context As DfsMatcherContext, ByRef pc As Long, ByRef sp As Long, ByRef pcLandmark As Long, ByRef spDelta As Long, ByRef q As Long)
+Private Sub ReturnToMasterPreserveCaptures( _
+    ByRef context As DfsMatcherContext, _
+    ByRef pc As Long, _
+    ByRef sp As Long, _
+    ByRef pcLandmark As Long, _
+    ByRef spDelta As Long, _
+    ByRef q As Long _
+)
     Dim masterCapturesStackLength As Long, i As Long
     
     With context.matcherStack
@@ -316,21 +336,21 @@ Private Function GetCapturePoint(ByRef context As DfsMatcherContext, ByVal idx A
     End With
 End Function
 
-Private Sub PushQCounter(ByRef context As DfsMatcherContext, ByVal q As Long)
+Private Sub QStackPush(ByRef context As DfsMatcherContext, ByVal q As Long)
     With context
         ArrayBuffer.AppendThree .qstack, .qTop, .matcherStack.Length, q
         .qTop = .qstack.Length - 1
     End With
 End Sub
 
-Private Function PopQCounter(ByRef context As DfsMatcherContext) As Long
+Private Function QStackPop(ByRef context As DfsMatcherContext) As Long
     With context
         If .qTop = 0 Then
-            PopQCounter = Q_NONE
+            QStackPop = Q_NONE
             Exit Function
         End If
         
-        PopQCounter = .qstack.Buffer(.qTop)
+        QStackPop = .qstack.Buffer(.qTop)
         If .qstack.Buffer(.qTop - 1) = .matcherStack.Length Then .qstack.Length = .qstack.Length - 3
         .qTop = .qstack.Buffer(.qTop - 2)
     End With
@@ -345,9 +365,9 @@ Private Function DfsRunThreads( _
     ByRef inputStr As String, _
     ByVal sp As Long, _
     ByVal stepsLimit As Long, _
-    ByVal multiline As Boolean _
+    ByVal multiline As Boolean, _
+    ByVal dotAll As Boolean _
 ) As Long
-    Dim caseInsensitive As Boolean
     Dim pc As Long
     
     ' To avoid infinite loops
@@ -367,7 +387,6 @@ Private Function DfsRunThreads( _
     Dim stepsCount As Long
     Dim spDelta As Long ' 1 when we walk forwards and -1 when we walk backwards
     
-        caseInsensitive = bytecode(RegexBytecode.BYTECODE_IDX_CASE_INSENSITIVE_INDICATOR) <> 0
         pc = 3 + 3 * bytecode(RegexBytecode.BYTECODE_IDX_N_IDENTIFIERS)
         pcLandmark = -1
         stepsCount = 0
@@ -404,7 +423,7 @@ ContinueLoopSuccess:
             '                     (long) sp,
             '                     (long) op));
     
-            Select Case op
+            Select Case op And RegexBytecode.REOP_OPCODE_MASK
             Case REOP_MATCH
                 GoTo Match
             Case REOP_END_LOOKPOS
@@ -436,28 +455,30 @@ ContinueLoopSuccess:
                 pcLandmark = pc - 1
                 c1 = GetBc(bytecode, pc)
                 c2 = GetInputCharCode(inputStr, sp, spDelta)
-                If caseInsensitive Then c2 = RegexUnicodeSupport.ReCanonicalizeChar(c2)
+                If op And RegexBytecode.MODIFIER_I_ACTIVE Then
+                    c2 = RegexUnicodeSupport.ReCanonicalizeChar(c2)
+                End If
                 
                 ' DUK_ASSERT(c1 >= 0);
     
                 ' DUK_DDD(DUK_DDDPRINT("char match, c1=%ld, c2=%ld", (long) c1, (long) c2));
                 If c1 <> c2 Then GoTo ContinueLoopFail
                 GoTo ContinueLoopSuccess
-            Case REOP_PERIOD
+            Case REOP_DOT
                 pcLandmark = pc - 1
                 c1 = GetInputCharCode(inputStr, sp, spDelta)
-                If c1 < 0 Then
-                    GoTo ContinueLoopFail
-                ElseIf RegexUnicodeSupport.UnicodeIsLineTerminator(c1) Then
-                    GoTo ContinueLoopFail
-                End If
+                If c1 < 0 Then GoTo ContinueLoopFail
+                If op - (dotAll And RegexBytecode.MODIFIER_S_WRITE) And RegexBytecode.MODIFIER_S_ACTIVE Then GoTo ContinueLoopSuccess
+                If RegexUnicodeSupport.UnicodeIsLineTerminator(c1) Then GoTo ContinueLoopFail
                 GoTo ContinueLoopSuccess
             Case REOP_RANGES, REOP_INVRANGES
                 pcLandmark = pc - 1
                 n = GetBc(bytecode, pc) ' assert: >= 1
                 c1 = GetInputCharCode(inputStr, sp, spDelta)
                 If c1 < 0 Then GoTo ContinueLoopFail
-                If caseInsensitive Then c1 = RegexUnicodeSupport.ReCanonicalizeChar(c1)
+                If op And RegexBytecode.MODIFIER_I_ACTIVE Then
+                    c1 = RegexUnicodeSupport.ReCanonicalizeChar(c1)
+                End If
                 
                 aa = pc - 1
                 pc = pc + 2 * n
@@ -475,12 +496,12 @@ ContinueLoopSuccess:
                     End If
                 Loop
     
-                If (op = REOP_RANGES) <> successfulMatch Then GoTo ContinueLoopFail
+                If ((op And RegexBytecode.REOP_OPCODE_MASK) = REOP_RANGES) <> successfulMatch Then GoTo ContinueLoopFail
 
                 GoTo ContinueLoopSuccess
             Case REOP_ASSERT_START
                 If sp <= 0 Then GoTo ContinueLoopSuccess
-                If Not multiline Then GoTo ContinueLoopFail
+                If 0 = (op - (multiline And RegexBytecode.MODIFIER_M_WRITE) And RegexBytecode.MODIFIER_M_ACTIVE) Then GoTo ContinueLoopFail
                 c1 = PeekInputCharCode(inputStr, sp - (spDelta + 1) \ 2)
                 ' E5 Sections 15.10.2.8, 7.3
                 If RegexUnicodeSupport.UnicodeIsLineTerminator(c1) Then GoTo ContinueLoopSuccess
@@ -488,7 +509,7 @@ ContinueLoopSuccess:
             Case REOP_ASSERT_END
                 c1 = PeekInputCharCode(inputStr, sp - (spDelta - 1) \ 2)
                 If c1 = DFS_ENDOFINPUT Then GoTo ContinueLoopSuccess
-                If Not multiline Then GoTo ContinueLoopFail
+                If 0 = (op - (multiline And RegexBytecode.MODIFIER_M_WRITE) And RegexBytecode.MODIFIER_M_ACTIVE) Then GoTo ContinueLoopFail
                 If RegexUnicodeSupport.UnicodeIsLineTerminator(c1) Then GoTo ContinueLoopSuccess
                 GoTo ContinueLoopFail
             Case REOP_ASSERT_WORD_BOUNDARY, REOP_ASSERT_NOT_WORD_BOUNDARY
@@ -511,7 +532,7 @@ ContinueLoopSuccess:
                     b2 = UnicodeReIsWordchar(c1)
                 End If
     
-                If (op = REOP_ASSERT_WORD_BOUNDARY) = (b1 = b2) Then GoTo ContinueLoopFail
+                If ((op And RegexBytecode.REOP_OPCODE_MASK) = REOP_ASSERT_WORD_BOUNDARY) = (b1 = b2) Then GoTo ContinueLoopFail
 
                 GoTo ContinueLoopSuccess
             Case REOP_JUMP
@@ -541,7 +562,7 @@ ContinueLoopSuccess:
                 pc = pc + n
                 GoTo ContinueLoopSuccess
             Case REOP_REPEAT_EXACTLY_INIT
-                PushQCounter context, q
+                QStackPush context, q
                 q = 0
                 GoTo ContinueLoopSuccess
             Case REOP_REPEAT_EXACTLY_START
@@ -556,11 +577,11 @@ ContinueLoopSuccess:
                     If pcLandmark > t Then pcLandmark = t
                     pc = t
                 Else
-                    q = PopQCounter(context)
+                    q = QStackPop(context)
                 End If
                 GoTo ContinueLoopSuccess
             Case REOP_REPEAT_MAX_HUMBLE_INIT, REOP_REPEAT_GREEDY_MAX_INIT
-                PushQCounter context, q
+                QStackPush context, q
                 q = -1
                 GoTo ContinueLoopSuccess
             Case REOP_REPEAT_MAX_HUMBLE_START
@@ -570,7 +591,7 @@ ContinueLoopSuccess:
                 q = q + 1
                 If q < qmax Then PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
                 
-                q = PopQCounter(context)
+                q = QStackPop(context)
                 pc = pc + n
                 GoTo ContinueLoopSuccess
             Case REOP_REPEAT_MAX_HUMBLE_END
@@ -587,12 +608,12 @@ ContinueLoopSuccess:
                 
                 q = q + 1
                 If q < qmax Then
-                    qq = PopQCounter(context)
+                    qq = QStackPop(context)
                     PushMatcherStackFrame context, pc + n, sp, pcLandmark, spDelta, qq
-                    PushQCounter context, qq
+                    QStackPush context, qq
                 Else
                     pc = pc + n
-                    q = PopQCounter(context)
+                    q = QStackPop(context)
                 End If
                 
                 GoTo ContinueLoopSuccess
@@ -608,8 +629,6 @@ ContinueLoopSuccess:
                 idx = GetBc(bytecode, pc)
                 If idx >= context.nCapturePoints Then GoTo InternalError
                     ' idx is unsigned, < 0 check is not necessary
-                    ' DUK_D(DUK_DPRINT("internal error, regexp save index insane: idx=%ld", (long) idx));
-                '.tsStack(.tsLastIndex).saved(idx) = sp
                 SetCapturePoint context, idx, sp
                 GoTo ContinueLoopSuccess
             Case REOP_SET_NAMED
@@ -676,7 +695,7 @@ ContinueLoopSuccess:
                             ' No need for an explicit c2 < 0 check: because c1 >= 0,
                             ' the comparison will always fail if c2 < 0.
                             If c1 <> c2 Then
-                                If Not caseInsensitive Then GoTo ContinueLoopFail
+                                If 0 = (op And RegexBytecode.MODIFIER_I_ACTIVE) Then GoTo ContinueLoopFail
                                 If RegexUnicodeSupport.ReCanonicalizeChar(c1) <> RegexUnicodeSupport.ReCanonicalizeChar(c2) Then GoTo ContinueLoopFail
                             End If
                         Loop
@@ -688,7 +707,7 @@ ContinueLoopSuccess:
                             ' No need for an explicit c2 < 0 check: because c1 >= 0,
                             ' the comparison will always fail if c2 < 0.
                             If c1 <> c2 Then
-                                If Not caseInsensitive Then GoTo ContinueLoopFail
+                                If 0 = (op And RegexBytecode.MODIFIER_I_ACTIVE) Then GoTo ContinueLoopFail
                                 If RegexUnicodeSupport.ReCanonicalizeChar(c1) <> RegexUnicodeSupport.ReCanonicalizeChar(c2) Then GoTo ContinueLoopFail
                             End If
                         Loop
@@ -698,7 +717,6 @@ ContinueLoopSuccess:
                 End If
                 GoTo ContinueLoopSuccess
             Case Else
-                'DUK_D(DUK_DPRINT("internal error, regexp opcode error: %ld", (long) op));
                 GoTo InternalError
             End Select
         ' END LOOP

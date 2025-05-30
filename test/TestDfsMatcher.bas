@@ -660,7 +660,7 @@ Private Sub DfsMatcher_MatchRegexp204()
         1, 0, 0, _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
-        REOP_PERIOD, _
+        REOP_DOT, _
         REOP_CHAR, AscW("b"), _
         REOP_SAVE, 1, _
         REOP_MATCH
@@ -873,7 +873,7 @@ Private Sub DfsMatcher_MatchRegexp303()
         1, 0, 0, _
         REOP_SAVE, 0, _
         REOP_SPLIT1, 3, _
-        REOP_PERIOD, _
+        REOP_DOT, _
         REOP_JUMP, 6, _
         REOP_RANGES, 0, _
         REOP_CHAR, AscW("a"), _
@@ -1082,10 +1082,10 @@ Private Sub DfsMatcher_MatchRegexp404()
     MakeArray bytecode, _
         1, 0, 0, _
         REOP_SAVE, 0, _
-        REOP_PERIOD, _
-        REOP_PERIOD, _
-        REOP_PERIOD, _
-        REOP_PERIOD, _
+        REOP_DOT, _
+        REOP_DOT, _
+        REOP_DOT, _
+        REOP_DOT, _
         REOP_CHECK_LOOKBEHIND, _
         REOP_LOOKPOS, 5, _
         REOP_CHAR, AscW("d"), _
@@ -1116,10 +1116,10 @@ Private Sub DfsMatcher_MatchRegexp405()
     MakeArray bytecode, _
         1, 0, 0, _
         REOP_SAVE, 0, _
-        REOP_PERIOD, _
-        REOP_PERIOD, _
-        REOP_PERIOD, _
-        REOP_PERIOD, _
+        REOP_DOT, _
+        REOP_DOT, _
+        REOP_DOT, _
+        REOP_DOT, _
         REOP_CHECK_LOOKBEHIND, _
         REOP_LOOKNEG, 5, _
         REOP_CHAR, AscW("d"), _
@@ -1150,10 +1150,10 @@ Private Sub DfsMatcher_MatchRegexp406()
     MakeArray bytecode, _
         1, 0, 0, _
         REOP_SAVE, 0, _
-        REOP_PERIOD, _
-        REOP_PERIOD, _
-        REOP_PERIOD, _
-        REOP_PERIOD, _
+        REOP_DOT, _
+        REOP_DOT, _
+        REOP_DOT, _
+        REOP_DOT, _
         REOP_CHECK_LOOKBEHIND, _
         REOP_LOOKPOS, 11, _
         REOP_CHAR, AscW("d"), _
@@ -1188,10 +1188,10 @@ Private Sub DfsMatcher_MatchRegexp407()
     MakeArray bytecode, _
         1, 0, 0, _
         REOP_SAVE, 0, _
-        REOP_PERIOD, _
-        REOP_PERIOD, _
-        REOP_PERIOD, _
-        REOP_PERIOD, _
+        REOP_DOT, _
+        REOP_DOT, _
+        REOP_DOT, _
+        REOP_DOT, _
         REOP_CHECK_LOOKBEHIND, _
         REOP_LOOKPOS, 11, _
         REOP_CHAR, AscW("d"), _

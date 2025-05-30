@@ -481,8 +481,8 @@ Public Function RegexMatch( _
     Const P_S As Long = 0
     Const P_PATTERN As Long = 1
     Const P_FORMAT As Long = 2
-    Const P_CASE_INSENSITIVE As Long = 2
-    Const P_MULTILINE As Long = 3
+    Const P_CASE_INSENSITIVE As Long = 3
+    Const P_MULTILINE As Long = 4
     Dim argInfo(0 To 4) As ArgumentInfo
     
     Dim nRows As Long, nColumns As Long
@@ -614,8 +614,8 @@ Public Function RegexReplace( _
     Const P_S As Long = 0
     Const P_PATTERN As Long = 1
     Const P_REPLACE_BY As Long = 2
-    Const P_CASE_INSENSITIVE As Long = 2
-    Const P_MULTILINE As Long = 3
+    Const P_CASE_INSENSITIVE As Long = 3
+    Const P_MULTILINE As Long = 4
     Dim argInfo(0 To 4) As ArgumentInfo
     
     Dim nRows As Long, nColumns As Long
