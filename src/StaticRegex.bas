@@ -109,10 +109,11 @@ End Function
 Public Function MatchNext( _
     ByRef matcherState As MatcherStateTy, ByRef regex As RegexTy, ByRef haystack As String _
 ) As Boolean
-    Dim r As Long
+    Dim r As Long, oldCurrent As Long
     
     If matcherState.current = -1 Then Exit Function ' end of string reached, return False
     
+    oldCurrent = matcherState.current
     r = RegexDfsMatcher.DfsMatchFrom( _
         matcherState.context, matcherState.captures, regex.bytecode, haystack, matcherState.current, _
         stepsLimit:=regex.stepsLimit, _
@@ -120,7 +121,7 @@ Public Function MatchNext( _
         dotAll:=matcherState.dotAll _
     )
     
-    matcherState.current = r Or matcherState.localMatch
+    matcherState.current = (r - (oldCurrent = matcherState.current)) Or matcherState.localMatch
     MatchNext = r <> -1
 End Function
 
