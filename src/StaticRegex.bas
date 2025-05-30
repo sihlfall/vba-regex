@@ -98,18 +98,21 @@ Public Function GetCaptureByName( _
     GetCaptureByName = GetCapture(matcherState, haystack, matcherState.captures.namedCaptures(identifierId))
 End Function
 
-Public Function MatchNext(ByRef matcherState As MatcherStateTy, ByRef regex As RegexTy, ByRef haystack As String) As Boolean
-    Dim r As Long
+Public Function MatchNext( _
+    ByRef matcherState As MatcherStateTy, ByRef regex As RegexTy, ByRef haystack As String _
+) As Boolean
+    Dim r As Long, oldCurrent As Long
     
     If matcherState.current = -1 Then Exit Function ' end of string reached, return False
     
+    oldCurrent = matcherState.current
     r = RegexDfsMatcher.DfsMatchFrom( _
         matcherState.context, matcherState.captures, regex.bytecode, haystack, matcherState.current, _
         stepsLimit:=regex.stepsLimit, _
         multiline:=matcherState.multiline _
     )
     
-    matcherState.current = r Or matcherState.localMatch
+    matcherState.current = (r - (oldCurrent = matcherState.current)) Or matcherState.localMatch
     MatchNext = r <> -1
 End Function
 

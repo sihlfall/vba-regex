@@ -914,7 +914,7 @@ Private Sub DfsMatcher_MatchRegexp304()
     
     Dim result As Long
     result = RegexDfsMatcher.DfsMatch(captures, bytecode, s)
-    Assert.AreEqual Len(s), result
+    Assert.AreEqual 4&, result
 TestExit:
     Exit Sub
 TestFail:
@@ -922,6 +922,32 @@ TestFail:
     Resume TestExit
 End Sub
 
+'@TestMethod("DfsMatcher")
+Private Sub DfsMatcher_MatchRegexp305()
+    ' closing square bracket as first character of range
+    On Error GoTo TestFail
+    
+    Dim captures As RegexDfsMatcher.CapturesTy, bytecode() As Long
+    MakeArray bytecode, _
+        1, 0, 0, _
+        REOP_SAVE, 0, _
+        REOP_SPLIT1, 8, _
+        REOP_RANGES, 2, AscW("]"), AscW("]"), AscW("a"), AscW("a"), _
+        REOP_JUMP, -10, _
+        REOP_SAVE, 1, _
+        REOP_MATCH
+    
+    Dim s As String: s = "a]ab"
+    
+    Dim result As Long
+    result = RegexDfsMatcher.DfsMatch(captures, bytecode, s)
+    Assert.AreEqual 3&, result
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
 
 '@TestMethod("DfsMatcher")
 Private Sub DfsMatcher_MatchRegexp400()
