@@ -1,4 +1,11 @@
 ﻿$testCasesToExecute = @(
+    "000_EgrepLiterals_Lowercase",
+    "001_EgrepLiterals_Lowercase",
+    "002_EgrepLiterals_Lowercase",
+    "003_EgrepLiterals_Lowercase",
+    "004_EgrepLiterals_MixedCase",
+    "005_EgrepLiterals_MixedCase",
+    "006_EgrepLiterals_MixedCase",
     "007_EgrepLiterals_MixedCase",
     "008_EgrepLiterals_FoldCase",
     "009_EgrepLiterals_FoldCase",
@@ -8,6 +15,8 @@
     "017_Repetition_Simple",
     "018_Repetition_Capturing",
     "019_Repetition_Capturing",
+    "020_EmptyString_Exhaustive",
+    "021_Punctuation_Literals",
     "023_CharacterClasses_Exhaustive",
     "024_CharacterClasses_ExhaustiveAB"
 )

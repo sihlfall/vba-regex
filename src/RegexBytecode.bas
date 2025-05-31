@@ -15,11 +15,30 @@ Public Enum BytecodeDescriptionConstant
     RE_QUANTIFIER_INFINITE = &H7FFFFFFF
 End Enum
 
+Public Enum ModifierMaskConstant
+    MODIFIER_I_WRITE = &H100&
+    MODIFIER_I_ACTIVE = &H200&
+    MODIFIER_I_MASK = MODIFIER_I_ACTIVE Or MODIFIER_I_WRITE
+    MODIFIER_M_WRITE = &H400&
+    MODIFIER_M_ACTIVE = &H800&
+    MODIFIER_M_MASK = MODIFIER_M_ACTIVE Or MODIFIER_M_WRITE
+    MODIFIER_S_WRITE = &H1000&
+    MODIFIER_S_ACTIVE = &H2000&
+    MODIFIER_S_MASK = MODIFIER_S_ACTIVE Or MODIFIER_S_WRITE
+    
+    ' ! We guarantee that MODIFIER_WRITE_MASK * 2 = MODIFIER_ACTIVE_MASK.
+    ' Our code relies on this.
+    MODIFIER_WRITE_MASK = &H15555555
+    MODIFIER_ACTIVE_MASK = &H2AAAAAAA
+End Enum
+
 ' regexp opcodes
 Public Enum ReOpType
+    REOP_OPCODE_MASK = &HFF&
+    REOP_INVALID_OPCODE = 0
     REOP_MATCH = 1
     REOP_CHAR = 2
-    REOP_PERIOD = 3
+    REOP_DOT = 3
     REOP_RANGES = 4 ' nranges [must be >= 1], chfrom, chto, chfrom, chto, ...
     REOP_INVRANGES = 5
     REOP_JUMP = 6
