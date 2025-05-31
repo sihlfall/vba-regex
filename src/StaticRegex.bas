@@ -121,7 +121,7 @@ Public Function MatchNext( _
         dotAll:=matcherState.dotAll _
     )
     
-    matcherState.current = (r - (oldCurrent = matcherState.current)) Or matcherState.localMatch
+    matcherState.current = (r - (oldCurrent = r)) Or matcherState.localMatch
     MatchNext = r <> -1
 End Function
 
