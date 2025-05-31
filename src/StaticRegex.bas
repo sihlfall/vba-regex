@@ -9,8 +9,9 @@ Public Type RegexTy
 End Type
 
 Public Type MatcherStateTy
-    multiline As Boolean
     localMatch As Boolean
+    multiline As Boolean
+    dotAll As Boolean
     current As Long
     captures As RegexDfsMatcher.CapturesTy
     context As RegexDfsMatcher.DfsMatcherContext
@@ -20,7 +21,7 @@ Public Function TryInitializeRegex( _
     ByRef regex As RegexTy, _
     ByRef pattern As String, _
     Optional ByVal caseInsensitive As Boolean = False _
-)
+) As Boolean
     ' Todo:
     '   Actually, this is not what we want to have.
     '   We should change the compiler so that it reports syntax errors in the regex via a channel
@@ -48,12 +49,17 @@ End Sub
 
 'Test whether a string matches the regex
 '@return - `True` if the string matches the regex, `False` otherwise
-Public Function Test(ByRef regex As RegexTy, ByRef str As String, Optional ByVal multiline As Boolean = False) As Boolean
+Public Function Test( _
+    ByRef regex As RegexTy, ByRef str As String, _
+    Optional ByVal multiline As Boolean = False, _
+    Optional ByVal dotAll As Boolean = False _
+) As Boolean
     Dim captures As RegexDfsMatcher.CapturesTy
     
     Test = RegexDfsMatcher.DfsMatch( _
         captures, regex.bytecode, str, stepsLimit:=regex.stepsLimit, _
-        multiline:=multiline _
+        multiline:=multiline, _
+        dotAll:=dotAll _
     ) <> -1
 End Function
 
@@ -61,12 +67,14 @@ End Function
 Public Function Match( _
     ByRef matcherState As MatcherStateTy, ByRef regex As RegexTy, ByRef haystack As String, _
     Optional ByVal multiline As Boolean = False, _
+    Optional ByVal dotAll As Boolean = False, _
     Optional ByVal matchFrom As Long = 1 _
 ) As Boolean
     Match = RegexDfsMatcher.DfsMatchFrom( _
         matcherState.context, matcherState.captures, regex.bytecode, haystack, matchFrom - 1, _
         stepsLimit:=regex.stepsLimit, _
-        multiline:=multiline _
+        multiline:=multiline, _
+        dotAll:=dotAll _
     ) <> -1
     matcherState.current = -1
 End Function
@@ -98,18 +106,22 @@ Public Function GetCaptureByName( _
     GetCaptureByName = GetCapture(matcherState, haystack, matcherState.captures.namedCaptures(identifierId))
 End Function
 
-Public Function MatchNext(ByRef matcherState As MatcherStateTy, ByRef regex As RegexTy, ByRef haystack As String) As Boolean
-    Dim r As Long
+Public Function MatchNext( _
+    ByRef matcherState As MatcherStateTy, ByRef regex As RegexTy, ByRef haystack As String _
+) As Boolean
+    Dim r As Long, oldCurrent As Long
     
     If matcherState.current = -1 Then Exit Function ' end of string reached, return False
     
+    oldCurrent = matcherState.current
     r = RegexDfsMatcher.DfsMatchFrom( _
         matcherState.context, matcherState.captures, regex.bytecode, haystack, matcherState.current, _
         stepsLimit:=regex.stepsLimit, _
-        multiline:=matcherState.multiline _
+        multiline:=matcherState.multiline, _
+        dotAll:=matcherState.dotAll _
     )
     
-    matcherState.current = r Or matcherState.localMatch
+    matcherState.current = (r - (oldCurrent = r)) Or matcherState.localMatch
     MatchNext = r <> -1
 End Function
 
@@ -118,7 +130,8 @@ Public Function Replace( _
     ByRef replacer As String, _
     ByRef haystack As String, _
     Optional ByVal localMatch As Boolean = False, _
-    Optional ByVal multiline As Boolean = False _
+    Optional ByVal multiline As Boolean = False, _
+    Optional ByVal dotAll As Boolean = False _
 ) As String
     Dim parsedFormat As ArrayBuffer.Ty, matcherState As MatcherStateTy, lastEndPos As Long, resultBuilder As StaticStringBuilder.Ty
 
@@ -127,6 +140,7 @@ Public Function Replace( _
     lastEndPos = 1
     matcherState.localMatch = localMatch
     matcherState.multiline = multiline
+    matcherState.dotAll = dotAll
     Do While MatchNext(matcherState, regex, haystack)
         StaticStringBuilder.AppendStr resultBuilder, Mid$(haystack, lastEndPos, matcherState.captures.entireMatch.start - lastEndPos)
         RegexReplace.AppendFormatted resultBuilder, haystack, matcherState.captures, replacer, parsedFormat.Buffer
@@ -139,37 +153,40 @@ Public Function Replace( _
     Replace = StaticStringBuilder.GetStr(resultBuilder)
 End Function
 
-Public Function Split( _
+Public Function SplitByRegex( _
     ByRef regex As RegexTy, _
     ByRef haystack As String, _
     Optional ByVal localMatch As Boolean = False, _
-    Optional ByVal multiline As Boolean = False _
+    Optional ByVal multiline As Boolean = False, _
+    Optional ByVal dotAll As Boolean = False _
 ) As Collection
-    Dim matcherState As MatcherStateTy
-    Dim matchedIndex As Long
-    Dim notMatched As String
-    Dim notMatchedIndex As Long
-    Dim colStrings As Collection
-    Dim i As Long
+    Dim matcherState As MatcherStateTy, lastEndPos As Long, colStrings As Collection
+    Dim i As Long, u As Long, s As String
 
     Set colStrings = New Collection
+
+    lastEndPos = 1
     matcherState.localMatch = localMatch
     matcherState.multiline = multiline
-    
+    matcherState.dotAll = dotAll
     Do While MatchNext(matcherState, regex, haystack)
-        matchedIndex = matcherState.captures.entireMatch.start - 1
-        notMatched = Mid$(haystack, notMatchedIndex + 1, matchedIndex - notMatchedIndex)
-        notMatchedIndex = matchedIndex + matcherState.captures.entireMatch.Length
-        colStrings.Add notMatched
-        With matcherState.captures
-            For i = 0 To .nNumberedCaptures - 1
-                If .numberedCaptures(i).start > 0 Then colStrings.Add Mid$(haystack, .numberedCaptures(i).start, .numberedCaptures(i).Length)
-            Next i
+        With matcherState.captures.entireMatch
+            colStrings.Add Mid$(haystack, lastEndPos, .start - lastEndPos)
+            lastEndPos = .start + .Length
         End With
+
+        u = matcherState.captures.nNumberedCaptures - 1
+        For i = 0 To u
+            With matcherState.captures.numberedCaptures(i)
+                s = vbNullString
+                If .Length > 0 Then s = Mid$(haystack, .start, .Length)
+                colStrings.Add s
+            End With
+        Next
     Loop
-    colStrings.Add Mid$(haystack, notMatchedIndex + 1, Len$(haystack) - notMatchedIndex)
+    colStrings.Add Mid$(haystack, lastEndPos)
     
-    Set Split = colStrings
+    Set SplitByRegex = colStrings
 End Function
 
 Public Function MatchThenJoin( _
@@ -178,7 +195,8 @@ Public Function MatchThenJoin( _
     Optional ByRef format As String = "$&", _
     Optional ByRef delimiter As String = vbNullString, _
     Optional ByVal localMatch As Boolean = False, _
-    Optional ByVal multiline As Boolean = False _
+    Optional ByVal multiline As Boolean = False, _
+    Optional ByVal dotAll As Boolean = False _
 ) As String
     Dim parsedFormat As ArrayBuffer.Ty, resultBuilder As StaticStringBuilder.Ty, matcherState As MatcherStateTy
     
@@ -186,6 +204,7 @@ Public Function MatchThenJoin( _
     
     matcherState.localMatch = localMatch
     matcherState.multiline = multiline
+    matcherState.dotAll = dotAll
     If MatchNext(matcherState, regex, haystack) Then
         AppendFormatted resultBuilder, haystack, matcherState.captures, format, parsedFormat.Buffer
         Do While MatchNext(matcherState, regex, haystack)
@@ -203,7 +222,8 @@ Public Sub MatchThenList( _
     ByRef haystack As String, _
     ByRef formatStrings() As String, _
     Optional ByVal localMatch As Boolean = False, _
-    Optional ByVal multiline As Boolean = False _
+    Optional ByVal multiline As Boolean = False, _
+    Optional ByVal dotAll As Boolean = False _
 )
     Dim cola As Long, colb As Long, j As Long, k As Long, m As Long, mm As Long, nMatches As Long
     Dim parsedFormats As ArrayBuffer.Ty
@@ -224,6 +244,7 @@ Public Sub MatchThenList( _
     
     matcherState.localMatch = localMatch
     matcherState.multiline = multiline
+    matcherState.dotAll = dotAll
     Do While MatchNext(matcherState, regex, haystack)
         k = 0
         For j = cola To colb
@@ -238,7 +259,7 @@ Public Sub MatchThenList( _
     
     If nMatches = 0 Then
         ' hack to create a zero-length array
-        results = VBA.Split(vbNullString)
+        results = Split(vbNullString)
     Else
         ReDim results(0 To nMatches - 1, cola To colb) As String
         m = resultBuilder.Length
@@ -253,11 +274,15 @@ Public Sub MatchThenList( _
 End Sub
 
 Public Sub InitializeMatcherState( _
-    ByRef matcherState As MatcherStateTy, Optional ByVal localMatch = False, Optional ByVal multiline = False _
+    ByRef matcherState As MatcherStateTy, _
+    Optional ByVal localMatch As Boolean = False, _
+    Optional ByVal multiline As Boolean = False, _
+    Optional ByVal dotAll As Boolean = False _
 )
     matcherState.current = 0
     matcherState.localMatch = localMatch
     matcherState.multiline = multiline
+    matcherState.dotAll = dotAll
 End Sub
 
 Public Sub ResetMatcherState(ByRef matcherState As MatcherStateTy)
