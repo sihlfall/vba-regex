@@ -152,6 +152,42 @@ Public Function Replace( _
     Replace = StaticStringBuilder.GetStr(resultBuilder)
 End Function
 
+Public Function SplitByRegex( _
+    ByRef regex As RegexTy, _
+    ByRef haystack As String, _
+    Optional ByVal localMatch As Boolean = False, _
+    Optional ByVal multiline As Boolean = False, _
+    Optional ByVal dotAll As Boolean = False _
+) As Collection
+    Dim matcherState As MatcherStateTy, lastEndPos As Long, colStrings As Collection
+    Dim i As Long, u As Long, s As String
+
+    Set colStrings = New Collection
+
+    lastEndPos = 1
+    matcherState.localMatch = localMatch
+    matcherState.multiline = multiline
+    matcherState.dotAll = dotAll
+    Do While MatchNext(matcherState, regex, haystack)
+        With matcherState.captures.entireMatch
+            colStrings.Add Mid$(haystack, lastEndPos, .start - lastEndPos)
+            lastEndPos = .start + .Length
+        End With
+
+        u = matcherState.captures.nNumberedCaptures - 1
+        For i = 0 To u
+            With matcherState.captures.numberedCaptures(i)
+                s = vbNullString
+                If .Length > 0 Then s = Mid$(haystack, .start, .Length)
+                colStrings.Add s
+            End With
+        Next
+    Loop
+    colStrings.Add Mid$(haystack, lastEndPos)
+    
+    Set SplitByRegex = colStrings
+End Function
+
 Public Function MatchThenJoin( _
     ByRef regex As RegexTy, _
     ByRef haystack As String, _
