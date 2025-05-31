@@ -260,6 +260,22 @@ TestFail:
 End Sub
 
 '@TestMethod("StaticRegex")
+Private Sub StaticRegex_Features_108()
+    ' parameter dotAll is respected
+    Dim r As StaticRegex.RegexTy
+    On Error GoTo TestFail
+    
+    StaticRegex.InitializeRegex r, "a.+b", caseInsensitive:=False
+    Assert.IsTrue StaticRegex.Test(r, "a" & vbCrLf & "b", dotAll:=True)
+    Assert.IsFalse StaticRegex.Test(r, "a" & vbCrLf & "b", dotAll:=False)
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
 Private Sub StaticRegex_Replace_001()
     On Error GoTo TestFail
     
