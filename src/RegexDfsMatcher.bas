@@ -65,7 +65,10 @@ Public Function DfsMatch( _
     Optional ByVal dotAll As Boolean = False _
 ) As Long
     Dim context As DfsMatcherContext
-    DfsMatch = DfsMatchFrom(context, outCaptures, bytecode, inputStr, 0, stepsLimit, multiline:=multiline)
+    DfsMatch = DfsMatchFrom( _
+        context, outCaptures, bytecode, inputStr, 0, stepsLimit, _
+        multiline:=multiline, dotAll:=dotAll _
+    )
 End Function
 
 Public Function DfsMatchFrom( _
