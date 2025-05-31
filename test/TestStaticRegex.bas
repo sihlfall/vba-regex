@@ -280,3 +280,48 @@ TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
     Resume TestExit
 End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Replace_002()
+    On Error GoTo TestFail
+    
+    Dim r As StaticRegex.RegexTy
+    Dim haystack As String, replacer As String, expected As String, actual As String
+    
+    haystack = "123abc"
+    replacer = "$1"
+    StaticRegex.InitializeRegex r, "(\d*)(\D?)"
+    expected = "123bc"
+    
+    actual = StaticRegex.Replace(r, replacer:=replacer, haystack:=haystack, localMatch:=True)
+    Assert.AreEqual expected, actual
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Replace_003()
+    On Error GoTo TestFail
+    
+    Dim r As StaticRegex.RegexTy
+    Dim haystack As String, replacer As String, expected As String, actual As String
+    
+    haystack = "123abc"
+    replacer = "$1"
+    StaticRegex.InitializeRegex r, "(\d*)(\D?)"
+    expected = "123"
+    
+    actual = StaticRegex.Replace(r, replacer:=replacer, haystack:=haystack, localMatch:=False)
+    Assert.AreEqual expected, actual
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
