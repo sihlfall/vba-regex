@@ -153,37 +153,40 @@ Public Function Replace( _
     Replace = StaticStringBuilder.GetStr(resultBuilder)
 End Function
 
-Public Function Split( _
+Public Function SplitByRegex( _
     ByRef regex As RegexTy, _
     ByRef haystack As String, _
     Optional ByVal localMatch As Boolean = False, _
-    Optional ByVal multiline As Boolean = False _
+    Optional ByVal multiline As Boolean = False, _
+    Optional ByVal dotAll As Boolean = False _
 ) As Collection
-    Dim matcherState As MatcherStateTy
-    Dim matchedIndex As Long
-    Dim notMatched As String
-    Dim notMatchedIndex As Long
-    Dim colStrings As Collection
-    Dim i As Long
+    Dim matcherState As MatcherStateTy, lastEndPos As Long, colStrings As Collection
+    Dim i As Long, u As Long, s As String
 
     Set colStrings = New Collection
+
+    lastEndPos = 1
     matcherState.localMatch = localMatch
     matcherState.multiline = multiline
-    
+    matcherState.dotAll = dotAll
     Do While MatchNext(matcherState, regex, haystack)
-        matchedIndex = matcherState.captures.entireMatch.start - 1
-        notMatched = Mid$(haystack, notMatchedIndex + 1, matchedIndex - notMatchedIndex)
-        notMatchedIndex = matchedIndex + matcherState.captures.entireMatch.Length
-        colStrings.Add notMatched
-        With matcherState.captures
-            For i = 0 To .nNumberedCaptures - 1
-                If .numberedCaptures(i).start > 0 Then colStrings.Add Mid$(haystack, .numberedCaptures(i).start, .numberedCaptures(i).Length)
-            Next i
+        With matcherState.captures.entireMatch
+            colStrings.Add Mid$(haystack, lastEndPos, .start - lastEndPos)
+            lastEndPos = .start + .Length
         End With
+
+        u = matcherState.captures.nNumberedCaptures - 1
+        For i = 0 To u
+            With matcherState.captures.numberedCaptures(i)
+                s = vbNullString
+                If .Length > 0 Then s = Mid$(haystack, .start, .Length)
+                colStrings.Add s
+            End With
+        Next
     Loop
-    colStrings.Add Mid$(haystack, notMatchedIndex + 1, Len$(haystack) - notMatchedIndex)
+    colStrings.Add Mid$(haystack, lastEndPos)
     
-    Set Split = colStrings
+    Set SplitByRegex = colStrings
 End Function
 
 Public Function MatchThenJoin( _

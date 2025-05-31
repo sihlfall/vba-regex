@@ -325,3 +325,192 @@ TestFail:
     Resume TestExit
 End Sub
 
+Private Sub MakeStringArray(ByRef ary() As String, ParamArray p() As Variant)
+    Dim u As Long, i As Long
+    u = UBound(p)
+    ReDim ary(0 To u) As String
+    For i = 0 To u
+        ary(i) = p(i)
+    Next
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_SplitByRegex_001()
+    On Error GoTo TestFail
+    
+    Dim r As StaticRegex.RegexTy
+    Dim haystack As String, expected() As String, actual As Collection
+    Dim s As Variant, i As Long, nExpected As Long, nEqual As Long
+    
+    haystack = "12|3|4||5|6"
+    StaticRegex.InitializeRegex r, "\|"
+    MakeStringArray expected, _
+        "12", "3", "4", "", "5", "6"
+    
+    Set actual = StaticRegex.SplitByRegex(r, haystack:=haystack, localMatch:=False)
+    
+    nExpected = UBound(expected) + 1
+    Assert.AreEqual nExpected, actual.Count
+    
+    i = 0
+    nEqual = 0
+    For Each s In actual
+        If i >= nExpected Then Exit For
+        If s <> expected(i) Then Exit For
+        nEqual = nEqual + 1
+        i = i + 1
+    Next
+
+    Assert.AreEqual nExpected, nEqual
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_SplitByRegex_002()
+    On Error GoTo TestFail
+    
+    Dim r As StaticRegex.RegexTy
+    Dim haystack As String, expected() As String, actual As Collection
+    Dim s As Variant, i As Long, nExpected As Long, nEqual As Long
+    
+    haystack = "12"
+    StaticRegex.InitializeRegex r, "\|"
+    MakeStringArray expected, _
+        "12"
+    
+    Set actual = StaticRegex.SplitByRegex(r, haystack:=haystack, localMatch:=False)
+    
+    nExpected = UBound(expected) + 1
+    Assert.AreEqual nExpected, actual.Count
+    
+    i = 0
+    nEqual = 0
+    For Each s In actual
+        If i >= nExpected Then Exit For
+        If s <> expected(i) Then Exit For
+        nEqual = nEqual + 1
+        i = i + 1
+    Next
+
+    Assert.AreEqual nExpected, nEqual
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_SplitByRegex_003()
+    On Error GoTo TestFail
+    
+    Dim r As StaticRegex.RegexTy
+    Dim haystack As String, expected() As String, actual As Collection
+    Dim s As Variant, i As Long, nExpected As Long, nEqual As Long
+    
+    haystack = ""
+    StaticRegex.InitializeRegex r, "\|"
+    MakeStringArray expected, _
+        ""
+    
+    Set actual = StaticRegex.SplitByRegex(r, haystack:=haystack, localMatch:=False)
+    
+    nExpected = UBound(expected) + 1
+    Assert.AreEqual nExpected, actual.Count
+    
+    i = 0
+    nEqual = 0
+    For Each s In actual
+        If i >= nExpected Then Exit For
+        If s <> expected(i) Then Exit For
+        nEqual = nEqual + 1
+        i = i + 1
+    Next
+
+    Assert.AreEqual nExpected, nEqual
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_SplitByRegex_004()
+    On Error GoTo TestFail
+    
+    Dim r As StaticRegex.RegexTy
+    Dim haystack As String, expected() As String, actual As Collection
+    Dim s As Variant, i As Long, nExpected As Long, nEqual As Long
+    
+    haystack = "12|3*4|*5*6"
+    StaticRegex.InitializeRegex r, "\||\*"
+    MakeStringArray expected, _
+        "12", "3", "4", "", "5", "6"
+    
+    Set actual = StaticRegex.SplitByRegex(r, haystack:=haystack, localMatch:=False)
+    
+    nExpected = UBound(expected) + 1
+    Assert.AreEqual nExpected, actual.Count
+    
+    i = 0
+    nEqual = 0
+    For Each s In actual
+        If i >= nExpected Then Exit For
+        If s <> expected(i) Then Exit For
+        nEqual = nEqual + 1
+        i = i + 1
+    Next
+
+    Assert.AreEqual nExpected, nEqual
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_SplitByRegex_005()
+    On Error GoTo TestFail
+    
+    Dim r As StaticRegex.RegexTy
+    Dim haystack As String, expected() As String, actual As Collection
+    Dim s As Variant, i As Long, nExpected As Long, nEqual As Long
+    
+    haystack = "12|3*4|*5*6"
+    StaticRegex.InitializeRegex r, "(\||\*)"
+    MakeStringArray expected, _
+        "12", "|", "3", "*", "4", "|", "", "*", "5", "*", "6"
+    
+    Set actual = StaticRegex.SplitByRegex(r, haystack:=haystack, localMatch:=False)
+    
+    nExpected = UBound(expected) + 1
+    Assert.AreEqual nExpected, actual.Count
+    
+    i = 0
+    nEqual = 0
+    For Each s In actual
+        If i >= nExpected Then Exit For
+        If s <> expected(i) Then Exit For
+        nEqual = nEqual + 1
+        i = i + 1
+    Next
+
+    Assert.AreEqual nExpected, nEqual
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
