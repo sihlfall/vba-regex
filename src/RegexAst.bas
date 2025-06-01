@@ -4,8 +4,11 @@ Option Explicit
 Public Enum AstNodeType
     ' We guarantee: All AST_ constants are >= 0.
     ' ! The parser relies on AST_ASSERT_LOOKAHEAD and LOOKBEHIND being >= 0.
+    '
+    ' There are places in the code where the numerical values of these constants are
+    ' significant. If you make changes, please search for __AST_NUMERICAL_VALUES__
+    ' to find them.
     MIN_AST_CODE = 0
-    AST_EMPTY = 0
     AST_STRING = 1
     AST_DISJ = 2
     AST_CONCAT = 3
@@ -38,7 +41,8 @@ Public Enum AstNodeType
     AST_BACKREFERENCE = 30
     AST_NAMED = 31
     AST_MODIFIER_SCOPE = 32
-    MAX_AST_CODE = 32
+    AST_EMPTY = 33
+    MAX_AST_CODE = 33
 End Enum
 
 Private Enum AstNodeDescriptionConstant
@@ -79,7 +83,6 @@ Private Sub InitializeAstTable(ByRef t() As Long)
     ' ! When adding new entries, make sure to adjust BYTECODE_GENERATOR_INITIAL_STACK_CAPACITY below, if necessary!
     ' ! See comment on BYTECODE_GENERATOR_INITIAL_STACK_CAPACITY below.
     
-    t(nc + e * AST_EMPTY) = 0:                    t(blen + e * AST_EMPTY) = 0:                        t(esfs + e * AST_EMPTY) = 0
     t(nc + e * AST_STRING) = -2:                  t(blen + e * AST_STRING) = 2:                       t(esfs + e * AST_STRING) = 0
     t(nc + e * AST_DISJ) = 2:                     t(blen + e * AST_DISJ) = 4:                         t(esfs + e * AST_DISJ) = 1
     t(nc + e * AST_CONCAT) = 2:                   t(blen + e * AST_CONCAT) = 0:                       t(esfs + e * AST_CONCAT) = 0
@@ -112,6 +115,7 @@ Private Sub InitializeAstTable(ByRef t() As Long)
     t(nc + e * AST_BACKREFERENCE) = 0:            t(blen + e * AST_BACKREFERENCE) = 2:                t(esfs + e * AST_BACKREFERENCE) = 0
     t(nc + e * AST_NAMED) = 1:                    t(blen + e * AST_NAMED) = 3:                        t(esfs + e * AST_NAMED) = 0
     t(nc + e * AST_MODIFIER_SCOPE) = 1:           t(blen + e * AST_MODIFIER_SCOPE) = 0:               t(esfs + e * AST_MODIFIER_SCOPE) = 1
+    t(nc + e * AST_EMPTY) = 0:                    t(blen + e * AST_EMPTY) = 0:                        t(esfs + e * AST_EMPTY) = 0
 End Sub
 
 Public Sub AstToBytecode(ByRef ast() As Long, ByRef identifierTree As RegexIdentifierSupport.IdentifierTreeTy, ByVal caseInsensitive As Boolean, ByRef bytecode() As Long)
@@ -141,240 +145,247 @@ Public Sub AstToBytecode(ByRef ast() As Long, ByRef identifierTree As RegexIdent
     returningFromFirstChild = 0
 
 ContinueLoop:
-        Select Case ast(curNode + NODE_TYPE)
-        Case AST_STRING
-            tmpCnt = ast(curNode + 1) ' assert(tmpCnt >= 1)
-            j = curNode + 2 + ((tmpCnt - 1) And direction)
-            e = curNode + 1 + tmpCnt - ((tmpCnt - 1) And direction)
-            tmp = 1 + 2 * direction
-            Do
-                bytecode(bytecodePtr) = REOP_CHAR Or modifiers And RegexBytecode.MODIFIER_I_ACTIVE
-                bytecodePtr = bytecodePtr + 1
-                bytecode(bytecodePtr) = ast(j)
-                bytecodePtr = bytecodePtr + 1
-                If j = e Then Exit Do
-                j = j + tmp
-            Loop
-            GoTo TurnToParent
-        Case AST_RANGES
-            opcode1 = REOP_RANGES Or modifiers And RegexBytecode.MODIFIER_I_ACTIVE
-            GoTo HandleRanges
-        Case AST_INVRANGES
-            opcode1 = REOP_INVRANGES Or modifiers And RegexBytecode.MODIFIER_I_ACTIVE
-            GoTo HandleRanges
-        Case AST_CHAR
-            bytecode(bytecodePtr) = REOP_CHAR Or modifiers And RegexBytecode.MODIFIER_I_ACTIVE
-            bytecodePtr = bytecodePtr + 1
-            bytecode(bytecodePtr) = ast(curNode + 1)
-            bytecodePtr = bytecodePtr + 1
-            GoTo TurnToParent
-        Case AST_PERIOD
-            bytecode(bytecodePtr) = REOP_DOT Or modifiers And RegexBytecode.MODIFIER_S_MASK
-            bytecodePtr = bytecodePtr + 1
-            GoTo TurnToParent
-        Case AST_MATCH
-            bytecode(bytecodePtr) = REOP_MATCH: bytecodePtr = bytecodePtr + 1
-            GoTo TurnToParent
-        Case AST_ASSERT_START
-            bytecode(bytecodePtr) = REOP_ASSERT_START Or modifiers And RegexBytecode.MODIFIER_M_MASK
-            bytecodePtr = bytecodePtr + 1
-            GoTo TurnToParent
-        Case AST_ASSERT_END
-            bytecode(bytecodePtr) = REOP_ASSERT_END Or modifiers And RegexBytecode.MODIFIER_M_MASK
-            bytecodePtr = bytecodePtr + 1
-            GoTo TurnToParent
-        Case AST_ASSERT_WORD_BOUNDARY
-            bytecode(bytecodePtr) = REOP_ASSERT_WORD_BOUNDARY: bytecodePtr = bytecodePtr + 1
-            GoTo TurnToParent
-        Case AST_ASSERT_NOT_WORD_BOUNDARY
-            bytecode(bytecodePtr) = REOP_ASSERT_NOT_WORD_BOUNDARY: bytecodePtr = bytecodePtr + 1
-            GoTo TurnToParent
-        Case AST_DISJ
-            If returningFromFirstChild Then ' previous was left child
-                sp = sp - 1: patchPos = stack(sp)
-                bytecode(bytecodePtr) = REOP_JUMP: bytecodePtr = bytecodePtr + 1
-                stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
-                bytecode(patchPos) = bytecodePtr - patchPos - 1
-                
-                GoTo TurnToRightChild
-            ElseIf prevNode = ast(curNode + NODE_RCHILD) Then ' previous was right child
-                sp = sp - 1: patchPos = stack(sp)
-                bytecode(patchPos) = bytecodePtr - patchPos - 1
-            
-                GoTo TurnToParent
-            Else ' previous was parent
-                bytecode(bytecodePtr) = REOP_SPLIT1: bytecodePtr = bytecodePtr + 1
-                stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
-                GoTo TurnToLeftChild
-            End If
-        Case AST_CONCAT
-            If returningFromFirstChild Then ' previous was first child
-                GoTo TurnToSecondChild
-            ElseIf prevNode = ast(curNode + NODE_RCHILD + direction) Then ' previous was second child
-                GoTo TurnToParent
-            Else ' previous was parent
-                GoTo TurnToFirstChild
-            End If
-        Case AST_CAPTURE
-            If returningFromFirstChild Then
-                bytecode(bytecodePtr) = REOP_SAVE: bytecodePtr = bytecodePtr + 1
-                tmp = ast(curNode + 2) * 2 + 1
-                If tmp > maxSave Then maxSave = tmp
-                bytecode(bytecodePtr) = tmp + direction: bytecodePtr = bytecodePtr + 1
-                GoTo TurnToParent
-            Else
-                bytecode(bytecodePtr) = REOP_SAVE: bytecodePtr = bytecodePtr + 1
-                bytecode(bytecodePtr) = ast(curNode + 2) * 2 - direction: bytecodePtr = bytecodePtr + 1
-                GoTo TurnToLeftChild
-            End If
-        Case AST_REPEAT_EXACTLY
-            opcode1 = REOP_REPEAT_EXACTLY_INIT: opcode2 = REOP_REPEAT_EXACTLY_START: opcode3 = REOP_REPEAT_EXACTLY_END
-            GoTo HandleRepeatQuantified
-        Case AST_REPEAT_EXACTLY_POSSESSIVE
-            GoTo HandleRepeatExactlyPossessive
-        Case AST_REPEAT_MAX_GREEDY
-            opcode1 = REOP_REPEAT_GREEDY_MAX_INIT: opcode2 = REOP_REPEAT_GREEDY_MAX_START: opcode3 = REOP_REPEAT_GREEDY_MAX_END
-            GoTo HandleRepeatQuantified
-        Case AST_REPEAT_MAX_HUMBLE
-            opcode1 = REOP_REPEAT_MAX_HUMBLE_INIT: opcode2 = REOP_REPEAT_MAX_HUMBLE_START: opcode3 = REOP_REPEAT_MAX_HUMBLE_END
-            GoTo HandleRepeatQuantified
-        Case AST_REPEAT_MAX_POSSESSIVE
-            GoTo HandleRepeatQuantifiedPossessive
-        Case AST_ZEROONE_GREEDY
-            opcode1 = REOP_SPLIT1
-            GoTo HandleZeroone
-        Case AST_ZEROONE_HUMBLE
-            opcode1 = REOP_SPLIT2
-            GoTo HandleZeroone
-        Case AST_ZEROONE_POSSESSIVE
-            GoTo HandleZeroonePossessive
-        Case AST_STAR_GREEDY
-            opcode1 = REOP_SPLIT1
-            GoTo HandleStar
-        Case AST_STAR_HUMBLE
-            opcode1 = REOP_SPLIT2
-            GoTo HandleStar
-        Case AST_STAR_POSSESSIVE
-            GoTo HandleStarPossessive
-        Case AST_ASSERT_POS_LOOKAHEAD
-            opcode1 = REOP_LOOKPOS: opcode2 = REOP_END_LOOKPOS
-            GoTo HandleLookahead
-        Case AST_ASSERT_NEG_LOOKAHEAD
-            opcode1 = REOP_LOOKNEG: opcode2 = REOP_END_LOOKNEG
-            GoTo HandleLookahead
-        Case AST_ASSERT_POS_LOOKBEHIND
-            opcode1 = REOP_LOOKPOS: opcode2 = REOP_END_LOOKPOS
-            GoTo HandleLookbehind
-        Case AST_ASSERT_NEG_LOOKBEHIND
-            opcode1 = REOP_LOOKNEG: opcode2 = REOP_END_LOOKNEG
-            GoTo HandleLookbehind
-        Case AST_EMPTY
-            GoTo TurnToParent
-        Case AST_FAIL
-            bytecode(bytecodePtr) = REOP_FAIL: bytecodePtr = bytecodePtr + 1
-            GoTo TurnToParent
-        Case AST_BACKREFERENCE
-            bytecode(bytecodePtr) = REOP_BACKREFERENCE Or modifiers And RegexBytecode.MODIFIER_I_ACTIVE
-            bytecodePtr = bytecodePtr + 1
-            bytecode(bytecodePtr) = ast(curNode + 1): bytecodePtr = bytecodePtr + 1
-            GoTo TurnToParent
-        Case AST_NAMED
-            If returningFromFirstChild Then
-                ' nothing to be done
-                GoTo TurnToParent
-            Else
-                bytecode(bytecodePtr) = REOP_SET_NAMED: bytecodePtr = bytecodePtr + 1
-                bytecode(bytecodePtr) = ast(curNode + 2): bytecodePtr = bytecodePtr + 1
-                bytecode(bytecodePtr) = ast(curNode + 3): bytecodePtr = bytecodePtr + 1
-                GoTo TurnToLeftChild
-            End If
-        Case AST_MODIFIER_SCOPE
-            If returningFromFirstChild Then
-                sp = sp - 1: modifiers = stack(sp)
-                GoTo TurnToParent
-            Else
-                stack(sp) = modifiers: sp = sp + 1
-                tmp = ast(curNode + 2)
-                modifiers = RegexBytecode.MODIFIER_WRITE_MASK And (modifiers Or tmp) Or _
-                    RegexBytecode.MODIFIER_ACTIVE_MASK And ( _
-                        modifiers Xor tmp * 2 And (tmp Xor modifiers) _
-                    )
-                GoTo TurnToLeftChild
-            End If
-        End Select
+    ' The following statement depends on the numerical values of our constants!
+    ' The following comment line serves as a marker enabling us to locate this line of
+    ' code by doing a find:
+    ' __AST_NUMERICAL_VALUES__
+    On ast(curNode + NODE_TYPE) GoTo _
+        L_STRING, L_DISJ, L_CONCAT, L_CHAR, L_CAPTURE, _
+        L_REPEAT_EXACTLY, HandleRepeatExactlyPossessive, L_PERIOD, L_ASSERT_START, _
+            L_ASSERT_END, _
+        L_ASSERT_WORD_BOUNDARY, L_ASSERT_NOT_WORD_BOUNDARY, L_MATCH, _
+            L_ZEROONE_GREEDY, L_ZEROONE_HUMBLE, _
+        HandleZeroonePossessive, L_STAR_GREEDY, L_STAR_HUMBLE, HandleStarPossessive, _
+            L_REPEAT_MAX_GREEDY, _
+        L_REPEAT_MAX_HUMBLE, HandleRepeatQuantifiedPossessive, L_RANGES, L_INVRANGES, _
+            L_ASSERT_POS_LOOKAHEAD, _
+        L_ASSERT_NEG_LOOKAHEAD, L_ASSERT_POS_LOOKBEHIND, L_ASSERT_NEG_LOOKBEHIND, _
+            L_FAIL, L_BACKREFERENCE, _
+        L_NAMED, L_MODIFIER_SCOPE, TurnToParent
+
+    Err.Raise REGEX_ERR_INTERNAL_LOGIC_ERR ' unreachable
+
+L_STRING:
+    tmpCnt = ast(curNode + 1) ' assert(tmpCnt >= 1)
+    j = curNode + 2 + ((tmpCnt - 1) And direction)
+    e = curNode + 1 + tmpCnt - ((tmpCnt - 1) And direction)
+    tmp = 1 + 2 * direction
+    Do
+        bytecode(bytecodePtr) = REOP_CHAR Or modifiers And RegexBytecode.MODIFIER_I_ACTIVE
+        bytecodePtr = bytecodePtr + 1
+        bytecode(bytecodePtr) = ast(j)
+        bytecodePtr = bytecodePtr + 1
+        If j = e Then Exit Do
+        j = j + tmp
+    Loop
+    GoTo TurnToParent
+L_RANGES:
+    opcode1 = REOP_RANGES Or modifiers And RegexBytecode.MODIFIER_I_ACTIVE
+    GoTo HandleRanges
+L_INVRANGES:
+    opcode1 = REOP_INVRANGES Or modifiers And RegexBytecode.MODIFIER_I_ACTIVE
+    GoTo HandleRanges
+L_CHAR:
+    bytecode(bytecodePtr) = REOP_CHAR Or modifiers And RegexBytecode.MODIFIER_I_ACTIVE
+    bytecodePtr = bytecodePtr + 1
+    bytecode(bytecodePtr) = ast(curNode + 1)
+    bytecodePtr = bytecodePtr + 1
+    GoTo TurnToParent
+L_PERIOD:
+    bytecode(bytecodePtr) = REOP_DOT Or modifiers And RegexBytecode.MODIFIER_S_MASK
+    bytecodePtr = bytecodePtr + 1
+    GoTo TurnToParent
+L_MATCH:
+    bytecode(bytecodePtr) = REOP_MATCH: bytecodePtr = bytecodePtr + 1
+    GoTo TurnToParent
+L_ASSERT_START:
+    bytecode(bytecodePtr) = REOP_ASSERT_START Or modifiers And RegexBytecode.MODIFIER_M_MASK
+    bytecodePtr = bytecodePtr + 1
+    GoTo TurnToParent
+L_ASSERT_END:
+    bytecode(bytecodePtr) = REOP_ASSERT_END Or modifiers And RegexBytecode.MODIFIER_M_MASK
+    bytecodePtr = bytecodePtr + 1
+    GoTo TurnToParent
+L_ASSERT_WORD_BOUNDARY:
+    bytecode(bytecodePtr) = REOP_ASSERT_WORD_BOUNDARY: bytecodePtr = bytecodePtr + 1
+    GoTo TurnToParent
+L_ASSERT_NOT_WORD_BOUNDARY:
+    bytecode(bytecodePtr) = REOP_ASSERT_NOT_WORD_BOUNDARY: bytecodePtr = bytecodePtr + 1
+    GoTo TurnToParent
+L_DISJ:
+    If returningFromFirstChild Then ' previous was left child
+        sp = sp - 1: patchPos = stack(sp)
+        bytecode(bytecodePtr) = REOP_JUMP: bytecodePtr = bytecodePtr + 1
+        stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
+        bytecode(patchPos) = bytecodePtr - patchPos - 1
         
-        Err.Raise REGEX_ERR_INTERNAL_LOGIC_ERR ' unreachable
+        GoTo TurnToRightChild
+    ElseIf prevNode = ast(curNode + NODE_RCHILD) Then ' previous was right child
+        sp = sp - 1: patchPos = stack(sp)
+        bytecode(patchPos) = bytecodePtr - patchPos - 1
+    
+        GoTo TurnToParent
+    Else ' previous was parent
+        bytecode(bytecodePtr) = REOP_SPLIT1: bytecodePtr = bytecodePtr + 1
+        stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
+        GoTo TurnToLeftChild
+    End If
+L_CONCAT:
+    If returningFromFirstChild Then ' previous was first child
+        GoTo TurnToSecondChild
+    ElseIf prevNode = ast(curNode + NODE_RCHILD + direction) Then ' previous was second child
+        GoTo TurnToParent
+    Else ' previous was parent
+        GoTo TurnToFirstChild
+    End If
+L_CAPTURE:
+    If returningFromFirstChild Then
+        bytecode(bytecodePtr) = REOP_SAVE: bytecodePtr = bytecodePtr + 1
+        tmp = ast(curNode + 2) * 2 + 1
+        If tmp > maxSave Then maxSave = tmp
+        bytecode(bytecodePtr) = tmp + direction: bytecodePtr = bytecodePtr + 1
+        GoTo TurnToParent
+    Else
+        bytecode(bytecodePtr) = REOP_SAVE: bytecodePtr = bytecodePtr + 1
+        bytecode(bytecodePtr) = ast(curNode + 2) * 2 - direction: bytecodePtr = bytecodePtr + 1
+        GoTo TurnToLeftChild
+    End If
+L_REPEAT_EXACTLY:
+    opcode1 = REOP_REPEAT_EXACTLY_INIT: opcode2 = REOP_REPEAT_EXACTLY_START: opcode3 = REOP_REPEAT_EXACTLY_END
+    GoTo HandleRepeatQuantified
+L_REPEAT_MAX_GREEDY:
+    opcode1 = REOP_REPEAT_GREEDY_MAX_INIT: opcode2 = REOP_REPEAT_GREEDY_MAX_START: opcode3 = REOP_REPEAT_GREEDY_MAX_END
+    GoTo HandleRepeatQuantified
+L_REPEAT_MAX_HUMBLE:
+    opcode1 = REOP_REPEAT_MAX_HUMBLE_INIT: opcode2 = REOP_REPEAT_MAX_HUMBLE_START: opcode3 = REOP_REPEAT_MAX_HUMBLE_END
+    GoTo HandleRepeatQuantified
+L_ZEROONE_GREEDY:
+    opcode1 = REOP_SPLIT1
+    GoTo HandleZeroone
+L_ZEROONE_HUMBLE:
+    opcode1 = REOP_SPLIT2
+    GoTo HandleZeroone
+L_STAR_GREEDY:
+    opcode1 = REOP_SPLIT1
+    GoTo HandleStar
+L_STAR_HUMBLE:
+    opcode1 = REOP_SPLIT2
+    GoTo HandleStar
+L_ASSERT_POS_LOOKAHEAD:
+    opcode1 = REOP_LOOKPOS: opcode2 = REOP_END_LOOKPOS
+    GoTo HandleLookahead
+L_ASSERT_NEG_LOOKAHEAD:
+    opcode1 = REOP_LOOKNEG: opcode2 = REOP_END_LOOKNEG
+    GoTo HandleLookahead
+L_ASSERT_POS_LOOKBEHIND:
+    opcode1 = REOP_LOOKPOS: opcode2 = REOP_END_LOOKPOS
+    GoTo HandleLookbehind
+L_ASSERT_NEG_LOOKBEHIND:
+    opcode1 = REOP_LOOKNEG: opcode2 = REOP_END_LOOKNEG
+    GoTo HandleLookbehind
+L_FAIL:
+    bytecode(bytecodePtr) = REOP_FAIL: bytecodePtr = bytecodePtr + 1
+    GoTo TurnToParent
+L_BACKREFERENCE:
+    bytecode(bytecodePtr) = REOP_BACKREFERENCE Or modifiers And RegexBytecode.MODIFIER_I_ACTIVE
+    bytecodePtr = bytecodePtr + 1
+    bytecode(bytecodePtr) = ast(curNode + 1): bytecodePtr = bytecodePtr + 1
+    GoTo TurnToParent
+L_NAMED:
+    If returningFromFirstChild Then
+        ' nothing to be done
+        GoTo TurnToParent
+    Else
+        bytecode(bytecodePtr) = REOP_SET_NAMED: bytecodePtr = bytecodePtr + 1
+        bytecode(bytecodePtr) = ast(curNode + 2): bytecodePtr = bytecodePtr + 1
+        bytecode(bytecodePtr) = ast(curNode + 3): bytecodePtr = bytecodePtr + 1
+        GoTo TurnToLeftChild
+    End If
+L_MODIFIER_SCOPE:
+    If returningFromFirstChild Then
+        sp = sp - 1: modifiers = stack(sp)
+        GoTo TurnToParent
+    Else
+        stack(sp) = modifiers: sp = sp + 1
+        tmp = ast(curNode + 2)
+        modifiers = RegexBytecode.MODIFIER_WRITE_MASK And (modifiers Or tmp) Or _
+            RegexBytecode.MODIFIER_ACTIVE_MASK And ( _
+                modifiers Xor tmp * 2 And (tmp Xor modifiers) _
+            )
+        GoTo TurnToLeftChild
+    End If
+        
         
 HandleRanges: ' requires: opcode1
-        tmpCnt = ast(curNode + 1)
-        bytecode(bytecodePtr) = opcode1: bytecodePtr = bytecodePtr + 1
-        j = curNode
-        e = curNode + 1 + 2 * tmpCnt
-        Do ' copy everything, including first word, which is the length
-            j = j + 1
-            bytecode(bytecodePtr) = ast(j): bytecodePtr = bytecodePtr + 1
-        Loop Until j = e
-        GoTo TurnToParent
+    tmpCnt = ast(curNode + 1)
+    bytecode(bytecodePtr) = opcode1: bytecodePtr = bytecodePtr + 1
+    j = curNode
+    e = curNode + 1 + 2 * tmpCnt
+    Do ' copy everything, including first word, which is the length
+        j = j + 1
+        bytecode(bytecodePtr) = ast(j): bytecodePtr = bytecodePtr + 1
+    Loop Until j = e
+    GoTo TurnToParent
 
 HandleRepeatQuantified: ' requires: opcode1, opcode2, opcode 3
-        tmpCnt = ast(curNode + 2)
-        If returningFromFirstChild Then
-            sp = sp - 1: patchPos = stack(sp)
-            bytecode(bytecodePtr) = opcode3: bytecodePtr = bytecodePtr + 1
-            bytecode(bytecodePtr) = tmpCnt: bytecodePtr = bytecodePtr + 1
-            tmp = bytecodePtr - patchPos
-            bytecode(bytecodePtr) = tmp: bytecodePtr = bytecodePtr + 1
-            bytecode(patchPos) = tmp
-            GoTo TurnToParent
-        Else
-            bytecode(bytecodePtr) = opcode1: bytecodePtr = bytecodePtr + 1
-            bytecode(bytecodePtr) = opcode2: bytecodePtr = bytecodePtr + 1
-            bytecode(bytecodePtr) = tmpCnt: bytecodePtr = bytecodePtr + 1
-            stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
-            GoTo TurnToLeftChild
-        End If
-        
+    tmpCnt = ast(curNode + 2)
+    If returningFromFirstChild Then
+        sp = sp - 1: patchPos = stack(sp)
+        bytecode(bytecodePtr) = opcode3: bytecodePtr = bytecodePtr + 1
+        bytecode(bytecodePtr) = tmpCnt: bytecodePtr = bytecodePtr + 1
+        tmp = bytecodePtr - patchPos
+        bytecode(bytecodePtr) = tmp: bytecodePtr = bytecodePtr + 1
+        bytecode(patchPos) = tmp
+        GoTo TurnToParent
+    Else
+        bytecode(bytecodePtr) = opcode1: bytecodePtr = bytecodePtr + 1
+        bytecode(bytecodePtr) = opcode2: bytecodePtr = bytecodePtr + 1
+        bytecode(bytecodePtr) = tmpCnt: bytecodePtr = bytecodePtr + 1
+        stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
+        GoTo TurnToLeftChild
+    End If
+    
 HandleRepeatQuantifiedPossessive:
-        tmpCnt = ast(curNode + 2)
-        If returningFromFirstChild Then
-            sp = sp - 1: patchPos = stack(sp)
-            bytecode(bytecodePtr) = REOP_COMMIT_POSSESSIVE: bytecodePtr = bytecodePtr + 1
-            bytecode(bytecodePtr) = REOP_REPEAT_GREEDY_MAX_END: bytecodePtr = bytecodePtr + 1
-            bytecode(bytecodePtr) = tmpCnt: bytecodePtr = bytecodePtr + 1
-            tmp = bytecodePtr - patchPos
-            bytecode(bytecodePtr) = tmp: bytecodePtr = bytecodePtr + 1
-            bytecode(patchPos) = tmp
-            GoTo TurnToParent
-        Else
-            bytecode(bytecodePtr) = REOP_REPEAT_GREEDY_MAX_INIT: bytecodePtr = bytecodePtr + 1
-            bytecode(bytecodePtr) = REOP_REPEAT_GREEDY_MAX_START Or REOP_FLAG_POSSESSIVE: _
-                bytecodePtr = bytecodePtr + 1
-            bytecode(bytecodePtr) = tmpCnt: bytecodePtr = bytecodePtr + 1
-            stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
-            GoTo TurnToLeftChild
-        End If
+    tmpCnt = ast(curNode + 2)
+    If returningFromFirstChild Then
+        sp = sp - 1: patchPos = stack(sp)
+        bytecode(bytecodePtr) = REOP_COMMIT_POSSESSIVE: bytecodePtr = bytecodePtr + 1
+        bytecode(bytecodePtr) = REOP_REPEAT_GREEDY_MAX_END: bytecodePtr = bytecodePtr + 1
+        bytecode(bytecodePtr) = tmpCnt: bytecodePtr = bytecodePtr + 1
+        tmp = bytecodePtr - patchPos
+        bytecode(bytecodePtr) = tmp: bytecodePtr = bytecodePtr + 1
+        bytecode(patchPos) = tmp
+        GoTo TurnToParent
+    Else
+        bytecode(bytecodePtr) = REOP_REPEAT_GREEDY_MAX_INIT: bytecodePtr = bytecodePtr + 1
+        bytecode(bytecodePtr) = REOP_REPEAT_GREEDY_MAX_START Or REOP_FLAG_POSSESSIVE: _
+            bytecodePtr = bytecodePtr + 1
+        bytecode(bytecodePtr) = tmpCnt: bytecodePtr = bytecodePtr + 1
+        stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
+        GoTo TurnToLeftChild
+    End If
 
 HandleRepeatExactlyPossessive:
-        tmpCnt = ast(curNode + 2)
-        If returningFromFirstChild Then
-            sp = sp - 1: patchPos = stack(sp)
-            bytecode(bytecodePtr) = REOP_COMMIT_POSSESSIVE: bytecodePtr = bytecodePtr + 1
-            bytecode(bytecodePtr) = REOP_REPEAT_EXACTLY_END: bytecodePtr = bytecodePtr + 1
-            bytecode(bytecodePtr) = tmpCnt: bytecodePtr = bytecodePtr + 1
-            tmp = bytecodePtr - patchPos
-            bytecode(bytecodePtr) = tmp: bytecodePtr = bytecodePtr + 1
-            bytecode(patchPos) = tmp
-            GoTo TurnToParent
-        Else
-            bytecode(bytecodePtr) = REOP_REPEAT_EXACTLY_INIT: bytecodePtr = bytecodePtr + 1
-            bytecode(bytecodePtr) = REOP_REPEAT_EXACTLY_START Or REOP_FLAG_POSSESSIVE: _
-                bytecodePtr = bytecodePtr + 1
-            bytecode(bytecodePtr) = tmpCnt: bytecodePtr = bytecodePtr + 1
-            stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
-            bytecode(bytecodePtr) = REOP_FAIL: _
-                bytecodePtr = bytecodePtr + 1
-            GoTo TurnToLeftChild
-        End If
+    tmpCnt = ast(curNode + 2)
+    If returningFromFirstChild Then
+        sp = sp - 1: patchPos = stack(sp)
+        bytecode(bytecodePtr) = REOP_COMMIT_POSSESSIVE: bytecodePtr = bytecodePtr + 1
+        bytecode(bytecodePtr) = REOP_REPEAT_EXACTLY_END: bytecodePtr = bytecodePtr + 1
+        bytecode(bytecodePtr) = tmpCnt: bytecodePtr = bytecodePtr + 1
+        tmp = bytecodePtr - patchPos
+        bytecode(bytecodePtr) = tmp: bytecodePtr = bytecodePtr + 1
+        bytecode(patchPos) = tmp
+        GoTo TurnToParent
+    Else
+        bytecode(bytecodePtr) = REOP_REPEAT_EXACTLY_INIT: bytecodePtr = bytecodePtr + 1
+        bytecode(bytecodePtr) = REOP_REPEAT_EXACTLY_START Or REOP_FLAG_POSSESSIVE: _
+            bytecodePtr = bytecodePtr + 1
+        bytecode(bytecodePtr) = tmpCnt: bytecodePtr = bytecodePtr + 1
+        stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
+        bytecode(bytecodePtr) = REOP_FAIL: _
+            bytecodePtr = bytecodePtr + 1
+        GoTo TurnToLeftChild
+    End If
 
 HandleZeroone: ' requires: opcode1
     If returningFromFirstChild Then

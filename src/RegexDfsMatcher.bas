@@ -426,13 +426,13 @@ Private Function DfsRunThreads( _
     Dim stepsCount As Long
     Dim spDelta As Long ' 1 when we walk forwards and -1 when we walk backwards
     
-     pc = 3 + 3 * bytecode(RegexBytecode.BYTECODE_IDX_N_IDENTIFIERS)
-     pcLandmark = -1
-     stepsCount = 0
-     spDelta = 1
-     q = Q_NONE
+    pc = 3 + 3 * bytecode(RegexBytecode.BYTECODE_IDX_N_IDENTIFIERS)
+    pcLandmark = -1
+    stepsCount = 0
+    spDelta = 1
+    q = Q_NONE
     
-     GoTo ContinueLoopSuccess
+    GoTo ContinueLoopSuccess
 
     ' BEGIN LOOP
 ContinueLoopFail:

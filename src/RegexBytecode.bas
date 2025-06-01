@@ -39,7 +39,7 @@ Public Enum ReOpType
     
     REOP_FLAG_POSSESSIVE = &H100&
     
-    ' There are places in the code where the numerical values of these constants is
+    ' There are places in the code where the numerical values of these constants are
     ' significant. If you make changes, please search for __REOP_NUMERICAL_VALUES__
     ' to find them.
     REOP_INVALID_OPCODE = 0
