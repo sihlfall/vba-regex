@@ -426,360 +426,372 @@ Private Function DfsRunThreads( _
     Dim stepsCount As Long
     Dim spDelta As Long ' 1 when we walk forwards and -1 when we walk backwards
     
-        pc = 3 + 3 * bytecode(RegexBytecode.BYTECODE_IDX_N_IDENTIFIERS)
-        pcLandmark = -1
-        stepsCount = 0
-        spDelta = 1
-        q = Q_NONE
-       
-        GoTo ContinueLoopSuccess
+     pc = 3 + 3 * bytecode(RegexBytecode.BYTECODE_IDX_N_IDENTIFIERS)
+     pcLandmark = -1
+     stepsCount = 0
+     spDelta = 1
+     q = Q_NONE
+    
+     GoTo ContinueLoopSuccess
 
-        ' BEGIN LOOP
+    ' BEGIN LOOP
 ContinueLoopFail:
-            If Not PopMatcherStackFrame(context, pc, sp, pcLandmark, spDelta, q) Then
-                DfsRunThreads = -1
-                Exit Function
-            End If
+        If Not PopMatcherStackFrame(context, pc, sp, pcLandmark, spDelta, q) Then
+            DfsRunThreads = -1
+            Exit Function
+        End If
 
 ContinueLoopSuccess:
-
-            ' TODO: HACK to prevent infinite loop!!!!
-            stepsCount = stepsCount + 1
-            If stepsCount >= stepsLimit Then
-                DfsRunThreads = -1
-                Exit Function
-            End If
+        ' TODO: Was a to prevent an infinite loop! Still necessary?
+        stepsCount = stepsCount + 1
+        If stepsCount >= stepsLimit Then
+            DfsRunThreads = -1
+            Exit Function
+        End If
             
-            op = GetBc(bytecode, pc)
+        op = GetBc(bytecode, pc)
     
-            ' #if defined(DUK_USE_DEBUG_LEVEL) && (DUK_USE_DEBUG_LEVEL >= 2)
-            ' duk__regexp_dump_state(re_ctx);
-            ' #End If
-            ' DUK_DDD(DUK_DDDPRINT("match: rec=%ld, steps=%ld, pc (after op)=%ld, sp=%ld, op=%ld",
-            '                     (long) re_ctx->recursion_depth,
-            '                     (long) re_ctx->steps_count,
-            '                     (long) (pc - re_ctx->bytecode),
-            '                     (long) sp,
-            '                     (long) op));
+        ' The following statement depends on the numerical values of our constants!
+        ' The following comment line serves as a marker enabling us to locate this line of
+        ' code by doing a find:
+        ' __REOP_NUMERICAL_VALUES__
+        
+        On op And RegexBytecode.REOP_OPCODE_MASK GoTo _
+            Match, L_CHAR, L_DOT, L_RANGES, L_INVRANGES, _
+            L_JUMP, L_SPLIT1, L_SPLIT2, L_SAVE, L_SET_NAMED, _
+            L_LOOKPOS, L_LOOKNEG, L_BACKREFERENCE, L_ASSERT_START, L_ASSERT_END, _
+            L_ASSERT_WORD_BOUNDARY, L_ASSERT_NOT_WORD_BOUNDARY, _
+                L_REPEAT_EXACTLY_INIT, L_REPEAT_EXACTLY_START, L_REPEAT_EXACTLY_END, _
+            L_REPEAT_MAX_HUMBLE_INIT, L_REPEAT_MAX_HUMBLE_START, _
+                L_REPEAT_MAX_HUMBLE_END, L_REPEAT_GREEDY_MAX_INIT, _
+                L_REPEAT_GREEDY_MAX_START, _
+            L_REPEAT_GREEDY_MAX_END, L_CHECK_LOOKAHEAD, L_CHECK_LOOKBEHIND, _
+                L_END_LOOKPOS, L_END_LOOKNEG, _
+            L_COMMIT_POSSESSIVE, ContinueLoopFail
     
-            Select Case op And RegexBytecode.REOP_OPCODE_MASK
-            Case REOP_MATCH
-                GoTo Match
-            Case REOP_END_LOOKPOS
-                ' Reached if pattern inside a positive lookahead matched.
-                ReturnToMasterPreserveCaptures context, pc, sp, pcLandmark, spDelta, q
-                ' Now we are at the REOP_LOOKPOS opcode.
-                pc = pc + 1
-                n = GetBc(bytecode, pc)
-                pc = pc + n
-                GoTo ContinueLoopSuccess
-            Case REOP_END_LOOKNEG
-                ' Reached if pattern inside a positive lookahead matched.
-                ReturnToMasterDiscardCaptures context, pc, sp, pcLandmark, spDelta, q
-                GoTo ContinueLoopFail
-            Case REOP_CHAR
-                '
-                '  Byte-based matching would be possible for case-sensitive
-                '  matching but not for case-insensitive matching.  So, we
-                '  match by decoding the input and bytecode character normally.
-                '
-                '  Bytecode characters are assumed to be already canonicalized.
-                '  Input characters are canonicalized automatically by
-                '  duk__inp_get_cp() if necessary.
-                '
-                '  There is no opcode for matching multiple characters.  The
-                '  regexp compiler has trouble joining strings efficiently
-                '  during compilation.  See doc/regexp.rst for more discussion.
+        GoTo InternalError
     
-                pcLandmark = pc - 1
-                c1 = GetBc(bytecode, pc)
-                c2 = GetInputCharCode(inputStr, sp, spDelta)
-                If op And RegexBytecode.MODIFIER_I_ACTIVE Then
-                    c2 = RegexUnicodeSupport.ReCanonicalizeChar(c2)
-                End If
-                
-                ' DUK_ASSERT(c1 >= 0);
-    
-                ' DUK_DDD(DUK_DDDPRINT("char match, c1=%ld, c2=%ld", (long) c1, (long) c2));
-                If c1 <> c2 Then GoTo ContinueLoopFail
-                GoTo ContinueLoopSuccess
-            Case REOP_DOT
-                pcLandmark = pc - 1
-                c1 = GetInputCharCode(inputStr, sp, spDelta)
-                If c1 < 0 Then GoTo ContinueLoopFail
-                If op - (dotAll And RegexBytecode.MODIFIER_S_WRITE) And RegexBytecode.MODIFIER_S_ACTIVE Then GoTo ContinueLoopSuccess
-                If RegexUnicodeSupport.UnicodeIsLineTerminator(c1) Then GoTo ContinueLoopFail
-                GoTo ContinueLoopSuccess
-            Case REOP_RANGES, REOP_INVRANGES
-                pcLandmark = pc - 1
-                n = GetBc(bytecode, pc) ' assert: >= 1
-                c1 = GetInputCharCode(inputStr, sp, spDelta)
-                If c1 < 0 Then GoTo ContinueLoopFail
-                If op And RegexBytecode.MODIFIER_I_ACTIVE Then
-                    c1 = RegexUnicodeSupport.ReCanonicalizeChar(c1)
-                End If
-                
-                aa = pc - 1
-                pc = pc + 2 * n
-                bb = pc + 1
-                
-                ' We are doing a binary search here.
-                Do
-                    mm = aa + 2 * ((bb - aa) \ 4)
-                    If bytecode(mm) >= c1 Then bb = mm Else aa = mm
-                    
-                    If bb - aa = 2 Then
-                        ' bb is the first upper bound index s.t. ary(bb)>=v
-                        If bb >= pc Then successfulMatch = False Else successfulMatch = bytecode(bb - 1) <= c1
-                        Exit Do
+L_END_LOOKPOS:
+        ' Reached if pattern inside a positive lookahead matched.
+        ReturnToMasterPreserveCaptures context, pc, sp, pcLandmark, spDelta, q
+        ' Now we are at the REOP_LOOKPOS opcode.
+        pc = pc + 1
+        n = GetBc(bytecode, pc)
+        pc = pc + n
+        GoTo ContinueLoopSuccess
+        
+L_END_LOOKNEG:
+        ' Reached if pattern inside a positive lookahead matched.
+        ReturnToMasterDiscardCaptures context, pc, sp, pcLandmark, spDelta, q
+        GoTo ContinueLoopFail
+        
+L_CHAR:
+        pcLandmark = pc - 1
+        c1 = GetBc(bytecode, pc)
+        c2 = GetInputCharCode(inputStr, sp, spDelta)
+        If op And RegexBytecode.MODIFIER_I_ACTIVE Then
+            c2 = RegexUnicodeSupport.ReCanonicalizeChar(c2)
+        End If
+        If c1 <> c2 Then GoTo ContinueLoopFail
+        GoTo ContinueLoopSuccess
+        
+L_DOT:
+        pcLandmark = pc - 1
+        c1 = GetInputCharCode(inputStr, sp, spDelta)
+        If c1 < 0 Then GoTo ContinueLoopFail
+        If op - (dotAll And RegexBytecode.MODIFIER_S_WRITE) And RegexBytecode.MODIFIER_S_ACTIVE Then GoTo ContinueLoopSuccess
+        If RegexUnicodeSupport.UnicodeIsLineTerminator(c1) Then GoTo ContinueLoopFail
+        GoTo ContinueLoopSuccess
+        
+L_RANGES:
+L_INVRANGES:
+        pcLandmark = pc - 1
+        n = GetBc(bytecode, pc) ' assert: >= 1
+        c1 = GetInputCharCode(inputStr, sp, spDelta)
+        If c1 < 0 Then GoTo ContinueLoopFail
+        If op And RegexBytecode.MODIFIER_I_ACTIVE Then
+            c1 = RegexUnicodeSupport.ReCanonicalizeChar(c1)
+        End If
+        
+        aa = pc - 1
+        pc = pc + 2 * n
+        bb = pc + 1
+        
+        ' We are doing a binary search here.
+        Do
+            mm = aa + 2 * ((bb - aa) \ 4)
+            If bytecode(mm) >= c1 Then bb = mm Else aa = mm
+            
+            If bb - aa = 2 Then
+                ' bb is the first upper bound index s.t. ary(bb)>=v
+                If bb >= pc Then successfulMatch = False Else successfulMatch = bytecode(bb - 1) <= c1
+                Exit Do
+            End If
+        Loop
+
+        If ((op And RegexBytecode.REOP_OPCODE_MASK) = REOP_RANGES) <> successfulMatch Then GoTo ContinueLoopFail
+
+        GoTo ContinueLoopSuccess
+        
+L_ASSERT_START:
+        If sp <= 0 Then GoTo ContinueLoopSuccess
+        If 0 = (op - (multiline And RegexBytecode.MODIFIER_M_WRITE) And RegexBytecode.MODIFIER_M_ACTIVE) Then GoTo ContinueLoopFail
+        c1 = PeekInputCharCode(inputStr, sp - (spDelta + 1) \ 2)
+        ' E5 Sections 15.10.2.8, 7.3
+        If RegexUnicodeSupport.UnicodeIsLineTerminator(c1) Then GoTo ContinueLoopSuccess
+        GoTo ContinueLoopFail
+        
+L_ASSERT_END:
+        c1 = PeekInputCharCode(inputStr, sp - (spDelta - 1) \ 2)
+        If c1 = DFS_ENDOFINPUT Then GoTo ContinueLoopSuccess
+        If 0 = (op - (multiline And RegexBytecode.MODIFIER_M_WRITE) And RegexBytecode.MODIFIER_M_ACTIVE) Then GoTo ContinueLoopFail
+        If RegexUnicodeSupport.UnicodeIsLineTerminator(c1) Then GoTo ContinueLoopSuccess
+        GoTo ContinueLoopFail
+        
+L_ASSERT_WORD_BOUNDARY:
+L_ASSERT_NOT_WORD_BOUNDARY:
+        '
+        '  E5 Section 15.10.2.6.  The previous and current character
+        '  should -not- be canonicalized as they are now.  However,
+        '  canonicalization does not affect the result of IsWordChar()
+        '  (which depends on Unicode characters never canonicalizing
+        '  into ASCII characters) so this does not matter.
+        If sp <= 0 Then
+            b1 = False  ' not a wordchar
+        Else
+            c1 = PeekInputCharCode(inputStr, sp - spDelta)
+            b1 = UnicodeReIsWordchar(c1)
+        End If
+        If sp > Len(inputStr) Then
+            b2 = False ' not a wordchar
+        Else
+            c1 = PeekInputCharCode(inputStr, sp)
+            b2 = UnicodeReIsWordchar(c1)
+        End If
+
+        If ((op And RegexBytecode.REOP_OPCODE_MASK) = REOP_ASSERT_WORD_BOUNDARY) = (b1 = b2) Then GoTo ContinueLoopFail
+
+        GoTo ContinueLoopSuccess
+        
+L_JUMP:
+        n = GetBc(bytecode, pc)
+        If n > 0 Then
+            ' forward jump (disjunction)
+            pc = pc + n
+            GoTo ContinueLoopSuccess
+        Else
+            ' backward jump (end of loop)
+            t = pc + n
+            If pcLandmark <= t Then GoTo ContinueLoopSuccess ' empty match
+                            
+            pc = t: pcLandmark = t
+            GoTo ContinueLoopSuccess
+        End If
+        
+L_SPLIT1:
+        ' split1: prefer direct execution (no jump)
+        n = GetBc(bytecode, pc)
+        PushMatcherStackFrame context, pc + n, sp, pcLandmark, spDelta, q
+        If op And REOP_FLAG_POSSESSIVE Then context.master = context.matcherStack.Length - 1
+        GoTo ContinueLoopSuccess
+        
+L_SPLIT2:
+        ' split2: prefer jump execution (not direct)
+        n = GetBc(bytecode, pc)
+        PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
+        pc = pc + n
+        GoTo ContinueLoopSuccess
+        
+L_REPEAT_EXACTLY_INIT:
+        QStackPush context, q
+        q = 0
+        GoTo ContinueLoopSuccess
+        
+L_REPEAT_EXACTLY_START:
+        pc = pc + 2 ' skip arguments
+        If op And REOP_FLAG_POSSESSIVE Then
+            PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
+            context.master = context.matcherStack.Length - 1
+            pc = pc + 1 ' jump over REOP_FAIL
+        End If
+        GoTo ContinueLoopSuccess
+        
+L_REPEAT_EXACTLY_END:
+        qexact = GetBc(bytecode, pc) ' quantity
+        n = GetBc(bytecode, pc) ' offset
+        q = q + 1
+        If q < qexact Then
+            t = pc - n - 3
+            If pcLandmark > t Then pcLandmark = t
+            pc = t
+        Else
+            q = QStackPop(context)
+        End If
+        GoTo ContinueLoopSuccess
+        
+L_REPEAT_MAX_HUMBLE_INIT:
+L_REPEAT_GREEDY_MAX_INIT:
+        QStackPush context, q
+        q = -1
+        GoTo ContinueLoopSuccess
+        
+L_REPEAT_MAX_HUMBLE_START:
+        qmax = GetBc(bytecode, pc)
+        n = GetBc(bytecode, pc)
+        
+        q = q + 1
+        If q < qmax Then PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
+        
+        q = QStackPop(context)
+        pc = pc + n
+        GoTo ContinueLoopSuccess
+
+L_REPEAT_MAX_HUMBLE_END:
+        pc = pc + 1  ' skip first argument: quantity
+        n = GetBc(bytecode, pc) ' offset
+        t = pc - n - 3
+        If pcLandmark <= t Then GoTo ContinueLoopFail ' empty match
+        
+        pc = t: pcLandmark = t
+        GoTo ContinueLoopSuccess
+        
+L_REPEAT_GREEDY_MAX_START:
+        qmax = GetBc(bytecode, pc)
+        n = GetBc(bytecode, pc)
+        
+        q = q + 1
+        If q < qmax Then
+            qq = QStackPop(context)
+            PushMatcherStackFrame context, pc + n, sp, pcLandmark, spDelta, qq
+            QStackPush context, qq
+            If op And REOP_FLAG_POSSESSIVE Then context.master = context.matcherStack.Length - 1
+        Else
+            pc = pc + n
+            q = QStackPop(context)
+        End If
+        
+        GoTo ContinueLoopSuccess
+        
+L_REPEAT_GREEDY_MAX_END:
+        pc = pc + 1 ' Skip first argument: quantity
+        n = GetBc(bytecode, pc) ' offset
+        t = pc - n - 3
+        If pcLandmark <= t Then GoTo ContinueLoopSuccess ' empty match
+        
+        pc = t: pcLandmark = t
+        GoTo ContinueLoopSuccess
+        
+L_SAVE:
+        idx = GetBc(bytecode, pc)
+        If idx >= context.nCapturePoints Then GoTo InternalError
+            ' idx is unsigned, < 0 check is not necessary
+        SetCapturePoint context, idx, sp
+        GoTo ContinueLoopSuccess
+        
+L_SET_NAMED:
+        r1 = GetBc(bytecode, pc)
+        If r1 >= context.nCapturePoints Then GoTo InternalError
+        r2 = GetBc(bytecode, pc)
+        SetCapturePoint context, context.nProperCapturePoints + r1, r2
+        GoTo ContinueLoopSuccess
+        
+L_CHECK_LOOKAHEAD:
+        PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
+        context.master = context.matcherStack.Length - 1
+        pc = pc + 2 ' jump over following REOP_LOOKPOS or REOP_LOOKNEG
+        ' When we're moving forward, we are at the correct position. When we're moving backward, we have to step one towards the end.
+        sp = sp + (1 - spDelta) \ 2
+        spDelta = 1
+        ' We could set pcLandmark to -1 again here, but we can be sure that pcLandmark < beginning of lookahead, so we can skip that
+        GoTo ContinueLoopSuccess
+        
+L_CHECK_LOOKBEHIND:
+        PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
+        context.master = context.matcherStack.Length - 1
+        pc = pc + 2 ' jump over following REOP_LOOKPOS or REOP_LOOKNEG
+        ' When we're moving backward, we are at the correct position. When we're moving forward, we have to step one towards the beginning.
+        sp = sp - (spDelta + 1) \ 2
+        spDelta = -1
+        ' We could set pcLandmark to -1 again here, but we can be sure that pcLandmark < beginning of lookahead, so we can skip that
+        GoTo ContinueLoopSuccess
+        
+L_LOOKPOS:
+        ' This point will only be reached if the pattern inside a negative lookahead/back did not match.
+        n = GetBc(bytecode, pc)
+        pc = pc + n
+        GoTo ContinueLoopFail
+        
+L_LOOKNEG:
+        ' This point will only be reached if the pattern inside a negative lookahead/back did not match.
+        n = GetBc(bytecode, pc)
+        pc = pc + n
+        GoTo ContinueLoopSuccess
+        
+L_BACKREFERENCE:
+        '
+        '  Byte matching for back-references would be OK in case-
+        '  sensitive matching.  In case-insensitive matching we need
+        '  to canonicalize characters, so back-reference matching needs
+        '  to be done with codepoints instead.  So, we just decode
+        '  everything normally here, too.
+        '
+        '  Note: back-reference index which is 0 or higher than
+        '  NCapturingParens (= number of capturing parens in the
+        '  -entire- regexp) is a compile time error.  However, a
+        '  backreference referring to a valid capture which has
+        '  not matched anything always succeeds!  See E5 Section
+        '  15.10.2.9, step 5, sub-step 3.
+
+        pcLandmark = pc - 1
+        idx = 2 * GetBc(bytecode, pc) ' backref n -> saved indices [n*2, n*2+1]
+        If idx < 2 Then GoTo InternalError
+        If idx + 1 >= context.nCapturePoints Then GoTo InternalError
+        aa = GetCapturePoint(context, idx)
+        bb = GetCapturePoint(context, idx + 1)
+        If (aa >= 0) And (bb >= 0) Then
+            If spDelta = 1 Then
+                off = aa
+                Do While off < bb
+                    c1 = GetInputCharCode(inputStr, off, 1)
+                    c2 = GetInputCharCode(inputStr, sp, 1)
+                    ' No need for an explicit c2 < 0 check: because c1 >= 0,
+                    ' the comparison will always fail if c2 < 0.
+                    If c1 <> c2 Then
+                        If 0 = (op And RegexBytecode.MODIFIER_I_ACTIVE) Then GoTo ContinueLoopFail
+                        If RegexUnicodeSupport.ReCanonicalizeChar(c1) <> RegexUnicodeSupport.ReCanonicalizeChar(c2) Then GoTo ContinueLoopFail
                     End If
                 Loop
-    
-                If ((op And RegexBytecode.REOP_OPCODE_MASK) = REOP_RANGES) <> successfulMatch Then GoTo ContinueLoopFail
-
-                GoTo ContinueLoopSuccess
-            Case REOP_ASSERT_START
-                If sp <= 0 Then GoTo ContinueLoopSuccess
-                If 0 = (op - (multiline And RegexBytecode.MODIFIER_M_WRITE) And RegexBytecode.MODIFIER_M_ACTIVE) Then GoTo ContinueLoopFail
-                c1 = PeekInputCharCode(inputStr, sp - (spDelta + 1) \ 2)
-                ' E5 Sections 15.10.2.8, 7.3
-                If RegexUnicodeSupport.UnicodeIsLineTerminator(c1) Then GoTo ContinueLoopSuccess
-                GoTo ContinueLoopFail
-            Case REOP_ASSERT_END
-                c1 = PeekInputCharCode(inputStr, sp - (spDelta - 1) \ 2)
-                If c1 = DFS_ENDOFINPUT Then GoTo ContinueLoopSuccess
-                If 0 = (op - (multiline And RegexBytecode.MODIFIER_M_WRITE) And RegexBytecode.MODIFIER_M_ACTIVE) Then GoTo ContinueLoopFail
-                If RegexUnicodeSupport.UnicodeIsLineTerminator(c1) Then GoTo ContinueLoopSuccess
-                GoTo ContinueLoopFail
-            Case REOP_ASSERT_WORD_BOUNDARY, REOP_ASSERT_NOT_WORD_BOUNDARY
-                '
-                '  E5 Section 15.10.2.6.  The previous and current character
-                '  should -not- be canonicalized as they are now.  However,
-                '  canonicalization does not affect the result of IsWordChar()
-                '  (which depends on Unicode characters never canonicalizing
-                '  into ASCII characters) so this does not matter.
-                If sp <= 0 Then
-                    b1 = False  ' not a wordchar
-                Else
-                    c1 = PeekInputCharCode(inputStr, sp - spDelta)
-                    b1 = UnicodeReIsWordchar(c1)
-                End If
-                If sp > Len(inputStr) Then
-                    b2 = False ' not a wordchar
-                Else
-                    c1 = PeekInputCharCode(inputStr, sp)
-                    b2 = UnicodeReIsWordchar(c1)
-                End If
-    
-                If ((op And RegexBytecode.REOP_OPCODE_MASK) = REOP_ASSERT_WORD_BOUNDARY) = (b1 = b2) Then GoTo ContinueLoopFail
-
-                GoTo ContinueLoopSuccess
-            Case REOP_JUMP
-                n = GetBc(bytecode, pc)
-                If n > 0 Then
-                    ' forward jump (disjunction)
-                    pc = pc + n
-                    GoTo ContinueLoopSuccess
-                Else
-                    ' backward jump (end of loop)
-                    t = pc + n
-                    If pcLandmark <= t Then GoTo ContinueLoopSuccess ' empty match
-                                    
-                    pc = t: pcLandmark = t
-                    GoTo ContinueLoopSuccess
-                End If
-            Case REOP_SPLIT1
-                ' split1: prefer direct execution (no jump)
-                n = GetBc(bytecode, pc)
-                PushMatcherStackFrame context, pc + n, sp, pcLandmark, spDelta, q
-                If op And REOP_FLAG_POSSESSIVE Then context.master = context.matcherStack.Length - 1
-                GoTo ContinueLoopSuccess
-            Case REOP_SPLIT2
-                ' split2: prefer jump execution (not direct)
-                n = GetBc(bytecode, pc)
-                PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
-                pc = pc + n
-                GoTo ContinueLoopSuccess
-            Case REOP_REPEAT_EXACTLY_INIT
-                QStackPush context, q
-                q = 0
-                GoTo ContinueLoopSuccess
-            Case REOP_REPEAT_EXACTLY_START
-                pc = pc + 2 ' skip arguments
-                If op And REOP_FLAG_POSSESSIVE Then
-                    PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
-                    context.master = context.matcherStack.Length - 1
-                    pc = pc + 1 ' jump over REOP_FAIL
-                End If
-                GoTo ContinueLoopSuccess
-            Case REOP_REPEAT_EXACTLY_END
-                qexact = GetBc(bytecode, pc) ' quantity
-                n = GetBc(bytecode, pc) ' offset
-                q = q + 1
-                If q < qexact Then
-                    t = pc - n - 3
-                    If pcLandmark > t Then pcLandmark = t
-                    pc = t
-                Else
-                    q = QStackPop(context)
-                End If
-                GoTo ContinueLoopSuccess
-            Case REOP_REPEAT_MAX_HUMBLE_INIT, REOP_REPEAT_GREEDY_MAX_INIT
-                QStackPush context, q
-                q = -1
-                GoTo ContinueLoopSuccess
-            Case REOP_REPEAT_MAX_HUMBLE_START
-                qmax = GetBc(bytecode, pc)
-                n = GetBc(bytecode, pc)
-                
-                q = q + 1
-                If q < qmax Then PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
-                
-                q = QStackPop(context)
-                pc = pc + n
-                GoTo ContinueLoopSuccess
-            Case REOP_REPEAT_MAX_HUMBLE_END
-                pc = pc + 1  ' skip first argument: quantity
-                n = GetBc(bytecode, pc) ' offset
-                t = pc - n - 3
-                If pcLandmark <= t Then GoTo ContinueLoopFail ' empty match
-                
-                pc = t: pcLandmark = t
-                GoTo ContinueLoopSuccess
-            Case REOP_REPEAT_GREEDY_MAX_START
-                qmax = GetBc(bytecode, pc)
-                n = GetBc(bytecode, pc)
-                
-                q = q + 1
-                If q < qmax Then
-                    qq = QStackPop(context)
-                    PushMatcherStackFrame context, pc + n, sp, pcLandmark, spDelta, qq
-                    QStackPush context, qq
-                    If op And REOP_FLAG_POSSESSIVE Then context.master = context.matcherStack.Length - 1
-                Else
-                    pc = pc + n
-                    q = QStackPop(context)
-                End If
-                
-                GoTo ContinueLoopSuccess
-            Case REOP_REPEAT_GREEDY_MAX_END
-                pc = pc + 1 ' Skip first argument: quantity
-                n = GetBc(bytecode, pc) ' offset
-                t = pc - n - 3
-                If pcLandmark <= t Then GoTo ContinueLoopSuccess ' empty match
-                
-                pc = t: pcLandmark = t
-                GoTo ContinueLoopSuccess
-            Case REOP_SAVE
-                idx = GetBc(bytecode, pc)
-                If idx >= context.nCapturePoints Then GoTo InternalError
-                    ' idx is unsigned, < 0 check is not necessary
-                SetCapturePoint context, idx, sp
-                GoTo ContinueLoopSuccess
-            Case REOP_SET_NAMED
-                r1 = GetBc(bytecode, pc)
-                If r1 >= context.nCapturePoints Then GoTo InternalError
-                r2 = GetBc(bytecode, pc)
-                SetCapturePoint context, context.nProperCapturePoints + r1, r2
-                GoTo ContinueLoopSuccess
-            Case REOP_CHECK_LOOKAHEAD
-                PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
-                context.master = context.matcherStack.Length - 1
-                pc = pc + 2 ' jump over following REOP_LOOKPOS or REOP_LOOKNEG
-                ' When we're moving forward, we are at the correct position. When we're moving backward, we have to step one towards the end.
-                sp = sp + (1 - spDelta) \ 2
-                spDelta = 1
-                ' We could set pcLandmark to -1 again here, but we can be sure that pcLandmark < beginning of lookahead, so we can skip that
-                GoTo ContinueLoopSuccess
-            Case REOP_CHECK_LOOKBEHIND
-                PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
-                context.master = context.matcherStack.Length - 1
-                pc = pc + 2 ' jump over following REOP_LOOKPOS or REOP_LOOKNEG
-                ' When we're moving backward, we are at the correct position. When we're moving forward, we have to step one towards the beginning.
-                sp = sp - (spDelta + 1) \ 2
-                spDelta = -1
-                ' We could set pcLandmark to -1 again here, but we can be sure that pcLandmark < beginning of lookahead, so we can skip that
-                GoTo ContinueLoopSuccess
-            Case REOP_LOOKPOS
-                ' This point will only be reached if the pattern inside a negative lookahead/back did not match.
-                n = GetBc(bytecode, pc)
-                pc = pc + n
-                GoTo ContinueLoopFail
-            Case REOP_LOOKNEG
-                ' This point will only be reached if the pattern inside a negative lookahead/back did not match.
-                n = GetBc(bytecode, pc)
-                pc = pc + n
-                GoTo ContinueLoopSuccess
-            Case REOP_BACKREFERENCE
-                '
-                '  Byte matching for back-references would be OK in case-
-                '  sensitive matching.  In case-insensitive matching we need
-                '  to canonicalize characters, so back-reference matching needs
-                '  to be done with codepoints instead.  So, we just decode
-                '  everything normally here, too.
-                '
-                '  Note: back-reference index which is 0 or higher than
-                '  NCapturingParens (= number of capturing parens in the
-                '  -entire- regexp) is a compile time error.  However, a
-                '  backreference referring to a valid capture which has
-                '  not matched anything always succeeds!  See E5 Section
-                '  15.10.2.9, step 5, sub-step 3.
-    
-                pcLandmark = pc - 1
-                idx = 2 * GetBc(bytecode, pc) ' backref n -> saved indices [n*2, n*2+1]
-                If idx < 2 Then GoTo InternalError
-                If idx + 1 >= context.nCapturePoints Then GoTo InternalError
-                aa = GetCapturePoint(context, idx)
-                bb = GetCapturePoint(context, idx + 1)
-                If (aa >= 0) And (bb >= 0) Then
-                    If spDelta = 1 Then
-                        off = aa
-                        Do While off < bb
-                            c1 = GetInputCharCode(inputStr, off, 1)
-                            c2 = GetInputCharCode(inputStr, sp, 1)
-                            ' No need for an explicit c2 < 0 check: because c1 >= 0,
-                            ' the comparison will always fail if c2 < 0.
-                            If c1 <> c2 Then
-                                If 0 = (op And RegexBytecode.MODIFIER_I_ACTIVE) Then GoTo ContinueLoopFail
-                                If RegexUnicodeSupport.ReCanonicalizeChar(c1) <> RegexUnicodeSupport.ReCanonicalizeChar(c2) Then GoTo ContinueLoopFail
-                            End If
-                        Loop
-                    Else
-                        off = bb - 1
-                        Do While off >= aa
-                            c1 = GetInputCharCode(inputStr, off, -1)
-                            c2 = GetInputCharCode(inputStr, sp, -1)
-                            ' No need for an explicit c2 < 0 check: because c1 >= 0,
-                            ' the comparison will always fail if c2 < 0.
-                            If c1 <> c2 Then
-                                If 0 = (op And RegexBytecode.MODIFIER_I_ACTIVE) Then GoTo ContinueLoopFail
-                                If RegexUnicodeSupport.ReCanonicalizeChar(c1) <> RegexUnicodeSupport.ReCanonicalizeChar(c2) Then GoTo ContinueLoopFail
-                            End If
-                        Loop
+            Else
+                off = bb - 1
+                Do While off >= aa
+                    c1 = GetInputCharCode(inputStr, off, -1)
+                    c2 = GetInputCharCode(inputStr, sp, -1)
+                    ' No need for an explicit c2 < 0 check: because c1 >= 0,
+                    ' the comparison will always fail if c2 < 0.
+                    If c1 <> c2 Then
+                        If 0 = (op And RegexBytecode.MODIFIER_I_ACTIVE) Then GoTo ContinueLoopFail
+                        If RegexUnicodeSupport.ReCanonicalizeChar(c1) <> RegexUnicodeSupport.ReCanonicalizeChar(c2) Then GoTo ContinueLoopFail
                     End If
-                Else
-                    ' capture is 'undefined', always matches!
-                End If
-                GoTo ContinueLoopSuccess
-            Case REOP_COMMIT_POSSESSIVE
-                ReturnToMasterPreserveAll context, pc, sp, pcLandmark, spDelta, q
-                GoTo ContinueLoopSuccess
-            Case REOP_FAIL
-                GoTo ContinueLoopFail
-            Case Else
-                GoTo InternalError
-            End Select
-        ' END LOOP
+                Loop
+            End If
+        Else
+            ' capture is 'undefined', always matches!
+        End If
+        GoTo ContinueLoopSuccess
+        
+L_COMMIT_POSSESSIVE:
+        ReturnToMasterPreserveAll context, pc, sp, pcLandmark, spDelta, q
+        GoTo ContinueLoopSuccess
+        
+    ' END LOOP
     
 Match:
-        CopyCaptures context, outCaptures
-        DfsRunThreads = sp
-        Exit Function
+    CopyCaptures context, outCaptures
+    DfsRunThreads = sp
+    Exit Function
         
 InternalError:
-        ' TODO: Raise correct exception
-        Err.Raise 3000
-        ' DUK_ERROR_INTERNAL(re_ctx->thr);
-        ' DUK_WO_NORETURN(return -1;);
+    ' TODO: Raise correct exception
+    Err.Raise 3000
 End Function
 

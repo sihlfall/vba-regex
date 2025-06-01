@@ -39,6 +39,9 @@ Public Enum ReOpType
     
     REOP_FLAG_POSSESSIVE = &H100&
     
+    ' There are places in the code where the numerical values of these constants is
+    ' significant. If you make changes, please search for __REOP_NUMERICAL_VALUES__
+    ' to find them.
     REOP_INVALID_OPCODE = 0
     REOP_MATCH = 1
     REOP_CHAR = 2
@@ -48,30 +51,30 @@ Public Enum ReOpType
     REOP_JUMP = 6
     REOP_SPLIT1 = 7 ' prefer direct
     REOP_SPLIT2 = 8 ' prefer jump
-    REOP_SAVE = 11
-    REOP_SET_NAMED = 12 ' id, capture num
-    REOP_LOOKPOS = 13
-    REOP_LOOKNEG = 14
-    REOP_BACKREFERENCE = 15
-    REOP_ASSERT_START = 16
-    REOP_ASSERT_END = 17
-    REOP_ASSERT_WORD_BOUNDARY = 18
-    REOP_ASSERT_NOT_WORD_BOUNDARY = 19
-    REOP_REPEAT_EXACTLY_INIT = 20 ' <none>
-    REOP_REPEAT_EXACTLY_START = 21 ' quantity [must be >= 1], offset
-    REOP_REPEAT_EXACTLY_END = 22 ' quantity [must be >= 1], offset
-    REOP_REPEAT_MAX_HUMBLE_INIT = 23 ' <none>
-    REOP_REPEAT_MAX_HUMBLE_START = 24 ' quantity, offset
-    REOP_REPEAT_MAX_HUMBLE_END = 25 ' quantitiy, offset
-    REOP_REPEAT_GREEDY_MAX_INIT = 26 ' <none>
-    REOP_REPEAT_GREEDY_MAX_START = 27 ' quantity, offset
-    REOP_REPEAT_GREEDY_MAX_END = 28 ' quantitiy, offset
-    REOP_CHECK_LOOKAHEAD = 29 ' <none>
-    REOP_CHECK_LOOKBEHIND = 30 ' <none>
-    REOP_END_LOOKPOS = 31 ' <none>
-    REOP_END_LOOKNEG = 32 ' <none>
-    REOP_COMMIT_POSSESSIVE = 33 ' <none>
-    REOP_FAIL = 34
+    REOP_SAVE = 9
+    REOP_SET_NAMED = 10 ' id, capture num
+    REOP_LOOKPOS = 11
+    REOP_LOOKNEG = 12
+    REOP_BACKREFERENCE = 13
+    REOP_ASSERT_START = 14
+    REOP_ASSERT_END = 15
+    REOP_ASSERT_WORD_BOUNDARY = 16
+    REOP_ASSERT_NOT_WORD_BOUNDARY = 17
+    REOP_REPEAT_EXACTLY_INIT = 18 ' <none>
+    REOP_REPEAT_EXACTLY_START = 19 ' quantity [must be >= 1], offset
+    REOP_REPEAT_EXACTLY_END = 20 ' quantity [must be >= 1], offset
+    REOP_REPEAT_MAX_HUMBLE_INIT = 21 ' <none>
+    REOP_REPEAT_MAX_HUMBLE_START = 22 ' quantity, offset
+    REOP_REPEAT_MAX_HUMBLE_END = 23 ' quantitiy, offset
+    REOP_REPEAT_GREEDY_MAX_INIT = 24 ' <none>
+    REOP_REPEAT_GREEDY_MAX_START = 25 ' quantity, offset
+    REOP_REPEAT_GREEDY_MAX_END = 26 ' quantitiy, offset
+    REOP_CHECK_LOOKAHEAD = 27 ' <none>
+    REOP_CHECK_LOOKBEHIND = 28 ' <none>
+    REOP_END_LOOKPOS = 29 ' <none>
+    REOP_END_LOOKNEG = 30 ' <none>
+    REOP_COMMIT_POSSESSIVE = 31 ' <none>
+    REOP_FAIL = 32
 End Enum
 
 Public Function isCaseInsensitive(ByRef bytecode() As Long) As Boolean
