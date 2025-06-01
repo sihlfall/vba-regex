@@ -447,6 +447,68 @@ TestFail:
 End Sub
 
 '@TestMethod("Compiler")
+Private Sub Compiler_Compile0031()
+    ' Question mark, possessive
+    On Error GoTo TestFail
+    
+    Dim actual() As Long
+    RegexCompiler.Compile actual, "ab?+c"
+    
+    
+    Dim expected() As Long
+    
+    MakeArray expected, _
+        1, 0, 0, _
+        REOP_SAVE, 0, _
+        REOP_CHAR, AscW("a"), _
+        REOP_SPLIT1 Or REOP_FLAG_POSSESSIVE, 3, _
+        REOP_CHAR, AscW("b"), _
+        REOP_COMMIT_POSSESSIVE, _
+        REOP_CHAR, AscW("c"), _
+        REOP_SAVE, 1, _
+        REOP_MATCH
+    
+    Assert.SequenceEquals expected, actual
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("Compiler")
+Private Sub Compiler_Compile0032()
+    ' Kleene star, complex pattern, possessive
+    On Error GoTo TestFail
+    
+    Dim actual() As Long
+    RegexCompiler.Compile actual, "(ab)*+x"
+        
+    Dim expected() As Long
+    
+    MakeArray expected, _
+        3, 0, 0, _
+        REOP_SAVE, 0, _
+        REOP_SPLIT1 Or REOP_FLAG_POSSESSIVE, 11, _
+        REOP_SAVE, 2, _
+        REOP_CHAR, AscW("a"), _
+        REOP_CHAR, AscW("b"), _
+        REOP_SAVE, 3, _
+        REOP_COMMIT_POSSESSIVE, _
+        REOP_JUMP, -13, _
+        REOP_CHAR, AscW("x"), _
+        REOP_SAVE, 1, _
+        REOP_MATCH
+    
+    Assert.SequenceEquals expected, actual
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("Compiler")
 Private Sub Compiler_Compile0040()
     ' Quantifier, two numbers
     On Error GoTo TestFail
@@ -629,6 +691,43 @@ TestFail:
     Resume TestExit
 End Sub
 
+'@TestMethod("Compiler")
+Private Sub Compiler_Compile0046()
+    ' Quantifier, two numbers, possessive
+    On Error GoTo TestFail
+    
+    Dim actual() As Long
+    RegexCompiler.Compile actual, "ab{2,5}+c"
+    
+    
+    Dim expected() As Long
+    
+    MakeArray expected, _
+        1, 0, 0, _
+        REOP_SAVE, 0, _
+        REOP_CHAR, AscW("a"), _
+        REOP_REPEAT_EXACTLY_INIT, _
+        REOP_REPEAT_EXACTLY_START Or REOP_FLAG_POSSESSIVE, 2, 7, _
+        REOP_FAIL, _
+        REOP_CHAR, AscW("b"), _
+        REOP_COMMIT_POSSESSIVE, _
+        REOP_REPEAT_EXACTLY_END, 2, 7, _
+        REOP_REPEAT_GREEDY_MAX_INIT, _
+        REOP_REPEAT_GREEDY_MAX_START Or REOP_FLAG_POSSESSIVE, 3, 6, _
+        REOP_CHAR, AscW("b"), _
+        REOP_COMMIT_POSSESSIVE, _
+        REOP_REPEAT_GREEDY_MAX_END, 3, 6, _
+        REOP_CHAR, AscW("c"), _
+        REOP_SAVE, 1, _
+        REOP_MATCH
+    
+    Assert.SequenceEquals expected, actual
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
 
 '@TestMethod("Compiler")
 Private Sub Compiler_Compile0050()

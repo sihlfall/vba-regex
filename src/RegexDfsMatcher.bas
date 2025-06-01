@@ -287,6 +287,44 @@ Private Sub ReturnToMasterPreserveCaptures( _
     End With
 End Sub
 
+Private Sub ReturnToMasterPreserveAll( _
+    ByRef context As DfsMatcherContext, _
+    ByRef pc As Long, _
+    ByRef sp As Long, _
+    ByRef pcLandmark As Long, _
+    ByRef spDelta As Long, _
+    ByRef q As Long _
+)
+    Dim masterCapturesStackLength As Long, i As Long
+    
+    ' We need not adjust the q stack, since the frame we return to has the same top q
+    ' element as the frame we are returning from. Hence restoring .qTop is sufficient.
+    With context.matcherStack
+        .Length = context.master
+        With .Buffer(.Length)
+            context.master = .master
+            masterCapturesStackLength = .capturesStackState And RegexNumericConstants.LONG_ALL_BUT_FIRST_BIT
+            context.capturesRequireCoW = (.capturesStackState And RegexNumericConstants.LONG_FIRST_BIT) <> 0
+            context.qTop = .qTop
+        End With
+    End With
+    
+    With context.capturesStack
+        If .Length = masterCapturesStackLength Then Exit Sub
+
+        If context.capturesRequireCoW Then
+            masterCapturesStackLength = masterCapturesStackLength + context.nCapturePoints
+            context.capturesRequireCoW = False
+            If .Length = masterCapturesStackLength Then Exit Sub
+        End If
+        
+        For i = 1 To context.nCapturePoints
+            .Buffer(masterCapturesStackLength - i) = .Buffer(.Length - i)
+        Next
+        .Length = masterCapturesStackLength
+    End With
+End Sub
+
 Private Sub CopyCaptures(ByRef context As DfsMatcherContext, ByRef captures As CapturesTy)
     Dim i As Long, baseIdx As Long, pt1 As Long, pt2 As Long
     
@@ -358,8 +396,6 @@ Private Function QStackPop(ByRef context As DfsMatcherContext) As Long
         .qTop = .qstack.Buffer(.qTop - 2)
     End With
 End Function
-
-
 
 Private Function DfsRunThreads( _
     ByRef outCaptures As CapturesTy, _
@@ -556,7 +592,7 @@ ContinueLoopSuccess:
                 ' split1: prefer direct execution (no jump)
                 n = GetBc(bytecode, pc)
                 PushMatcherStackFrame context, pc + n, sp, pcLandmark, spDelta, q
-                '.tsStack(.tsLastIndex - 1).pc = pc + n
+                If op And REOP_FLAG_POSSESSIVE Then context.master = context.matcherStack.Length - 1
                 GoTo ContinueLoopSuccess
             Case REOP_SPLIT2
                 ' split2: prefer jump execution (not direct)
@@ -570,6 +606,11 @@ ContinueLoopSuccess:
                 GoTo ContinueLoopSuccess
             Case REOP_REPEAT_EXACTLY_START
                 pc = pc + 2 ' skip arguments
+                If op And REOP_FLAG_POSSESSIVE Then
+                    PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
+                    context.master = context.matcherStack.Length - 1
+                    pc = pc + 1 ' jump over REOP_FAIL
+                End If
                 GoTo ContinueLoopSuccess
             Case REOP_REPEAT_EXACTLY_END
                 qexact = GetBc(bytecode, pc) ' quantity
@@ -614,6 +655,7 @@ ContinueLoopSuccess:
                     qq = QStackPop(context)
                     PushMatcherStackFrame context, pc + n, sp, pcLandmark, spDelta, qq
                     QStackPush context, qq
+                    If op And REOP_FLAG_POSSESSIVE Then context.master = context.matcherStack.Length - 1
                 Else
                     pc = pc + n
                     q = QStackPop(context)
@@ -719,6 +761,11 @@ ContinueLoopSuccess:
                     ' capture is 'undefined', always matches!
                 End If
                 GoTo ContinueLoopSuccess
+            Case REOP_COMMIT_POSSESSIVE
+                ReturnToMasterPreserveAll context, pc, sp, pcLandmark, spDelta, q
+                GoTo ContinueLoopSuccess
+            Case REOP_FAIL
+                GoTo ContinueLoopFail
             Case Else
                 GoTo InternalError
             End Select

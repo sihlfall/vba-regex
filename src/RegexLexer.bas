@@ -19,11 +19,17 @@ End Type
 
 Public Type ReToken
     t As Long ' token type
-    greedy As Boolean
+    quantifierType As Long
     num As Long ' numeric value (character, count, id for named capture group, -1 for non-named capture group, modifiers for non-capture group)
     qmin As Long
     qmax As Long
 End Type
+
+Public Enum TokenQuantifierType
+    QUANTIFIER_GREEDY = 1
+    QUANTIFIER_HUMBLE = 2
+    QUANTIFIER_POSSESSIVE = 3
+End Enum
 
 Public Enum TokenTypeIdType
     RETOK_EOF = 0
@@ -50,8 +56,10 @@ Public Enum TokenTypeIdType
     RETOK_ATOM_START_CHARCLASS_INVERTED = 21
     RETOK_ASSERT_START_POS_LOOKBEHIND = 22
     RETOK_ASSERT_START_NEG_LOOKBEHIND = 23
-    RETOK_ATOM_END = 24 ' closing parenthesis (ends (POS|NEG)_LOOK(AHEAD|BEHIND), CAPTURE_GROUP, NONCAPTURE_GROUP)
-    RETOK_UNBOUNDED_MODIFIER = 25
+    RETOK_ATOM_START_ATOMIC_GROUP = 24
+    RETOK_ATOM_END = 25 ' closing parenthesis
+        ' (ends (POS|NEG)_LOOK(AHEAD|BEHIND), CAPTURE_GROUP, NONCAPTURE_GROUP, ATOMIC_GROUP)
+    RETOK_UNBOUNDED_MODIFIER = 26
 End Enum
 
 ' Returned by input reading function after end of input has been reached
@@ -159,10 +167,14 @@ Public Sub ParseReToken(ByRef lexCtx As Ty, ByRef outToken As ReToken)
             If lexCtx.currentCharacter = UNICODE_QUESTION Then
                 Advance lexCtx
                 .t = RETOK_QUANTIFIER
-                .greedy = False
+                .quantifierType = QUANTIFIER_HUMBLE
+            ElseIf lexCtx.currentCharacter = UNICODE_PLUS Then
+                Advance lexCtx
+                .t = RETOK_QUANTIFIER
+                .quantifierType = QUANTIFIER_POSSESSIVE
             Else
                 .t = RETOK_QUANTIFIER
-                .greedy = True
+                .quantifierType = QUANTIFIER_GREEDY
             End If
         End With
     Case UNICODE_STAR
@@ -172,10 +184,14 @@ Public Sub ParseReToken(ByRef lexCtx As Ty, ByRef outToken As ReToken)
             If lexCtx.currentCharacter = UNICODE_QUESTION Then
                 Advance lexCtx
                 .t = RETOK_QUANTIFIER
-                .greedy = False
+                .quantifierType = QUANTIFIER_HUMBLE
+            ElseIf lexCtx.currentCharacter = UNICODE_PLUS Then
+                Advance lexCtx
+                .t = RETOK_QUANTIFIER
+                .quantifierType = QUANTIFIER_POSSESSIVE
             Else
                 .t = RETOK_QUANTIFIER
-                .greedy = True
+                .quantifierType = QUANTIFIER_GREEDY
             End If
         End With
     Case UNICODE_PLUS
@@ -185,10 +201,14 @@ Public Sub ParseReToken(ByRef lexCtx As Ty, ByRef outToken As ReToken)
             If lexCtx.currentCharacter = UNICODE_QUESTION Then
                 Advance lexCtx
                 .t = RETOK_QUANTIFIER
-                .greedy = False
+                .quantifierType = QUANTIFIER_HUMBLE
+            ElseIf lexCtx.currentCharacter = UNICODE_PLUS Then
+                Advance lexCtx
+                .t = RETOK_QUANTIFIER
+                .quantifierType = QUANTIFIER_POSSESSIVE
             Else
                 .t = RETOK_QUANTIFIER
-                .greedy = True
+                .quantifierType = QUANTIFIER_GREEDY
             End If
         End With
     Case UNICODE_LCURLY
@@ -238,10 +258,13 @@ Public Sub ParseReToken(ByRef lexCtx As Ty, ByRef outToken As ReToken)
             End If
         Loop
         If lexCtx.currentCharacter = UNICODE_QUESTION Then
-            outToken.greedy = False
+            outToken.quantifierType = QUANTIFIER_HUMBLE
+            Advance lexCtx
+        ElseIf lexCtx.currentCharacter = UNICODE_PLUS Then
+            outToken.quantifierType = QUANTIFIER_POSSESSIVE
             Advance lexCtx
         Else
-            outToken.greedy = True
+            outToken.quantifierType = QUANTIFIER_GREEDY
         End If
         outToken.t = RETOK_QUANTIFIER
     Case UNICODE_PERIOD
@@ -390,6 +413,9 @@ EndEscapeHandling:
             Case UNICODE_COLON
                 ' (?:
                 outToken.t = RETOK_ATOM_START_NONCAPTURE_GROUP
+                outToken.num = 0 ' no modifiers
+            Case UNICODE_GT
+                outToken.t = RETOK_ATOM_START_ATOMIC_GROUP
                 outToken.num = 0 ' no modifiers
             Case UNICODE_LT
                 x = Advance(lexCtx)

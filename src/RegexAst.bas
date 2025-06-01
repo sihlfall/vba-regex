@@ -12,29 +12,33 @@ Public Enum AstNodeType
     AST_CHAR = 4
     AST_CAPTURE = 5
     AST_REPEAT_EXACTLY = 6
-    AST_PERIOD = 7
-    AST_ASSERT_START = 8
-    AST_ASSERT_END = 9
-    AST_ASSERT_WORD_BOUNDARY = 10
-    AST_ASSERT_NOT_WORD_BOUNDARY = 11
-    AST_MATCH = 12
-    AST_ZEROONE_GREEDY = 13
-    AST_ZEROONE_HUMBLE = 14
-    AST_STAR_GREEDY = 15
-    AST_STAR_HUMBLE = 16
-    AST_REPEAT_MAX_GREEDY = 17
-    AST_REPEAT_MAX_HUMBLE = 18
-    AST_RANGES = 19
-    AST_INVRANGES = 20
-    AST_ASSERT_POS_LOOKAHEAD = 21
-    AST_ASSERT_NEG_LOOKAHEAD = 22
-    AST_ASSERT_POS_LOOKBEHIND = 23
-    AST_ASSERT_NEG_LOOKBEHIND = 24
-    AST_FAIL = 25
-    AST_BACKREFERENCE = 26
-    AST_NAMED = 27
-    AST_MODIFIER_SCOPE = 28
-    MAX_AST_CODE = 28
+    AST_REPEAT_EXACTLY_POSSESSIVE = 7
+    AST_PERIOD = 8
+    AST_ASSERT_START = 9
+    AST_ASSERT_END = 10
+    AST_ASSERT_WORD_BOUNDARY = 11
+    AST_ASSERT_NOT_WORD_BOUNDARY = 12
+    AST_MATCH = 13
+    AST_ZEROONE_GREEDY = 14
+    AST_ZEROONE_HUMBLE = 15
+    AST_ZEROONE_POSSESSIVE = 16
+    AST_STAR_GREEDY = 17
+    AST_STAR_HUMBLE = 18
+    AST_STAR_POSSESSIVE = 19
+    AST_REPEAT_MAX_GREEDY = 20
+    AST_REPEAT_MAX_HUMBLE = 21
+    AST_REPEAT_MAX_POSSESSIVE = 22
+    AST_RANGES = 23
+    AST_INVRANGES = 24
+    AST_ASSERT_POS_LOOKAHEAD = 25
+    AST_ASSERT_NEG_LOOKAHEAD = 26
+    AST_ASSERT_POS_LOOKBEHIND = 27
+    AST_ASSERT_NEG_LOOKBEHIND = 28
+    AST_FAIL = 29
+    AST_BACKREFERENCE = 30
+    AST_NAMED = 31
+    AST_MODIFIER_SCOPE = 32
+    MAX_AST_CODE = 32
 End Enum
 
 Private Enum AstNodeDescriptionConstant
@@ -82,6 +86,7 @@ Private Sub InitializeAstTable(ByRef t() As Long)
     t(nc + e * AST_CHAR) = 0:                     t(blen + e * AST_CHAR) = 2:                         t(esfs + e * AST_CHAR) = 0
     t(nc + e * AST_CAPTURE) = 1:                  t(blen + e * AST_CAPTURE) = 4:                      t(esfs + e * AST_CAPTURE) = 0
     t(nc + e * AST_REPEAT_EXACTLY) = 1:           t(blen + e * AST_REPEAT_EXACTLY) = 7:               t(esfs + e * AST_REPEAT_EXACTLY) = 1
+    t(nc + e * AST_REPEAT_EXACTLY_POSSESSIVE) = 1: t(blen + e * AST_REPEAT_EXACTLY_POSSESSIVE) = 9:   t(esfs + e * AST_REPEAT_EXACTLY_POSSESSIVE) = 1
     t(nc + e * AST_PERIOD) = 0:                   t(blen + e * AST_PERIOD) = 1:                       t(esfs + e * AST_PERIOD) = 0
     t(nc + e * AST_ASSERT_START) = 0:             t(blen + e * AST_ASSERT_START) = 1:                 t(esfs + e * AST_ASSERT_START) = 0
     t(nc + e * AST_ASSERT_END) = 0:               t(blen + e * AST_ASSERT_END) = 1:                   t(esfs + e * AST_ASSERT_END) = 0
@@ -90,10 +95,13 @@ Private Sub InitializeAstTable(ByRef t() As Long)
     t(nc + e * AST_MATCH) = 0:                    t(blen + e * AST_MATCH) = 1:                        t(esfs + e * AST_MATCH) = 0
     t(nc + e * AST_ZEROONE_GREEDY) = 1:           t(blen + e * AST_ZEROONE_GREEDY) = 2:               t(esfs + e * AST_ZEROONE_GREEDY) = 1
     t(nc + e * AST_ZEROONE_HUMBLE) = 1:           t(blen + e * AST_ZEROONE_HUMBLE) = 2:               t(esfs + e * AST_ZEROONE_HUMBLE) = 1
+    t(nc + e * AST_ZEROONE_POSSESSIVE) = 1:       t(blen + e * AST_ZEROONE_POSSESSIVE) = 3:           t(esfs + e * AST_ZEROONE_POSSESSIVE) = 1
     t(nc + e * AST_STAR_GREEDY) = 1:              t(blen + e * AST_STAR_GREEDY) = 4:                  t(esfs + e * AST_STAR_GREEDY) = 1
     t(nc + e * AST_STAR_HUMBLE) = 1:              t(blen + e * AST_STAR_HUMBLE) = 4:                  t(esfs + e * AST_STAR_HUMBLE) = 1
+    t(nc + e * AST_STAR_POSSESSIVE) = 1:          t(blen + e * AST_STAR_POSSESSIVE) = 5:              t(esfs + e * AST_STAR_POSSESSIVE) = 1
     t(nc + e * AST_REPEAT_MAX_GREEDY) = 1:        t(blen + e * AST_REPEAT_MAX_GREEDY) = 7:            t(esfs + e * AST_REPEAT_MAX_GREEDY) = 1
     t(nc + e * AST_REPEAT_MAX_HUMBLE) = 1:        t(blen + e * AST_REPEAT_MAX_HUMBLE) = 7:            t(esfs + e * AST_REPEAT_MAX_HUMBLE) = 1
+    t(nc + e * AST_REPEAT_MAX_POSSESSIVE) = 1:    t(blen + e * AST_REPEAT_MAX_POSSESSIVE) = 8:        t(esfs + e * AST_REPEAT_MAX_POSSESSIVE) = 1
     t(nc + e * AST_RANGES) = -1:                  t(blen + e * AST_RANGES) = 2:                       t(esfs + e * AST_RANGES) = 0
     t(nc + e * AST_INVRANGES) = -1:               t(blen + e * AST_INVRANGES) = 2:                    t(esfs + e * AST_INVRANGES) = 0
     t(nc + e * AST_ASSERT_POS_LOOKAHEAD) = 1:     t(blen + e * AST_ASSERT_POS_LOOKAHEAD) = 4:         t(esfs + e * AST_ASSERT_POS_LOOKAHEAD) = 2
@@ -222,24 +230,32 @@ ContinueLoop:
         Case AST_REPEAT_EXACTLY
             opcode1 = REOP_REPEAT_EXACTLY_INIT: opcode2 = REOP_REPEAT_EXACTLY_START: opcode3 = REOP_REPEAT_EXACTLY_END
             GoTo HandleRepeatQuantified
+        Case AST_REPEAT_EXACTLY_POSSESSIVE
+            GoTo HandleRepeatExactlyPossessive
         Case AST_REPEAT_MAX_GREEDY
             opcode1 = REOP_REPEAT_GREEDY_MAX_INIT: opcode2 = REOP_REPEAT_GREEDY_MAX_START: opcode3 = REOP_REPEAT_GREEDY_MAX_END
             GoTo HandleRepeatQuantified
         Case AST_REPEAT_MAX_HUMBLE
             opcode1 = REOP_REPEAT_MAX_HUMBLE_INIT: opcode2 = REOP_REPEAT_MAX_HUMBLE_START: opcode3 = REOP_REPEAT_MAX_HUMBLE_END
             GoTo HandleRepeatQuantified
+        Case AST_REPEAT_MAX_POSSESSIVE
+            GoTo HandleRepeatQuantifiedPossessive
         Case AST_ZEROONE_GREEDY
             opcode1 = REOP_SPLIT1
             GoTo HandleZeroone
         Case AST_ZEROONE_HUMBLE
             opcode1 = REOP_SPLIT2
             GoTo HandleZeroone
+        Case AST_ZEROONE_POSSESSIVE
+            GoTo HandleZeroonePossessive
         Case AST_STAR_GREEDY
             opcode1 = REOP_SPLIT1
             GoTo HandleStar
         Case AST_STAR_HUMBLE
             opcode1 = REOP_SPLIT2
             GoTo HandleStar
+        Case AST_STAR_POSSESSIVE
+            GoTo HandleStarPossessive
         Case AST_ASSERT_POS_LOOKAHEAD
             opcode1 = REOP_LOOKPOS: opcode2 = REOP_END_LOOKPOS
             GoTo HandleLookahead
@@ -317,6 +333,48 @@ HandleRepeatQuantified: ' requires: opcode1, opcode2, opcode 3
             stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
             GoTo TurnToLeftChild
         End If
+        
+HandleRepeatQuantifiedPossessive:
+        tmpCnt = ast(curNode + 2)
+        If returningFromFirstChild Then
+            sp = sp - 1: patchPos = stack(sp)
+            bytecode(bytecodePtr) = REOP_COMMIT_POSSESSIVE: bytecodePtr = bytecodePtr + 1
+            bytecode(bytecodePtr) = REOP_REPEAT_GREEDY_MAX_END: bytecodePtr = bytecodePtr + 1
+            bytecode(bytecodePtr) = tmpCnt: bytecodePtr = bytecodePtr + 1
+            tmp = bytecodePtr - patchPos
+            bytecode(bytecodePtr) = tmp: bytecodePtr = bytecodePtr + 1
+            bytecode(patchPos) = tmp
+            GoTo TurnToParent
+        Else
+            bytecode(bytecodePtr) = REOP_REPEAT_GREEDY_MAX_INIT: bytecodePtr = bytecodePtr + 1
+            bytecode(bytecodePtr) = REOP_REPEAT_GREEDY_MAX_START Or REOP_FLAG_POSSESSIVE: _
+                bytecodePtr = bytecodePtr + 1
+            bytecode(bytecodePtr) = tmpCnt: bytecodePtr = bytecodePtr + 1
+            stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
+            GoTo TurnToLeftChild
+        End If
+
+HandleRepeatExactlyPossessive:
+        tmpCnt = ast(curNode + 2)
+        If returningFromFirstChild Then
+            sp = sp - 1: patchPos = stack(sp)
+            bytecode(bytecodePtr) = REOP_COMMIT_POSSESSIVE: bytecodePtr = bytecodePtr + 1
+            bytecode(bytecodePtr) = REOP_REPEAT_EXACTLY_END: bytecodePtr = bytecodePtr + 1
+            bytecode(bytecodePtr) = tmpCnt: bytecodePtr = bytecodePtr + 1
+            tmp = bytecodePtr - patchPos
+            bytecode(bytecodePtr) = tmp: bytecodePtr = bytecodePtr + 1
+            bytecode(patchPos) = tmp
+            GoTo TurnToParent
+        Else
+            bytecode(bytecodePtr) = REOP_REPEAT_EXACTLY_INIT: bytecodePtr = bytecodePtr + 1
+            bytecode(bytecodePtr) = REOP_REPEAT_EXACTLY_START Or REOP_FLAG_POSSESSIVE: _
+                bytecodePtr = bytecodePtr + 1
+            bytecode(bytecodePtr) = tmpCnt: bytecodePtr = bytecodePtr + 1
+            stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
+            bytecode(bytecodePtr) = REOP_FAIL: _
+                bytecodePtr = bytecodePtr + 1
+            GoTo TurnToLeftChild
+        End If
 
 HandleZeroone: ' requires: opcode1
     If returningFromFirstChild Then
@@ -325,6 +383,19 @@ HandleZeroone: ' requires: opcode1
         GoTo TurnToParent
     Else
         bytecode(bytecodePtr) = opcode1: bytecodePtr = bytecodePtr + 1
+        stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
+        GoTo TurnToLeftChild
+    End If
+
+HandleZeroonePossessive:
+    If returningFromFirstChild Then
+        sp = sp - 1: patchPos = stack(sp)
+        bytecode(bytecodePtr) = REOP_COMMIT_POSSESSIVE: bytecodePtr = bytecodePtr + 1
+        bytecode(patchPos) = bytecodePtr - patchPos - 1
+        GoTo TurnToParent
+    Else
+        bytecode(bytecodePtr) = REOP_SPLIT1 Or REOP_FLAG_POSSESSIVE: _
+            bytecodePtr = bytecodePtr + 1
         stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
         GoTo TurnToLeftChild
     End If
@@ -339,6 +410,22 @@ HandleStar:
         GoTo TurnToParent
     Else
         bytecode(bytecodePtr) = opcode1: bytecodePtr = bytecodePtr + 1
+        stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
+        GoTo TurnToLeftChild
+    End If
+
+HandleStarPossessive:
+    If returningFromFirstChild Then
+        sp = sp - 1: patchPos = stack(sp)
+        bytecode(bytecodePtr) = REOP_COMMIT_POSSESSIVE: bytecodePtr = bytecodePtr + 1
+        tmp = bytecodePtr - patchPos + 1
+        bytecode(bytecodePtr) = REOP_JUMP: bytecodePtr = bytecodePtr + 1
+        bytecode(bytecodePtr) = -(tmp + 2): bytecodePtr = bytecodePtr + 1
+        bytecode(patchPos) = tmp
+        GoTo TurnToParent
+    Else
+        bytecode(bytecodePtr) = REOP_SPLIT1 Or REOP_FLAG_POSSESSIVE: _
+            bytecodePtr = bytecodePtr + 1
         stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
         GoTo TurnToLeftChild
     End If

@@ -35,6 +35,10 @@ End Enum
 ' regexp opcodes
 Public Enum ReOpType
     REOP_OPCODE_MASK = &HFF&
+    REOP_FLAGS_MASK = &HF00&
+    
+    REOP_FLAG_POSSESSIVE = &H100&
+    
     REOP_INVALID_OPCODE = 0
     REOP_MATCH = 1
     REOP_CHAR = 2
@@ -66,7 +70,8 @@ Public Enum ReOpType
     REOP_CHECK_LOOKBEHIND = 30 ' <none>
     REOP_END_LOOKPOS = 31 ' <none>
     REOP_END_LOOKNEG = 32 ' <none>
-    REOP_FAIL = 33
+    REOP_COMMIT_POSSESSIVE = 33 ' <none>
+    REOP_FAIL = 34
 End Enum
 
 Public Function isCaseInsensitive(ByRef bytecode() As Long) As Boolean

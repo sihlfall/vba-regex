@@ -424,7 +424,159 @@ TestFail:
     Resume TestExit
 End Sub
 
+'@TestMethod("DfsMatcher")
+Private Sub DfsMatcher_MatchRegexp030()
+    ' Question mark, possessive
+    'On Error GoTo TestFail
+    
+    Dim captures As RegexDfsMatcher.CapturesTy, bytecode() As Long
+    MakeArray bytecode, _
+        1, 0, 0, _
+        REOP_SAVE, 0, _
+        REOP_CHAR, AscW("a"), _
+        REOP_SPLIT1 Or REOP_FLAG_POSSESSIVE, 3, _
+        REOP_CHAR, AscW("b"), _
+        REOP_COMMIT_POSSESSIVE, _
+        REOP_CHAR, AscW("c"), _
+        REOP_SAVE, 1, _
+        REOP_MATCH
+        
+    Dim s As String: s = "abcx"
+    
+    Dim result As Long
+    result = RegexDfsMatcher.DfsMatch(captures, bytecode, s)
+    Assert.AreEqual 3&, result
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
 
+'@TestMethod("DfsMatcher")
+Private Sub DfsMatcher_MatchRegexp031()
+    ' Question mark, possessive
+    'On Error GoTo TestFail
+    
+    Dim captures As RegexDfsMatcher.CapturesTy, bytecode() As Long
+    MakeArray bytecode, _
+        1, 0, 0, _
+        REOP_SAVE, 0, _
+        REOP_CHAR, AscW("a"), _
+        REOP_SPLIT1 Or REOP_FLAG_POSSESSIVE, 3, _
+        REOP_CHAR, AscW("b"), _
+        REOP_COMMIT_POSSESSIVE, _
+        REOP_CHAR, AscW("b"), _
+        REOP_SAVE, 1, _
+        REOP_MATCH
+        
+    Dim s As String: s = "abcx"
+    
+    Dim result As Long
+    result = RegexDfsMatcher.DfsMatch(captures, bytecode, s)
+    Assert.AreEqual -1&, result
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("DfsMatcher")
+Private Sub DfsMatcher_MatchRegexp032()
+    ' Question mark, possessive
+    'On Error GoTo TestFail
+    
+    Dim captures As RegexDfsMatcher.CapturesTy, bytecode() As Long
+    MakeArray bytecode, _
+        1, 0, 0, _
+        REOP_SAVE, 0, _
+        REOP_CHAR, AscW("a"), _
+        REOP_SPLIT1 Or REOP_FLAG_POSSESSIVE, 3, _
+        REOP_CHAR, AscW("b"), _
+        REOP_COMMIT_POSSESSIVE, _
+        REOP_CHAR, AscW("b"), _
+        REOP_SAVE, 1, _
+        REOP_MATCH
+        
+    Dim s As String: s = "abbcx"
+    
+    Dim result As Long
+    result = RegexDfsMatcher.DfsMatch(captures, bytecode, s)
+    Assert.AreEqual 3&, result
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("DfsMatcher")
+Private Sub DfsMatcher_MatchRegexp033()
+    ' Question mark, possessive, inside REPEAT_GREEDY_MAX
+    'On Error GoTo TestFail
+    
+    Dim captures As RegexDfsMatcher.CapturesTy, bytecode() As Long
+    MakeArray bytecode, _
+        1, 0, 0, _
+        REOP_SAVE, 0, _
+        REOP_CHAR, AscW("a"), _
+        REOP_REPEAT_GREEDY_MAX_INIT, _
+        REOP_REPEAT_GREEDY_MAX_START, 3, 10, _
+        REOP_SPLIT1 Or REOP_FLAG_POSSESSIVE, 3, _
+        REOP_CHAR, AscW("b"), _
+        REOP_COMMIT_POSSESSIVE, _
+        REOP_CHAR, AscW("c"), _
+        REOP_REPEAT_GREEDY_MAX_END, 3, 10, _
+        REOP_CHAR, AscW("d"), _
+        REOP_SAVE, 1, _
+        REOP_MATCH
+        
+    Dim s As String: s = "acbcbcd"
+    
+    Dim result As Long
+    result = RegexDfsMatcher.DfsMatch(captures, bytecode, s)
+    Assert.AreEqual 7&, result
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+Private Sub DfsMatcher_MatchRegexp034()
+    ' REPEAT_GREEDY_MAX, possessive, inside REPEAT_GREEDY_MAX
+    'On Error GoTo TestFail
+    
+    Dim captures As RegexDfsMatcher.CapturesTy, bytecode() As Long
+    MakeArray bytecode, _
+        1, 0, 0, _
+        REOP_SAVE, 0, _
+        REOP_CHAR, AscW("a"), _
+        REOP_REPEAT_GREEDY_MAX_INIT, _
+        REOP_REPEAT_GREEDY_MAX_START, 3, 15, _
+        REOP_REPEAT_GREEDY_MAX_INIT, _
+        REOP_REPEAT_GREEDY_MAX_START Or REOP_FLAG_POSSESSIVE, 4, 6, _
+        REOP_CHAR, AscW("b"), _
+        REOP_COMMIT_POSSESSIVE, _
+        REOP_REPEAT_GREEDY_MAX_END, 4, 6, _
+        REOP_CHAR, AscW("c"), _
+        REOP_REPEAT_GREEDY_MAX_END, 3, 15, _
+        REOP_CHAR, AscW("d"), _
+        REOP_SAVE, 1, _
+        REOP_MATCH
+        
+    Dim s As String: s = "acbcbbcd"
+    
+    Dim result As Long
+    result = RegexDfsMatcher.DfsMatch(captures, bytecode, s)
+    Assert.AreEqual 7&, result
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
 
 Private Sub SetupReCtxDisjunction(ByRef bytecode() As Long)
     MakeArray bytecode, _

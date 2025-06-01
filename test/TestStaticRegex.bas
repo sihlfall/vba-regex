@@ -276,6 +276,117 @@ TestFail:
 End Sub
 
 '@TestMethod("StaticRegex")
+Private Sub StaticRegex_Features_120()
+    ' possessive ?+
+    Dim r As StaticRegex.RegexTy
+    On Error GoTo TestFail
+    
+    StaticRegex.InitializeRegex r, "(ab)?+(ab)+", caseInsensitive:=False
+    Assert.IsFalse StaticRegex.Test(r, "ab")
+    Assert.IsTrue StaticRegex.Test(r, "abab")
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Features_121()
+    ' possessive *+
+    Dim r As StaticRegex.RegexTy
+    On Error GoTo TestFail
+    
+    StaticRegex.InitializeRegex r, "(ab)*+a[bc]", caseInsensitive:=False
+    Assert.IsTrue StaticRegex.Test(r, "ac")
+    Assert.IsTrue StaticRegex.Test(r, "abac")
+    Assert.IsTrue StaticRegex.Test(r, "ababac")
+    Assert.IsFalse StaticRegex.Test(r, "ababab")
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Features_122()
+    ' possessive ++
+    Dim r As StaticRegex.RegexTy
+    On Error GoTo TestFail
+    
+    StaticRegex.InitializeRegex r, "(ab)++(a[bc])?", caseInsensitive:=False
+    Assert.IsFalse StaticRegex.Test(r, "ac")
+    Assert.IsTrue StaticRegex.Test(r, "abac")
+    Assert.IsTrue StaticRegex.Test(r, "ababac")
+    Assert.IsTrue StaticRegex.Test(r, "ababab")
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Features_123()
+    ' possessive *+
+    Dim r As StaticRegex.RegexTy
+    On Error GoTo TestFail
+    
+    StaticRegex.InitializeRegex r, "^(aa)*a$", caseInsensitive:=False
+    Assert.IsFalse StaticRegex.Test(r, "")
+    Assert.IsTrue StaticRegex.Test(r, "a")
+    Assert.IsFalse StaticRegex.Test(r, "aa")
+    Assert.IsTrue StaticRegex.Test(r, "aaa")
+    Assert.IsFalse StaticRegex.Test(r, "aaaa")
+    Assert.IsTrue StaticRegex.Test(r, "aaaaa")
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Features_124()
+    ' possessive {m,n}+
+    Dim r As StaticRegex.RegexTy
+    On Error GoTo TestFail
+    
+    StaticRegex.InitializeRegex r, "^(aa?){1,3}+a$", caseInsensitive:=False
+    Assert.IsFalse StaticRegex.Test(r, "")
+    Assert.IsFalse StaticRegex.Test(r, "a")
+    Assert.IsFalse StaticRegex.Test(r, "aa")
+    Assert.IsFalse StaticRegex.Test(r, "aaa")
+    Assert.IsFalse StaticRegex.Test(r, "aaaa")
+    Assert.IsFalse StaticRegex.Test(r, "aaaaa")
+    Assert.IsFalse StaticRegex.Test(r, "aaaaaa")
+    Assert.IsTrue StaticRegex.Test(r, "aaaaaaa")
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Features_125()
+    ' atomic group
+    Dim r As StaticRegex.RegexTy
+    On Error GoTo TestFail
+    
+    StaticRegex.InitializeRegex r, "^(?>a|ab)c", caseInsensitive:=False
+    Assert.IsTrue StaticRegex.Test(r, "ac")
+    Assert.IsFalse StaticRegex.Test(r, "abc")
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+
+'@TestMethod("StaticRegex")
 Private Sub StaticRegex_Replace_001()
     On Error GoTo TestFail
     
@@ -296,6 +407,7 @@ TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
     Resume TestExit
 End Sub
+
 
 '@TestMethod("StaticRegex")
 Private Sub StaticRegex_Replace_002()
