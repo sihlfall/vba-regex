@@ -453,6 +453,29 @@ TestFail:
     Resume TestExit
 End Sub
 
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Replace_004()
+    On Error GoTo TestFail
+    Dim r As StaticRegex.RegexTy
+    Dim inputString As String
+    Dim expected As String
+    
+    inputString = "On Jul-4-1776, independence was declared. " & "On Apr-30-1789, George Washington became the first president."
+    expected = "On Jul, independence was declared. On Apr, George Washington became the first president."
+
+    StaticRegex.InitializeRegex r, "(?<month>\w{3})-(?<day>\d{1,2})-(?<year>\d{4})"
+    
+    Assert.AreEqual expected, StaticRegex.Replace(r, replacer:="$1", haystack:=inputString, localMatch:=False)
+    
+    Assert.AreEqual expected, StaticRegex.Replace(r, replacer:="$<month>", haystack:=inputString, localMatch:=False)
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
 Private Sub MakeStringArray(ByRef ary() As String, ParamArray p() As Variant)
     Dim u As Long, i As Long
     u = UBound(p)
