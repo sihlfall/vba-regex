@@ -241,6 +241,7 @@ function CreateSingleFile {
         $_ = [regex]::Replace($_, "Private Function GetCaptureByName\(", "Public Function GetCaptureByName(")
         $_ = [regex]::Replace($_, "Private Function MatchNext\(", "Public Function MatchNext(")
         $_ = [regex]::Replace($_, "Private Function Replace\(", "Public Function Replace(")
+        $_ = [regex]::Replace($_, "Private Function SplitByRegex\(", "Public Function SplitByRegex(")
         $_ = [regex]::Replace($_, "Private Function MatchThenJoin\(", "Public Function MatchThenJoin(")
         $_ = [regex]::Replace($_, "Private Sub MatchThenList\(", "Public Sub MatchThenList(")
         $_ = [regex]::Replace($_, "Private Sub InitializeMatcherState\(", "Public Sub InitializeMatcherState(")
