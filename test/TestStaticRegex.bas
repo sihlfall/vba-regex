@@ -276,6 +276,44 @@ TestFail:
 End Sub
 
 '@TestMethod("StaticRegex")
+Private Sub StaticRegex_Features_130()
+    ' GetCapture, GetCaptureByName
+    Dim r As StaticRegex.RegexTy
+    'On Error GoTo TestFail
+    
+    Dim inputString As String
+    Dim pattern As String
+    
+    inputString = "Hello world. Hello universe."
+    pattern = "(Hello) (?<named>world)?"
+    
+    StaticRegex.InitializeRegex r, pattern
+    
+    Dim matcherState As StaticRegex.MatcherStateTy
+    matcherState.localMatch = False
+
+    Assert.IsTrue StaticRegex.MatchNext(matcherState, r, inputString)
+    Assert.AreEqual "Hello world", StaticRegex.GetCapture(matcherState, inputString, 0)
+    Assert.AreEqual "Hello", StaticRegex.GetCapture(matcherState, inputString, 1)
+
+    Assert.AreEqual "world", StaticRegex.GetCapture(matcherState, inputString, 2)
+
+    Assert.AreEqual "world", StaticRegex.GetCaptureByName(matcherState, r, inputString, "named")
+
+    Assert.IsTrue StaticRegex.MatchNext(matcherState, r, inputString)
+    Assert.AreEqual "Hello ", StaticRegex.GetCapture(matcherState, inputString, 0)
+    Assert.AreEqual "Hello", StaticRegex.GetCapture(matcherState, inputString, 1)
+    Assert.AreEqual vbNullString, StaticRegex.GetCapture(matcherState, inputString, 2)
+    Assert.AreEqual vbNullString, StaticRegex.GetCaptureByName(matcherState, r, inputString, "named")
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
 Private Sub StaticRegex_Replace_001()
     On Error GoTo TestFail
     
