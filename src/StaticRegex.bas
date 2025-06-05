@@ -99,11 +99,16 @@ Public Function GetCaptureByName( _
     ByRef haystack As String, _
     ByRef name As String _
 ) As String
-    Dim identifierId As Long
+    Dim identifierId As Long, captureNum As Long
     
     identifierId = RegexBytecode.GetIdentifierId(regex.bytecode, regex.pattern, name)
     If identifierId < 0 Then GetCaptureByName = vbNullString: Exit Function
-    GetCaptureByName = GetCapture(matcherState, haystack, matcherState.captures.namedCaptures(identifierId))
+    captureNum = matcherState.captures.namedCaptures(identifierId)
+    If captureNum >= 0 Then
+        GetCaptureByName = GetCapture(matcherState, haystack, captureNum)
+    Else
+        GetCaptureByName = vbNullString
+    End If
 End Function
 
 Public Function MatchNext( _
