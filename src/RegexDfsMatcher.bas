@@ -135,8 +135,16 @@ End Function
 
 
 Private Function UnicodeReIsWordchar(c As Long) As Boolean
-    'TODO: Temporary hack
-    UnicodeReIsWordchar = ((c >= AscW("A")) And (c <= AscW("Z"))) Or ((c >= AscW("a") And (c <= AscW("z"))))
+    If c <= 90 Then ' Z
+        If c >= 65 Then UnicodeReIsWordchar = True: Exit Function ' A
+        If c > 57 Then UnicodeReIsWordchar = False: Exit Function ' 9
+        If c < 48 Then UnicodeReIsWordchar = False: Exit Function ' 0
+        UnicodeReIsWordchar = True: Exit Function
+    Else
+        If c > 122 Then UnicodeReIsWordchar = False: Exit Function ' z
+        If c < 97 Then UnicodeReIsWordchar = c = 95: Exit Function ' a, underscore
+        UnicodeReIsWordchar = True: Exit Function
+    End If
 End Function
 
 Private Sub InitializeMatcherContext(ByRef context As DfsMatcherContext, ByVal nProperCapturePoints As Long, ByVal nCapturePoints As Long)

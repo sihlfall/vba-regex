@@ -60,6 +60,91 @@ TestFail:
     Resume TestExit
 End Sub
 
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Test_010()
+    ' Tests for \b, \B
+    ' taken from duktape
+    Dim r As StaticRegex.RegexTy
+    Dim pattern As String, haystack As String, expected As Boolean
+    On Error GoTo TestFail
+    
+    pattern = ".\b.": haystack = "ab": expected = False: GoSub PerformTest
+    pattern = ".\b.": haystack = "a=": expected = True: GoSub PerformTest
+    pattern = ".\b.": haystack = "=a": expected = True: GoSub PerformTest
+    pattern = ".\b.": haystack = "==": expected = False: GoSub PerformTest
+    pattern = ".\B.": haystack = "ab": expected = True: GoSub PerformTest
+    pattern = ".\B.": haystack = "a=": expected = False: GoSub PerformTest
+    pattern = ".\B.": haystack = "=a": expected = False: GoSub PerformTest
+    pattern = ".\B.": haystack = "==": expected = True: GoSub PerformTest
+
+    pattern = "\b.": haystack = "a": expected = True: GoSub PerformTest
+    pattern = "\b.": haystack = "=": expected = False: GoSub PerformTest
+    pattern = "\B.": haystack = "a": expected = False: GoSub PerformTest
+    pattern = "\B.": haystack = "=": expected = True: GoSub PerformTest
+
+    pattern = ".\b": haystack = "a": expected = True: GoSub PerformTest
+    pattern = ".\b": haystack = "=": expected = False: GoSub PerformTest
+    pattern = ".\B": haystack = "a": expected = False: GoSub PerformTest
+    pattern = ".\B": haystack = "=": expected = True: GoSub PerformTest
+
+    pattern = "\b": haystack = "": expected = False: GoSub PerformTest
+    pattern = "\B": haystack = "": expected = True: GoSub PerformTest
+
+    pattern = ".\b.": haystack = "0b": expected = False: GoSub PerformTest
+    pattern = ".\b.": haystack = "0=": expected = True: GoSub PerformTest
+    pattern = ".\b.": haystack = "9b": expected = False: GoSub PerformTest
+    pattern = ".\b.": haystack = "9=": expected = True: GoSub PerformTest
+    pattern = ".\b.": haystack = "_b": expected = False: GoSub PerformTest
+    pattern = ".\b.": haystack = "_=": expected = True: GoSub PerformTest
+    pattern = ".\b.": haystack = "Ab": expected = False: GoSub PerformTest
+    pattern = ".\b.": haystack = "A=": expected = True: GoSub PerformTest
+    pattern = ".\b.": haystack = "Zb": expected = False: GoSub PerformTest
+    pattern = ".\b.": haystack = "Z=": expected = True: GoSub PerformTest
+    pattern = ".\b.": haystack = "/b": expected = True: GoSub PerformTest
+    pattern = ".\b.": haystack = "/=": expected = False: GoSub PerformTest
+    pattern = ".\b.": haystack = ":b": expected = True: GoSub PerformTest
+    pattern = ".\b.": haystack = ":=": expected = False: GoSub PerformTest
+    pattern = ".\b.": haystack = "@b": expected = True: GoSub PerformTest
+    pattern = ".\b.": haystack = "@=": expected = False: GoSub PerformTest
+    pattern = ".\b.": haystack = "\[b": expected = True: GoSub PerformTest
+    pattern = ".\b.": haystack = "\[=": expected = False: GoSub PerformTest
+    pattern = ".\b.": haystack = "`b": expected = True: GoSub PerformTest
+    pattern = ".\b.": haystack = "`=": expected = False: GoSub PerformTest
+    pattern = ".\b.": haystack = "{b": expected = True: GoSub PerformTest
+    pattern = ".\b.": haystack = "{=": expected = False: GoSub PerformTest
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+    
+PerformTest:
+    StaticRegex.InitializeRegex r, pattern
+    Assert.IsTrue expected = StaticRegex.Test(r, haystack)
+    Return
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Test_011()
+    ' Tests for \b, \B
+    ' taken from https://github.com/6DiegoDiego9/VBA-dotNET-regex/blob/main/CLRRegexTest.bas
+    Dim r As StaticRegex.RegexTy
+    Dim pattern As String, haystack As String, expected As Boolean
+    On Error GoTo TestFail
+    
+    pattern = "\b([a-z0-9]+)\s*=\s*([0-9.]+)\b": haystack = "val1=100, val2 = 200.5, val3= 300, val4=400. This is"
+    StaticRegex.InitializeRegex r, pattern
+    Assert.IsTrue StaticRegex.Test(r, haystack)
+    
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
 Private Sub MakeArray(ByRef outAry() As String, ParamArray p() As Variant)
     ReDim outAry(0 To UBound(p)) As String
     Dim i As Long
