@@ -112,7 +112,7 @@ For this example, we need an array of format strings. Since VBA does not provide
 ```vbnet
 Private Function MakeStringArray(ParamArray strings() As Variant) As String()
    Dim ary() As String, i As Long
-   ReDim ary(0 To UBound(strings) - LBound(strings) + 1) As String
+   ReDim ary(0 To UBound(strings) - LBound(strings)) As String
    For i = LBound(strings) To UBound(strings)
       ary(i - LBound(strings)) = strings(i)
    Next
@@ -136,6 +136,78 @@ Now results will be a _number of matches_ × _number of format strings_ array of
 "Jul-4-1776", "4", "Jul", "1776";
 "Apr-30-1789", "30", "Apr", "1789"
 ```
+
+#### Example 7: Replacing matching substrings
+
+Using the date regex and `exampleString` from above, we can reformat both dates:
+
+```vbnet
+Debug.Print StaticRegex.Replace( _
+   regex, replacer:="$<day> $<month> $<year>", haystack:=exampleString _
+)
+
+' prints: On 4 Jul 1776, independence was declared. On 30 Apr 1789, George Washington became the first president.
+```
+
+`Replace` returns a new string, replacing all matches by default. Pass `localMatch:=True` to replace only the first match. If there are no matches, it returns the original string. The replacement uses the same format syntax as `MatchThenJoin` and `MatchThenList`: for example, `$&` inserts the entire match, `$1` inserts the first capturing group, `$<month>` inserts a named capture, and `$$` inserts a literal dollar sign.
+
+#### Example 8: Splitting a string at regex matches
+
+```vbnet
+Dim separatorRegex As StaticRegex.RegexTy
+Dim parts As Collection, part As Variant
+
+StaticRegex.InitializeRegex separatorRegex, "[,;]\s*"
+Set parts = StaticRegex.SplitByRegex(separatorRegex, "red, green; blue")
+
+For Each part In parts
+   Debug.Print part
+Next
+
+' prints:
+' red
+' green
+' blue
+```
+
+`SplitByRegex` returns a `Collection` of strings. Pass `localMatch:=True` to split only at the first match. If there are no matches, the collection contains the original string as its only element. Capturing groups in the separator pattern are also included in the collection, immediately after the substring preceding each separator; use non-capturing groups `(?:...)` when you only want to group parts of the separator pattern. Empty substrings, including those before a separator at the start or after one at the end, are retained.
+
+### Options
+
+The Boolean options below default to `False`.
+
+| Option | Where to set it | Effect when `True` |
+| --- | --- | --- |
+| `caseInsensitive` | `InitializeRegex` | Ignores case when matching. Set this when compiling the pattern. |
+| `multiline` | `Test`, `Match`, `Replace`, `SplitByRegex`, `MatchThenJoin`, `MatchThenList`, or `InitializeMatcherState` | Allows `^` and `$` to match line boundaries within the string as well as the start and end of the string. |
+| `dotAll` | Same as `multiline` | Allows `.` to match line terminators as well as other characters. |
+| `localMatch` | `Replace`, `SplitByRegex`, `MatchThenJoin`, `MatchThenList`, or `InitializeMatcherState` | Processes only the first match. By default, these operations process all successive, non-overlapping matches. |
+
+For example, to search without regard to case and allow a match to span multiple lines:
+
+```vbnet
+Dim messageRegex As StaticRegex.RegexTy
+StaticRegex.InitializeRegex messageRegex, "begin.*end", caseInsensitive:=True
+Debug.Print StaticRegex.Test(messageRegex, "BEGIN" & vbCrLf & "END", dotAll:=True)
+   ' prints: True
+```
+
+`Match` also accepts `matchFrom`, the 1-based position at which to start searching (default: `1`). A match may start at that position or later.
+
+When iterating with `MatchNext`, configure the options on the matcher state before starting:
+
+```vbnet
+Dim matcherState As StaticRegex.MatcherStateTy
+StaticRegex.InitializeMatcherState matcherState, multiline:=True, dotAll:=True
+
+Do While StaticRegex.MatchNext(matcherState, regex, exampleString)
+   Debug.Print StaticRegex.GetCapture(matcherState, exampleString)
+Loop
+```
+
+`InitializeMatcherState` starts iteration from the beginning and sets the three matching options. `ResetMatcherState matcherState` restarts iteration while preserving those options. A newly declared matcher state, as used in Example 3, starts at the beginning with all options set to `False`.
+
+For patterns that require more matching work, you can adjust `regex.stepsLimit` after `InitializeRegex`. It defaults to `10000` matcher steps per attempted starting position. Reaching the limit counts as a failed attempt at that position rather than raising an error.
 
 ## <a id='singlefile'></a>Building a single-file version of the regex engine
 
