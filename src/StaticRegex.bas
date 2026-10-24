@@ -8,6 +8,12 @@ Public Type RegexTy
     stepsLimit As Long
 End Type
 
+' A format is compiled for the regex used to resolve its capture references.
+Public Type FormatTy
+    text As String
+    parsed() As Long
+End Type
+
 Public Type MatcherStateTy
     localMatch As Boolean
     multiline As Boolean
@@ -79,6 +85,19 @@ Public Function Match( _
     matcherState.current = -1
 End Function
 
+Public Sub InitializeFormat(ByRef format As FormatTy, ByRef regex As RegexTy, ByRef text As String)
+    Dim parsed As ArrayBuffer.Ty
+    RegexReplace.ParseFormatString parsed, text, regex.bytecode, regex.pattern
+    format.text = text
+    format.parsed = parsed.Buffer
+End Sub
+
+Public Function FormatMatch(ByRef matcherState As MatcherStateTy, ByRef haystack As String, ByRef format As FormatTy) As String
+    Dim builder As StaticStringBuilder.Ty
+    RegexReplace.AppendFormatted builder, haystack, matcherState.captures, format.text, format.parsed
+    FormatMatch = StaticStringBuilder.GetStr(builder)
+End Function
+
 Public Function GetCapture(ByRef matcherState As MatcherStateTy, ByRef haystack As String, Optional ByVal num As Long = 0) As String
     If num = 0 Then
         With matcherState.captures.entireMatch
@@ -112,7 +131,8 @@ Public Function GetCaptureByName( _
 End Function
 
 Public Function MatchNext( _
-    ByRef matcherState As MatcherStateTy, ByRef regex As RegexTy, ByRef haystack As String _
+    ByRef matcherState As MatcherStateTy, ByRef regex As RegexTy, ByRef haystack As String, _
+    Optional ByVal raiseOnLimit As Boolean = False _
 ) As Boolean
     Dim r As Long
     
@@ -122,7 +142,7 @@ Public Function MatchNext( _
         matcherState.context, matcherState.captures, regex.bytecode, haystack, matcherState.current, _
         stepsLimit:=regex.stepsLimit, _
         multiline:=matcherState.multiline, _
-        dotAll:=matcherState.dotAll _
+        dotAll:=matcherState.dotAll, raiseOnLimit:=raiseOnLimit _
     )
     
     If r = -1 Then

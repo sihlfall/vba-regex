@@ -246,6 +246,9 @@ function CreateSingleFile {
         $_ = [regex]::Replace($_, "Private Sub MatchThenList\(", "Public Sub MatchThenList(")
         $_ = [regex]::Replace($_, "Private Sub InitializeMatcherState\(", "Public Sub InitializeMatcherState(")
         $_ = [regex]::Replace($_, "Private Sub ResetMatcherState\(", "Public Sub ResetMatcherState(")
+        $_ = [regex]::Replace($_, "Private Type FormatTy", "Public Type FormatTy")
+        $_ = [regex]::Replace($_, "Private Sub InitializeFormat\(", "Public Sub InitializeFormat(")
+        $_ = [regex]::Replace($_, "Private Function FormatMatch\(", "Public Function FormatMatch(")
         $_ = [regex]::Replace($_, "Private Type RegexTy", "Public Type RegexTy")
         $_ = [regex]::Replace($_, "Private Type MatcherStateTy", "Public Type MatcherStateTy")
         $_

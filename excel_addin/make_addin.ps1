@@ -1,54 +1,53 @@
-﻿param(
+param(
     [bool]$createExampleFile = $false
 )
 
-$OUT_FILE_NAME = $( if($createExamplefile) { "WorksheetFunctionsExample.xlsm" } else { "VbaRegexAddIn.xlam" } )
+$ErrorActionPreference = 'Stop'
+$outName = if ($createExampleFile) { 'WorksheetFunctionsExample.xlsm' } else { 'VbaRegexAddIn.xlam' }
+$outDir = Join-Path $PSScriptRoot 'build'
+$outFile = Join-Path $outDir $outName
 
-$SOURCE_FILES = ".\build\StaticRegexSingle.bas", ".\VbaRegexWorksheetFunctions.bas"
-
-$scriptBuildSinglePath = "..\aio\make_aio.ps1"
-
-$outDirPath = ".\build"
-
-$scriptPath = Split-Path $MyInvocation.MyCommand.Path -Parent
-$projectRootPath = $scriptPath # Join-Path -Path $scriptPath -ChildPath ".."
-
-$fullSourceFileNames = $SOURCE_FILES | % { Join-Path $projectRootPath $_ }
-$fullOutFileName = Join-Path -Path $scriptPath -ChildPath $outDirPath | Join-Path -ChildPath $OUT_FILE_NAME
-
-Write-Host $fullOutFileName
-
-# Create build directory, if necessary
-if (-not (Test-Path -Path $outDirPath)) {
-    New-Item -Path $outDirPath -ItemType Directory > $null
+# The engine generator writes into the calling directory's build folder.
+Push-Location $PSScriptRoot
+try {
+    & (Join-Path $PSScriptRoot '..\aio\make_aio.ps1') -outModuleName StaticRegexSingle
+} finally {
+    Pop-Location
 }
 
-# Remove existing add-in file
-
-Remove-Item -Path $fullOutFileName -ErrorAction SilentlyContinue
-
-# Build single-file version of the regex engine
-
-& $scriptBuildSinglePath -outModuleName "StaticRegexSingle"
-
-# Build new file
-
-$excelApp = New-Object -ComObject Excel.Application
-
+$excel = $null
+$workbook = $null
 try {
-    $wb = $excelApp.Workbooks.Add()
-
-    foreach ($fullSourceFileName in $fullSourceFileNames) {
-        $vbProject = $excelApp.ActiveWorkbook.VBProject
-        if ($vbProject -eq $null) {
-            throw "You must enable 'Trust access to the VBA project object model' in the Excel Trust Center in order to be able to run this script"
-        }
-        $vbProject.VBComponents.Import($fullSourceFileName)
+    $excel = New-Object -ComObject Excel.Application
+    $excel.Visible = $false
+    $excel.DisplayAlerts = $false
+    $workbook = $excel.Workbooks.Add()
+    $project = $workbook.VBProject
+    if ($null -eq $project) {
+        throw "Enable 'Trust access to the VBA project object model' in Excel's Trust Center."
     }
+    foreach ($file in @('build\StaticRegexSingle.bas', 'VbaRegexWorksheetFunctions.bas')) {
+        $null = $project.VBComponents.Import((Join-Path $PSScriptRoot $file))
+    }
+    # Registration restores the function category and argument help when loaded.
+    $project.VBComponents.Item($workbook.CodeName).CodeModule.AddFromString(@"
+Private Sub Workbook_Open()
+    VbaRegexWorksheetFunctions.RegisterRxFunctions
+End Sub
 
-    # file type: xlam = 55, xlsm = 52
-    # see https://learn.microsoft.com/en-us/office/vba/api/excel.xlfileformat
-    $excelApp.ActiveWorkbook.SaveAs($fullOutFileName, $( if ($createExampleFile) { 52 } else { 55 } ))
+Private Sub Workbook_AddinInstall()
+    VbaRegexWorksheetFunctions.RegisterRxFunctions
+End Sub
+"@)
+    $format = if ($createExampleFile) { 52 } else { 55 }
+    $workbook.SaveAs($outFile, $format)
+    $null = $excel.Run("'" + $workbook.Name + "'!VbaRegexWorksheetFunctions.RegisterRxFunctions")
+    $workbook.Save()
+    Write-Host "Built $outFile"
 } finally {
-    $excelApp.Quit()
+    try {
+        if ($null -ne $workbook) { $workbook.Close($false) }
+    } finally {
+        if ($null -ne $excel) { $excel.Quit() }
+    }
 }

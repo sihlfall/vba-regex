@@ -79,7 +79,8 @@ Public Function DfsMatchFrom( _
     ByVal sp As Long, _
     Optional ByVal stepsLimit As Long = DEFAULT_STEPS_LIMIT, _
     Optional ByVal multiline As Boolean = False, _
-    Optional ByVal dotAll As Boolean = False _
+    Optional ByVal dotAll As Boolean = False, _
+    Optional ByVal raiseOnLimit As Boolean = False _
 ) As Long
     Dim nNamedCaptures As Long, nProperCapturePoints As Long, res As Long
     
@@ -95,7 +96,7 @@ Public Function DfsMatchFrom( _
     
     Do While sp <= Len(inputStr)
         InitializeMatcherContext context, nProperCapturePoints, nProperCapturePoints + nNamedCaptures
-        res = DfsRunThreads(outCaptures, context, bytecode, inputStr, sp, stepsLimit, multiline, dotAll)
+        res = DfsRunThreads(outCaptures, context, bytecode, inputStr, sp, stepsLimit, multiline, dotAll, raiseOnLimit)
         If res <> -1 Then
             DfsMatchFrom = res
             Exit Function
@@ -377,7 +378,8 @@ Private Function DfsRunThreads( _
     ByVal sp As Long, _
     ByVal stepsLimit As Long, _
     ByVal multiline As Boolean, _
-    ByVal dotAll As Boolean _
+    ByVal dotAll As Boolean, _
+    Optional ByVal raiseOnLimit As Boolean = False _
 ) As Long
     Dim pc As Long
     
@@ -418,6 +420,7 @@ ContinueLoopSuccess:
             ' TODO: HACK to prevent infinite loop!!!!
             stepsCount = stepsCount + 1
             If stepsCount >= stepsLimit Then
+                If raiseOnLimit Then Err.Raise RegexErrors.REGEX_ERR_STEP_LIMIT
                 DfsRunThreads = -1
                 Exit Function
             End If
