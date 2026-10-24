@@ -1,4 +1,7 @@
-param([switch]$TestPackage)
+param(
+    [switch]$TestPackage,
+    [string]$AddinFileName = 'VbaRegexAddIn.xlam'
+)
 
 # Requires Windows Excel and "Trust access to the VBA project object model".
 $ErrorActionPreference = 'Stop'
@@ -25,7 +28,7 @@ try {
     if ($rxChecks -is [string] -or $rxChecks -le 0) { throw "Rx tests failed: $rxChecks" }
     Write-Host "Passed $rxChecks Rx API checks."
     $rxDimensions = $excel.Run("'" + $workbook.Name + "'!TestRxDimensions.RunRxDimensionTests")
-    if ($rxDimensions -ne 2232) { throw "Rx dimension tests failed: $rxDimensions" }
+    if ($rxDimensions -ne 2448) { throw "Rx dimension tests failed: $rxDimensions" }
     Write-Host "Passed $rxDimensions Rx dimension checks."
 } finally {
     try {
@@ -39,6 +42,6 @@ try {
     }
 }
 if ($TestPackage) {
-    & (Join-Path $PSScriptRoot 'make_addin.ps1')
-    & (Join-Path $PSScriptRoot 'test-built-addin.ps1')
+    & (Join-Path $PSScriptRoot 'make_addin.ps1') -outFileName $AddinFileName
+    & (Join-Path $PSScriptRoot 'test-built-addin.ps1') -AddinFileName $AddinFileName
 }

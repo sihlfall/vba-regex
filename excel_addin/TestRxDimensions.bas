@@ -9,9 +9,9 @@ Public Function RunRxDimensionTests() As Variant
     Dim context As String
     Set ws = ThisWorkbook.Worksheets(1)
     For useRange = 0 To 1
-        For fn = 0 To 5
+        For fn = 0 To 6
             Select Case fn
-            Case 0, 5: n = 4
+            Case 0, 5, 6: n = 4
             Case 3, 4: n = 5
             Case Else: n = 6
             End Select
@@ -23,7 +23,9 @@ Public Function RunRxDimensionTests() As Variant
                                 For k = 0 To n - 1
                                     If IsObject(args(k)) Then Set args(k) = Nothing
                                     If k < 2 Then
-                                        args(k) = "a"
+                                        If fn = 6 And k = 1 Then args(k) = "z" Else args(k) = "a"
+                                    ElseIf fn = 6 Then
+                                        If k = 2 Then args(k) = False Else args(k) = ""
                                     ElseIf fn = 0 Or fn = 5 Then
                                         If k = 2 Then args(k) = "" Else args(k) = 1
                                     ElseIf fn = 3 Or fn = 4 Then
@@ -46,8 +48,9 @@ Public Function RunRxDimensionTests() As Variant
                                 Case 3: result = RxFind(args(0), args(1), args(2), args(3), args(4))
                                 Case 4: result = RxLength(args(0), args(1), args(2), args(3), args(4))
                                 Case 5: result = RxCount(args(0), args(1), args(2), args(3))
+                                Case 6: result = RxSplit(args(0), args(1), args(2), args(3))
                                 End Select
-                                If sizeA > 1 And sizeB > 1 And sizeA <> sizeB Then
+                                If (sizeA > 1 And sizeB > 1 And sizeA <> sizeB) Or (fn = 6 And axis = 2 And (sizeA > 1 Or sizeB > 1)) Then
                                     If Not IsError(result) Then Err.Raise 513, , "Incompatible dimensions accepted"
                                     If CStr(result) <> CStr(CVErr(xlErrValue)) Then Err.Raise 513, , "Expected #VALUE!"
                                 Else
@@ -57,6 +60,7 @@ Public Function RunRxDimensionTests() As Variant
                                     Select Case fn
                                     Case 0: expected = True
                                     Case 1, 2: expected = "x"
+                                    Case 6: expected = "a"
                                     Case Else: expected = 1&
                                     End Select
                                     If Not IsArray(result) Then Err.Raise 513, , "Expected broadcast array"

@@ -48,7 +48,7 @@ Optional arguments are shown in brackets:
 | RxCount | Count all nonoverlapping matches | Number, zero for no matches |
 | RxMatches | Extract all matches | One match per row, or #N/A |
 | RxReplace | Replace every match | Text |
-| RxSplit | Split at every delimiter match | One field per column |
+| RxSplit | Split each source row at every delimiter match | Fields across columns; shorter rows padded with #N/A |
 
 These functions use this repository's engine and supported regex syntax, not
 Excel's native PCRE2 engine. Extracted text, replacements, and split fields remain
@@ -126,10 +126,15 @@ rows/columns broadcast; incompatible sizes return #VALUE!. Per-cell validation,
 pattern errors, execution limits, and input errors affect only the corresponding
 output cells.
 
-RxMatches and RxSplit accept a single text, pattern, and scalar options
-(single-cell ranges or one-cell arrays are allowed). RxMatches additionally
-accepts the format row described above. They do not combine multiple source texts
-into one result.
+RxMatches accepts a single text, pattern, and scalar options (single-cell ranges
+or one-cell arrays are allowed), plus the format row described above. It does not
+combine multiple source texts into one result.
+
+RxSplit accepts scalars or single columns for every argument. Scalar text,
+patterns, ignoreEmpty, and flags broadcast down the common input height. All
+non-singleton heights must agree. Each source row becomes one output row, and its
+fields expand across columns. Shorter results are padded with #N/A to match the
+widest result. Multiple-column source arguments are rejected with #VALUE!.
 
 In Excel with dynamic arrays, results spill into neighboring cells. Use
 TRANSPOSE to change orientation. Blocked output cells cause Excel's #SPILL!.
@@ -148,6 +153,21 @@ produce empty fields; TRUE removes them. Delimiter captures do not add fields.
 A missing delimiter returns the original text. Zero-length delimiters split at
 the matched boundaries, including empty edge fields unless ignored.
 
+For a column of inputs, the output preserves every source row, including rows
+with no remaining fields after ignoreEmpty. Empty fields that are retained are
+""; missing fields used to pad the output are #N/A. If a row produces an input,
+pattern, option, execution-limit, or output-limit error, that error fills its
+output row while the other rows continue normally.
+
+For example, splitting a column containing "a,b,c", "d", and "e,f" at commas
+returns three rows:
+
+| Field 1 | Field 2 | Field 3 |
+| --- | --- | --- |
+| a | b | c |
+| d | #N/A | #N/A |
+| e | f | #N/A |
+
 ### Errors and limits
 
 | Situation | Result |
@@ -156,7 +176,7 @@ the matched boundaries, including empty edge fields unless ignored.
 | Requested match absent for RxMatch, RxFind, or RxLength | #N/A |
 | No matches for RxCount | 0 |
 | No matches for RxMatches | #N/A |
-| All split fields removed | #N/A |
+| All split fields removed for a source row | #N/A across that output row |
 | Successful empty match | "" for extraction; length 0; counted by RxCount |
 | Invalid pattern, format, option, position, argument type, or dimensions | #VALUE! |
 | Engine execution limit exceeded | #NUM! |
@@ -179,6 +199,7 @@ separators to your Excel locale.
     =IFNA(RxMatch(A2,"\d+"),"")
     =RxMatches("AB-12 CD-34","([A-Z]+)-(\d+)",{"$1","$2"})
     =RxSplit("red, green;blue","[,;]\s*")
+    =RxSplit(A2:A10,"[,;]\s*")
     =RxMatch(A2:A10,"\d+")
     =RxFind("ab12cd345","\d+",2)
     =RxLength("ab12cd345","\d+",2)
@@ -186,7 +207,7 @@ separators to your Excel locale.
     =MID(A2,RxFind(A2,"\d+"),RxLength(A2,"\d+"))
 
 The second formula returns "34"; the third returns "aX b34". The capture-table
-formula spills two rows (AB, 12 and CD, 34). The split formula spills
+formula spills two rows (AB, 12 and CD, 34). The single-text split formula spills
 red, green, and blue across three columns.
 
 The RxFind/RxLength/RxCount examples return 7, 3, and 2 respectively. The final
@@ -216,12 +237,25 @@ To also build, reopen, and test the actual add-in from a separate workbook:
 
 This updates build/VbaRegexAddIn.xlam but does not install it.
 
+If the default add-in is loaded in Excel, build and validate a separately named
+copy rather than overwriting the file in use:
+
+    .\excel_addin\run-tests.ps1 -TestPackage -AddinFileName VbaRegexAddIn-next.xlam
+
+The build script also accepts -outFileName with a file name (not a path) to select
+an alternate file within the build directory. Use the same extension as the
+chosen build mode: .xlam for an add-in or .xlsm for the example workbook. Unload
+the previous add-in before loading a replacement so only one version supplies
+the Rx function names.
+
 - TestWorksheetDimensions.bas: original API dimension checks.
 - TestWorksheetFunctions.bas: original API behavior and worksheet formulas.
 - TestRxDimensions.bas: every pair of broadcast arguments, both axes and size
-  orders, using arrays and actual Range objects.
+  orders, using arrays and actual Range objects; RxSplit additionally rejects
+  multiple-column arguments.
 - TestRxFunctions.bas: new API results, flags, positions, occurrences,
-  formatting, capture tables, numeric positions/lengths/counts, zero-length matches,
+  formatting, capture tables, numeric positions/lengths/counts, split-column
+  broadcasting and padding, zero-length matches,
   validation, local errors,
   execution/output limits, engine formatting helpers, and worksheet spills.
 - test-built-addin.ps1: built add-in loading, function registration, and formulas

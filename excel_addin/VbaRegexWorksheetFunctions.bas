@@ -997,36 +997,84 @@ End Function
 Public Function RxSplit(ByRef text As Variant, ByRef pattern As Variant, _
     Optional ByRef ignoreEmpty As Variant = False, Optional ByRef flags As Variant = "") As Variant
     On Error GoTo Failed
-    Dim values(0 To 3) As Variant, k As Long, s As String, p As String, piece As String
-    Dim opts As RxFlags, ignore As ExpectedBoolean, lastEnd As Long, pieces As Collection
-    Dim regex As StaticRegexSingle.RegexTy, state As StaticRegexSingle.MatcherStateTy, output() As Variant
-    values(0) = RxScalar(text): values(1) = RxScalar(pattern)
-    values(2) = RxScalar(ignoreEmpty): values(3) = RxScalar(flags)
+    Dim ai(0 To 3) As ArgumentInfo, args(0 To 3) As Variant, values(0 To 3) As Variant
+    Dim rows() As Variant, fields As Variant, output() As Variant, cache As RxCache
+    Dim nr As Long, nc As Long, width As Long, r As Long, c As Long, k As Long
+    RxAssign args(0), text: RxAssign args(1), pattern
+    RxAssign args(2), ignoreEmpty: RxAssign args(3), flags
     For k = 0 To 3
-        If IsError(values(k)) Then RxSplit = values(k): Exit Function
+        If Not TryGetArgumentInfo(ai(k), args(k)) Then Err.Raise 5
+        ' Split fields expand horizontally, so source arguments must be columns.
+        If ai(k).columns <> 1 Then Err.Raise 5
+        If ai(k).t = ARG_RANGE Then If args(k).Areas.Count <> 1 Then Err.Raise 5
     Next
-    s = RxString(values(0)): p = RxString(values(1))
-    opts = RxParseFlags(values(3))
-    ignore = ExpectBoolean(values(2))
-    If Not ignore.isFine Then Err.Raise 5
-    StaticRegexSingle.InitializeRegex regex, p, opts.ignoreCase
-    state.multiline = opts.multiline: state.dotAll = opts.dotAll
-    lastEnd = 1: Set pieces = New Collection
-    Do While StaticRegexSingle.MatchNext(state, regex, s, raiseOnLimit:=True)
-        piece = Mid$(s, lastEnd, state.captures.entireMatch.start - lastEnd)
-        RxAddPiece pieces, piece, ignore.b
-        lastEnd = state.captures.entireMatch.start + state.captures.entireMatch.Length
-    Loop
-    RxAddPiece pieces, Mid$(s, lastEnd), ignore.b
-    If pieces.Count = 0 Then RxSplit = CVErr(xlErrNA): Exit Function
-    ReDim output(0 To 0, 0 To pieces.Count - 1)
-    For k = 1 To pieces.Count
-        output(0, k - 1) = pieces(k)
+    If Not TryDetermineCommonDimensions(nr, nc, ai) Then Err.Raise 5
+    If nr > RX_MAX_ROWS Then Err.Raise RX_ERR_NUM
+    ReDim rows(0 To nr - 1)
+    width = 1
+    For r = 0 To nr - 1
+        For k = 0 To 3
+            values(k) = RxArgumentValue(ai(k), args(k), r, 0)
+        Next
+        rows(r) = RxSplitRow(values, cache)
+        If IsArray(rows(r)) Then
+            fields = rows(r)
+            If UBound(fields) + 1 > width Then width = UBound(fields) + 1
+        End If
+    Next
+    ' Keep scalar error results compatible with the single-text API.
+    If nr = 1 Then
+        If IsError(rows(0)) Then RxSplit = rows(0): Exit Function
+    End If
+    ReDim output(0 To nr - 1, 0 To width - 1)
+    For r = 0 To nr - 1
+        fields = rows(r)
+        For c = 0 To width - 1
+            If IsError(fields) Then
+                output(r, c) = fields
+            ElseIf c <= UBound(fields) Then
+                output(r, c) = fields(c)
+            Else
+                output(r, c) = CVErr(xlErrNA)
+            End If
+        Next
     Next
     RxSplit = output
     Exit Function
 Failed:
     RxSplit = RxFailure(Err.Number)
+End Function
+
+Private Function RxSplitRow(ByRef values() As Variant, ByRef cache As RxCache) As Variant
+    On Error GoTo Failed
+    Dim k As Long, s As String, p As String, piece As String
+    Dim opts As RxFlags, ignore As ExpectedBoolean, lastEnd As Long, pieces As Collection
+    Dim state As StaticRegexSingle.MatcherStateTy, fields() As Variant
+    For k = 0 To 3
+        If IsError(values(k)) Then RxSplitRow = values(k): Exit Function
+    Next
+    s = RxString(values(0)): p = RxString(values(1))
+    opts = RxParseFlags(values(3))
+    ignore = ExpectBoolean(values(2))
+    If Not ignore.isFine Then Err.Raise 5
+    RxCompile cache, p, opts
+    state.multiline = opts.multiline: state.dotAll = opts.dotAll
+    lastEnd = 1: Set pieces = New Collection
+    Do While StaticRegexSingle.MatchNext(state, cache.regex, s, raiseOnLimit:=True)
+        piece = Mid$(s, lastEnd, state.captures.entireMatch.start - lastEnd)
+        RxAddPiece pieces, piece, ignore.b
+        lastEnd = state.captures.entireMatch.start + state.captures.entireMatch.Length
+    Loop
+    RxAddPiece pieces, Mid$(s, lastEnd), ignore.b
+    If pieces.Count = 0 Then RxSplitRow = CVErr(xlErrNA): Exit Function
+    ReDim fields(0 To pieces.Count - 1)
+    For k = 1 To pieces.Count
+        fields(k - 1) = pieces(k)
+    Next
+    RxSplitRow = fields
+    Exit Function
+Failed:
+    RxSplitRow = RxFailure(Err.Number)
 End Function
 
 Private Sub RxAddPiece(ByRef pieces As Collection, ByVal piece As String, ByVal ignore As Boolean)
@@ -1065,8 +1113,8 @@ Public Sub RegisterRxFunctions()
         Description:="Replaces regex matches. Broadcasts arrays and ranges.", _
         ArgumentDescriptions:=Array("Text or range of text.", "Regex pattern.", "Replacement capture format.", "0 for all; positive match number for one. Default 0.", "Optional flags: i, m, s.", "1-based UTF-16 start position. Default 1.")
     Application.MacroOptions Macro:=prefix & "RxSplit", Category:="VbaRegex", _
-        Description:="Splits one text across columns. Delimiter captures are excluded.", _
-        ArgumentDescriptions:=Array("One text or single cell.", "Regex delimiter.", "TRUE discards empty fields. Default FALSE.", "Optional flags: i, m, s.")
+        Description:="Splits each input row across columns. Broadcasts columns; pads shorter rows with #N/A.", _
+        ArgumentDescriptions:=Array("Text or a single column of texts.", "Regex delimiter or compatible column of patterns.", "TRUE discards empty fields. Default FALSE. May be a column.", "Optional flags: i, m, s. May be a compatible column.")
     ThisWorkbook.IsAddin = wasAddin
     Exit Sub
 Failed:

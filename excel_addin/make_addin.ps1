@@ -1,9 +1,20 @@
 param(
-    [bool]$createExampleFile = $false
+    [bool]$createExampleFile = $false,
+    [string]$outFileName = ""
 )
 
 $ErrorActionPreference = 'Stop'
 $outName = if ($createExampleFile) { 'WorksheetFunctionsExample.xlsm' } else { 'VbaRegexAddIn.xlam' }
+if ($outFileName) {
+    if ([IO.Path]::GetFileName($outFileName) -ne $outFileName) {
+        throw 'outFileName must be a file name within the build directory.'
+    }
+    $extension = if ($createExampleFile) { '.xlsm' } else { '.xlam' }
+    if ([IO.Path]::GetExtension($outFileName) -ne $extension) {
+        throw "outFileName must use the $extension extension."
+    }
+    $outName = $outFileName
+}
 $outDir = Join-Path $PSScriptRoot 'build'
 $outFile = Join-Path $outDir $outName
 

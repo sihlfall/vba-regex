@@ -11,6 +11,7 @@ Public Function RunRxTests() As Variant
     TestScalars
     TestNumericResults
     TestSpills
+    TestSplitBroadcast
     TestArguments
     TestBroadcast
     TestArrayShapes
@@ -227,9 +228,83 @@ Private Sub TestSpills()
     Check "matches rejects texts", RxMatches(column, "."), CVErr(xlErrValue)
     Check "matches rejects patterns", RxMatches("ab", column), CVErr(xlErrValue)
     Check "matches rejects format column", RxMatches("ab", ".", column), CVErr(xlErrValue)
-    Check "split rejects texts", RxSplit(column, ","), CVErr(xlErrValue)
+    Grid "split text column", RxSplit(column, ","), 2, 1, Array("a", "b")
     formats(1, 1) = CVErr(xlErrRef)
     Check "format table error", RxMatches("a", ".", formats), CVErr(xlErrRef)
+End Sub
+
+Private Sub TestSplitBroadcast()
+    Dim inputs(1 To 3, 1 To 1) As Variant, patterns(1 To 3, 1 To 1) As Variant
+    Dim ignore(1 To 3, 1 To 1) As Variant, flags(1 To 3, 1 To 1) As Variant
+    Dim short(1 To 2, 1 To 1) As Variant, zero(0 To 1, 0 To 0) As Variant
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.Worksheets(1)
+    inputs(1, 1) = "a,b,c": inputs(2, 1) = "d": inputs(3, 1) = "e,f"
+    Grid "split column pads shorter rows", RxSplit(inputs, ","), 3, 3, _
+        Array("a", "b", "c", "d", CVErr(xlErrNA), CVErr(xlErrNA), "e", "f", CVErr(xlErrNA))
+    ws.Range("A70:A72").Value2 = inputs
+    Grid "split range column pads shorter rows", RxSplit(ws.Range("A70:A72"), ","), 3, 3, _
+        Array("a", "b", "c", "d", CVErr(xlErrNA), CVErr(xlErrNA), "e", "f", CVErr(xlErrNA))
+    patterns(1, 1) = ",": patterns(2, 1) = ";": patterns(3, 1) = ":"
+    inputs(1, 1) = "a,b": inputs(2, 1) = "c;d;e": inputs(3, 1) = "f"
+    Grid "split per row patterns", RxSplit(inputs, patterns), 3, 3, _
+        Array("a", "b", CVErr(xlErrNA), "c", "d", "e", "f", CVErr(xlErrNA), CVErr(xlErrNA))
+    ws.Range("C70:C72").Value2 = patterns
+    Grid "split scalar text over pattern column", RxSplit("a,b;c:d", ws.Range("C70:C72")), 3, 2, _
+        Array("a", "b;c:d", "a,b", "c:d", "a,b;c", "d")
+    ignore(1, 1) = False: ignore(2, 1) = True: ignore(3, 1) = False
+    Grid "split per row ignoreEmpty", RxSplit(",a,,", ",", ignore), 3, 4, _
+        Array("", "a", "", "", "a", CVErr(xlErrNA), CVErr(xlErrNA), CVErr(xlErrNA), "", "a", "", "")
+    flags(1, 1) = "": flags(2, 1) = "i": flags(3, 1) = ""
+    Grid "split per row flags", RxSplit("aXbxc", "x", , flags), 3, 3, _
+        Array("aXb", "c", CVErr(xlErrNA), "a", "b", "c", "aXb", "c", CVErr(xlErrNA))
+    flags(1, 1) = "s": flags(2, 1) = "": flags(3, 1) = "s"
+    Grid "split per row dotAll", RxSplit("a" & vbLf & "b", "a.b", , flags), 3, 2, _
+        Array("", "", "a" & vbLf & "b", CVErr(xlErrNA), "", "")
+    flags(1, 1) = "m": flags(2, 1) = "": flags(3, 1) = "m"
+    Grid "split per row multiline", RxSplit("a" & vbLf & "b", "^", True, flags), 3, 2, _
+        Array("a" & vbLf, "b", "a" & vbLf & "b", CVErr(xlErrNA), "a" & vbLf, "b")
+    inputs(1, 1) = "a,,": inputs(2, 1) = "": inputs(3, 1) = "b"
+    Grid "split keeps empty fields distinct from padding", RxSplit(inputs, ","), 3, 3, _
+        Array("a", "", "", "", CVErr(xlErrNA), CVErr(xlErrNA), "b", CVErr(xlErrNA), CVErr(xlErrNA))
+    Grid "split removes empty fields per row", RxSplit(inputs, ",", True), 3, 1, Array("a", CVErr(xlErrNA), "b")
+    inputs(1, 1) = ",,": inputs(2, 1) = ",a,b": inputs(3, 1) = ""
+    Grid "split empty rows preserve source alignment", RxSplit(inputs, ",", True), 3, 2, _
+        Array(CVErr(xlErrNA), CVErr(xlErrNA), "a", "b", CVErr(xlErrNA), CVErr(xlErrNA))
+    inputs(1, 1) = "ab": inputs(2, 1) = "c": inputs(3, 1) = ""
+    Grid "split zero length column", RxSplit(inputs, ""), 3, 4, _
+        Array("", "a", "b", "", "", "c", "", CVErr(xlErrNA), "", "", CVErr(xlErrNA), CVErr(xlErrNA))
+    inputs(1, 1) = CVErr(xlErrRef): inputs(2, 1) = "a,b": inputs(3, 1) = "c"
+    Grid "split row input error", RxSplit(inputs, ","), 3, 2, _
+        Array(CVErr(xlErrRef), CVErr(xlErrRef), "a", "b", "c", CVErr(xlErrNA))
+    patterns(1, 1) = "[": patterns(2, 1) = ",": patterns(3, 1) = ","
+    Grid "split row pattern error", RxSplit("a,b", patterns), 3, 2, _
+        Array(CVErr(xlErrValue), CVErr(xlErrValue), "a", "b", "a", "b")
+    patterns(1, 1) = CVErr(xlErrDiv0)
+    Grid "split row pattern cell error", RxSplit("a,b", patterns), 3, 2, _
+        Array(CVErr(xlErrDiv0), CVErr(xlErrDiv0), "a", "b", "a", "b")
+    flags(1, 1) = "x": flags(2, 1) = "": flags(3, 1) = ""
+    Grid "split row option error", RxSplit("a,b", ",", , flags), 3, 2, _
+        Array(CVErr(xlErrValue), CVErr(xlErrValue), "a", "b", "a", "b")
+    ignore(1, 1) = "true"
+    Grid "split row boolean error", RxSplit("a,b", ",", ignore), 3, 2, _
+        Array(CVErr(xlErrValue), CVErr(xlErrValue), "a", "b", "a", "b")
+    inputs(1, 1) = String$(18, "a"): inputs(2, 1) = "b": inputs(3, 1) = "c"
+    Grid "split row execution limit", RxSplit(inputs, "(a+)+b"), 3, 1, Array(CVErr(xlErrNum), "b", "c")
+    inputs(1, 1) = String$(16384, ","): inputs(2, 1) = "a,b": inputs(3, 1) = "c"
+    Grid "split row column limit", RxSplit(inputs, ","), 3, 2, _
+        Array(CVErr(xlErrNum), CVErr(xlErrNum), "a", "b", "c", CVErr(xlErrNA))
+    inputs(1, 1) = CVErr(xlErrRef): inputs(2, 1) = 1: inputs(3, 1) = CVErr(xlErrDiv0)
+    Grid "split all error rows", RxSplit(inputs, ","), 3, 1, Array(CVErr(xlErrRef), CVErr(xlErrValue), CVErr(xlErrDiv0))
+    short(1, 1) = ",": short(2, 1) = ","
+    Check "split incompatible rows", RxSplit(inputs, short), CVErr(xlErrValue)
+    Check "split incompatible rows reversed", RxSplit(short, inputs), CVErr(xlErrValue)
+    Check "split rejects text row", RxSplit(Array("a,b", "c,d"), ","), CVErr(xlErrValue)
+    Check "split rejects pattern row", RxSplit("a,b", Array(",", ";")), CVErr(xlErrValue)
+    Check "split rejects flags row", RxSplit("a,b", ",", , Array("", "i")), CVErr(xlErrValue)
+    Check "split rejects multiple areas", RxSplit(Union(ws.Range("A70"), ws.Range("A72")), ","), CVErr(xlErrValue)
+    zero(0, 0) = "a,b": zero(1, 0) = "c"
+    Grid "split zero based column", RxSplit(zero, ","), 2, 2, Array("a", "b", "c", CVErr(xlErrNA))
 End Sub
 
 Private Sub TestArguments()
@@ -348,6 +423,10 @@ Private Sub TestWorksheetFormulas()
     ws.Range("L9").Formula2 = "=RxTest(""A"",""a"",{"""",""i""})"
     ws.Range("P9").Formula2 = "=RxMatch(""1a2b3"",""\d"",,{1,2})"
     ws.Range("L13").Formula2 = "=RxMatch(""1a2b3"",""\d"",,,,3)"
+    ws.Range("AA1:AJ10").ClearContents
+    ws.Range("AA1").Formula2 = "=RxSplit(A70:A72,"","")"
+    ws.Range("AE1").Formula2 = "=RxSplit({""a,b,c"";""d"";""e,f""},"","")"
+    ws.Range("AI1").Formula2 = "=RxSplit(""aXbxc"",""x"",,{"""";""i""})"
     ws.Range("J15").Formula2 = "=RxFind(""ab12cd345"",""\d+"",2)"
     ws.Range("K15").Formula2 = "=RxLength(""ab12cd345"",""\d+"",2)"
     ws.Range("L15").Formula2 = "=RxCount(""ab12cd345"",""\d+"")"
@@ -374,6 +453,17 @@ Private Sub TestWorksheetFormulas()
     currentCase = "worksheet count absent": AssertValue ws.Range("N17").Value2, 0#
     currentCase = "worksheet find absent": AssertValue ws.Range("P17").Value2, "missing"
     currentCase = "worksheet length empty": AssertValue ws.Range("R17").Value2, 0#
+    currentCase = "worksheet split column range"
+    AssertValue ws.Range("AA1").Value2, "a": AssertValue ws.Range("AC1").Value2, "c"
+    AssertValue ws.Range("AA2").Value2, "d": AssertValue ws.Range("AB2").Value2, CVErr(xlErrNA)
+    AssertValue ws.Range("AA3").Value2, "e": AssertValue ws.Range("AB3").Value2, "f"
+    currentCase = "worksheet split column literal"
+    AssertValue ws.Range("AE1").Value2, "a": AssertValue ws.Range("AG1").Value2, "c"
+    AssertValue ws.Range("AE2").Value2, "d": AssertValue ws.Range("AF2").Value2, CVErr(xlErrNA)
+    AssertValue ws.Range("AE3").Value2, "e": AssertValue ws.Range("AF3").Value2, "f"
+    currentCase = "worksheet split column flags"
+    AssertValue ws.Range("AI1").Value2, "aXb": AssertValue ws.Range("AK1").Value2, CVErr(xlErrNA)
+    AssertValue ws.Range("AI2").Value2, "a": AssertValue ws.Range("AK2").Value2, "c"
     currentCase = "worksheet test": AssertValue ws.Range("J1").Value2, True
     currentCase = "worksheet nth": AssertValue ws.Range("J2").Value2, "2"
     currentCase = "worksheet replace": AssertValue ws.Range("J3").Value2, "aXb2"
