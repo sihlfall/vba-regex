@@ -850,3 +850,294 @@ TestFail:
     Resume TestExit
 End Sub
 
+
+' Same function as MakeStringArray in README Example 6.
+Private Function ReadmeStringArray(ParamArray strings() As Variant) As String()
+    Dim ary() As String, i As Long
+    ReDim ary(0 To UBound(strings) - LBound(strings)) As String
+    For i = LBound(strings) To UBound(strings)
+        ary(i - LBound(strings)) = strings(i)
+    Next
+    ReadmeStringArray = ary
+End Function
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Readme_Example6_MatchThenList()
+    On Error GoTo TestFail
+
+    Dim regex As StaticRegex.RegexTy
+    Dim exampleString As String, results() As String
+
+    exampleString = "On Jul-4-1776, independence was declared. " & _
+        "On Apr-30-1789, George Washington became the first president."
+    StaticRegex.InitializeRegex regex, _
+        "(?<month>\w{3})-(?<day>\d{1,2})-(?<year>\d{4})"
+
+    StaticRegex.MatchThenList results, regex, exampleString, _
+        ReadmeStringArray("$&", "$<day>", "$<month>", "$<year>")
+
+    Assert.AreEqual 0&, LBound(results, 1)
+    Assert.AreEqual 1&, UBound(results, 1)
+    Assert.AreEqual 0&, LBound(results, 2)
+    Assert.AreEqual 3&, UBound(results, 2)
+    Assert.AreEqual "Jul-4-1776", results(0, 0)
+    Assert.AreEqual "4", results(0, 1)
+    Assert.AreEqual "Jul", results(0, 2)
+    Assert.AreEqual "1776", results(0, 3)
+    Assert.AreEqual "Apr-30-1789", results(1, 0)
+    Assert.AreEqual "30", results(1, 1)
+    Assert.AreEqual "Apr", results(1, 2)
+    Assert.AreEqual "1789", results(1, 3)
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Readme_Example7_Replace()
+    On Error GoTo TestFail
+
+    Dim regex As StaticRegex.RegexTy
+    Dim exampleString As String, expected As String
+
+    exampleString = "On Jul-4-1776, independence was declared. " & _
+        "On Apr-30-1789, George Washington became the first president."
+    StaticRegex.InitializeRegex regex, _
+        "(?<month>\w{3})-(?<day>\d{1,2})-(?<year>\d{4})"
+    expected = "On 4 Jul 1776, independence was declared. " & _
+        "On 30 Apr 1789, George Washington became the first president."
+    Assert.AreEqual expected, StaticRegex.Replace( _
+        regex, replacer:="$<day> $<month> $<year>", haystack:=exampleString)
+
+    expected = "On 4 Jul 1776, independence was declared. " & _
+        "On Apr-30-1789, George Washington became the first president."
+    Assert.AreEqual expected, StaticRegex.Replace( _
+        regex, replacer:="$<day> $<month> $<year>", haystack:=exampleString, localMatch:=True)
+    Assert.AreEqual "No dates here.", StaticRegex.Replace( _
+        regex, replacer:="$<day> $<month> $<year>", haystack:="No dates here.")
+    Assert.AreEqual "Jul-4-1776|Jul|Jul|$", StaticRegex.Replace( _
+        regex, replacer:="$&|$1|$<month>|$$", haystack:="Jul-4-1776")
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Readme_Example8_SplitByRegex()
+    On Error GoTo TestFail
+
+    Dim separatorRegex As StaticRegex.RegexTy
+    Dim parts As Collection, part As Variant, i As Long
+    Dim expected() As String
+
+    StaticRegex.InitializeRegex separatorRegex, "[,;]\s*"
+    Set parts = StaticRegex.SplitByRegex(separatorRegex, "red, green; blue")
+    expected = ReadmeStringArray("red", "green", "blue")
+    Assert.AreEqual 3&, parts.Count
+    i = 0
+    For Each part In parts
+        Assert.AreEqual expected(i), CStr(part)
+        i = i + 1
+    Next
+
+    Set parts = StaticRegex.SplitByRegex(separatorRegex, "red, green; blue", localMatch:=True)
+    Assert.AreEqual 2&, parts.Count
+    Assert.AreEqual "red", CStr(parts(1))
+    Assert.AreEqual "green; blue", CStr(parts(2))
+    Set parts = StaticRegex.SplitByRegex(separatorRegex, "red")
+    Assert.AreEqual 1&, parts.Count
+    Assert.AreEqual "red", CStr(parts(1))
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Readme_Example8_CapturesAndEmptyParts()
+    On Error GoTo TestFail
+
+    Dim separatorRegex As StaticRegex.RegexTy
+    Dim parts As Collection
+
+    StaticRegex.InitializeRegex separatorRegex, "([,;])\s*"
+    Set parts = StaticRegex.SplitByRegex(separatorRegex, ",red;")
+    Assert.AreEqual 5&, parts.Count
+    Assert.AreEqual vbNullString, CStr(parts(1))
+    Assert.AreEqual ",", CStr(parts(2))
+    Assert.AreEqual "red", CStr(parts(3))
+    Assert.AreEqual ";", CStr(parts(4))
+    Assert.AreEqual vbNullString, CStr(parts(5))
+
+    StaticRegex.InitializeRegex separatorRegex, "(?:[,;])\s*"
+    Set parts = StaticRegex.SplitByRegex(separatorRegex, ",red;")
+    Assert.AreEqual 3&, parts.Count
+    Assert.AreEqual vbNullString, CStr(parts(1))
+    Assert.AreEqual "red", CStr(parts(2))
+    Assert.AreEqual vbNullString, CStr(parts(3))
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Readme_Options_CaseInsensitiveAndDotAll()
+    On Error GoTo TestFail
+
+    Dim messageRegex As StaticRegex.RegexTy
+    Dim message As String
+
+    message = "BEGIN" & vbCrLf & "END"
+    StaticRegex.InitializeRegex messageRegex, "begin.*end", caseInsensitive:=True
+    Assert.IsTrue StaticRegex.Test(messageRegex, message, dotAll:=True)
+    ' Both options are needed for this input.
+    Assert.IsFalse StaticRegex.Test(messageRegex, message)
+    StaticRegex.InitializeRegex messageRegex, "begin.*end"
+    Assert.IsFalse StaticRegex.Test(messageRegex, message, dotAll:=True)
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Readme_Options_MatchNext()
+    On Error GoTo TestFail
+
+    Dim regex As StaticRegex.RegexTy
+    Dim matcherState As StaticRegex.MatcherStateTy
+    Dim exampleString As String, actual As String, nMatches As Long
+
+    exampleString = "On Jul-4-1776, independence was declared. " & _
+        "On Apr-30-1789, George Washington became the first president."
+    StaticRegex.InitializeRegex regex, _
+        "(?<month>\w{3})-(?<day>\d{1,2})-(?<year>\d{4})"
+    StaticRegex.InitializeMatcherState matcherState, multiline:=True, dotAll:=True
+
+    Do While StaticRegex.MatchNext(matcherState, regex, exampleString)
+        If nMatches > 0 Then actual = actual & ", "
+        actual = actual & StaticRegex.GetCapture(matcherState, exampleString)
+        nMatches = nMatches + 1
+        ' Fail instead of looping indefinitely if iteration regresses.
+        Assert.IsTrue nMatches <= 2
+        If nMatches > 2 Then Exit Do
+    Loop
+    Assert.AreEqual 2&, nMatches
+    Assert.AreEqual "Jul-4-1776, Apr-30-1789", actual
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Readme_Options_InitializeAndResetMatcherState()
+    On Error GoTo TestFail
+
+    Dim regex As StaticRegex.RegexTy
+    Dim matcherState As StaticRegex.MatcherStateTy
+    Dim haystack As String
+
+    haystack = "prefix" & vbLf & "begin" & vbLf & "end" & vbLf & _
+        "begin" & vbLf & "end" & vbLf & "suffix"
+    StaticRegex.InitializeRegex regex, "^begin.end$"
+    ' A new state has all options off, so this pattern cannot match.
+    Assert.IsFalse matcherState.localMatch
+    Assert.IsFalse matcherState.multiline
+    Assert.IsFalse matcherState.dotAll
+    Assert.IsFalse StaticRegex.MatchNext(matcherState, regex, haystack)
+
+    StaticRegex.InitializeMatcherState matcherState, localMatch:=True, multiline:=True, dotAll:=True
+    Assert.IsTrue StaticRegex.MatchNext(matcherState, regex, haystack)
+    Assert.AreEqual "begin" & vbLf & "end", StaticRegex.GetCapture(matcherState, haystack)
+    Assert.AreEqual 8&, matcherState.captures.entireMatch.start
+    Assert.IsFalse StaticRegex.MatchNext(matcherState, regex, haystack)
+
+    StaticRegex.ResetMatcherState matcherState
+    Assert.IsTrue matcherState.localMatch
+    Assert.IsTrue matcherState.multiline
+    Assert.IsTrue matcherState.dotAll
+    Assert.IsTrue StaticRegex.MatchNext(matcherState, regex, haystack)
+    Assert.AreEqual 8&, matcherState.captures.entireMatch.start
+    Assert.IsFalse StaticRegex.MatchNext(matcherState, regex, haystack)
+
+    ' Reinitializing also resets the options to their defaults.
+    StaticRegex.InitializeMatcherState matcherState
+    Assert.IsFalse matcherState.localMatch
+    Assert.IsFalse matcherState.multiline
+    Assert.IsFalse matcherState.dotAll
+    Assert.IsFalse StaticRegex.MatchNext(matcherState, regex, haystack)
+
+    ' With both line options enabled, the default is to find both matches.
+    StaticRegex.InitializeMatcherState matcherState, multiline:=True, dotAll:=True
+    Assert.IsTrue StaticRegex.MatchNext(matcherState, regex, haystack)
+    Assert.AreEqual 8&, matcherState.captures.entireMatch.start
+    Assert.IsTrue StaticRegex.MatchNext(matcherState, regex, haystack)
+    Assert.AreEqual 18&, matcherState.captures.entireMatch.start
+    Assert.IsFalse StaticRegex.MatchNext(matcherState, regex, haystack)
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Readme_Options_MatchFrom()
+    On Error GoTo TestFail
+
+    Dim regex As StaticRegex.RegexTy
+    Dim matcherState As StaticRegex.MatcherStateTy
+
+    StaticRegex.InitializeRegex regex, "cat"
+    Assert.IsTrue StaticRegex.Match(matcherState, regex, "cat cat")
+    Assert.AreEqual 1&, matcherState.captures.entireMatch.start
+    Assert.IsTrue StaticRegex.Match(matcherState, regex, "cat cat", matchFrom:=5)
+    Assert.AreEqual 5&, matcherState.captures.entireMatch.start
+    ' Searching may skip forward from the requested position.
+    Assert.IsTrue StaticRegex.Match(matcherState, regex, "cat cat", matchFrom:=2)
+    Assert.AreEqual 5&, matcherState.captures.entireMatch.start
+    Assert.IsFalse StaticRegex.Match(matcherState, regex, "cat cat", matchFrom:=6)
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_Readme_Options_StepsLimit()
+    On Error GoTo TestFail
+
+    Dim regex As StaticRegex.RegexTy
+
+    StaticRegex.InitializeRegex regex, "abc"
+    Assert.AreEqual 10000&, regex.stepsLimit
+    regex.stepsLimit = 1
+    Assert.IsFalse StaticRegex.Test(regex, "abc")
+    regex.stepsLimit = 10000
+    Assert.IsTrue StaticRegex.Test(regex, "abc")
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
