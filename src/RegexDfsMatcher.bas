@@ -542,7 +542,7 @@ L_INVRANGES:
         GoTo ContinueLoopSuccess
         
 L_ASSERT_START:
-        If sp <= 0 Then GoTo ContinueLoopSuccess
+        If sp + (1 - spDelta) \ 2 <= 0 Then GoTo ContinueLoopSuccess
         If 0 = (op - (multiline And RegexBytecode.MODIFIER_M_WRITE) And RegexBytecode.MODIFIER_M_ACTIVE) Then GoTo ContinueLoopFail
         c1 = PeekInputCharCode(inputStr, sp - (spDelta + 1) \ 2)
         ' E5 Sections 15.10.2.8, 7.3
@@ -564,17 +564,16 @@ L_ASSERT_NOT_WORD_BOUNDARY:
         '  canonicalization does not affect the result of IsWordChar()
         '  (which depends on Unicode characters never canonicalizing
         '  into ASCII characters) so this does not matter.
-        If sp <= 0 Then
+        aa = sp + (1 - spDelta) \ 2
+        If aa <= 0 Then
             b1 = False  ' not a wordchar
         Else
-            c1 = PeekInputCharCode(inputStr, sp - spDelta)
-            b1 = UnicodeReIsWordchar(c1)
+            b1 = UnicodeReIsWordchar(PeekInputCharCode(inputStr, aa - 1))
         End If
-        If sp > Len(inputStr) Then
+        If aa >= Len(inputStr) Then
             b2 = False ' not a wordchar
         Else
-            c1 = PeekInputCharCode(inputStr, sp)
-            b2 = UnicodeReIsWordchar(c1)
+            b2 = UnicodeReIsWordchar(PeekInputCharCode(inputStr, aa))
         End If
 
         If ((op And RegexBytecode.REOP_OPCODE_MASK) = REOP_ASSERT_WORD_BOUNDARY) = (b1 = b2) Then GoTo ContinueLoopFail

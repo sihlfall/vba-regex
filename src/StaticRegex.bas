@@ -125,7 +125,14 @@ Public Function MatchNext( _
         dotAll:=matcherState.dotAll _
     )
     
-    matcherState.current = (r - (matcherState.current = r)) Or matcherState.localMatch
+    If r = -1 Then
+        matcherState.current = -1
+    Else
+        matcherState.current = _
+            (r - (matcherState.captures.entireMatch.Length = 0)) _
+            Or matcherState.localMatch
+    End If
+    
     MatchNext = r <> -1
 End Function
 

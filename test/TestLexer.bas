@@ -285,3 +285,156 @@ TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
     Resume TestExit
 End Sub
+
+' Issue: https://github.com/sihlfall/vba-regex/issues/19
+'@TestMethod("Lexer")
+Private Sub Lexer_NulEscape_PreservesFollowingCharacter()
+    On Error GoTo TestFail
+
+    Dim lex As RegexLexer.Ty
+    Dim tok As RegexLexer.ReToken
+
+    RegexLexer.Initialize lex, "\0a"
+
+    RegexLexer.ParseReToken lex, tok
+    Assert.AreEqual RETOK_ATOM_CHAR, tok.t
+    Assert.AreEqual 0&, tok.num
+
+    RegexLexer.ParseReToken lex, tok
+    Assert.AreEqual RETOK_ATOM_CHAR, tok.t
+    Assert.AreEqual 0& + AscW("a"), tok.num
+
+    RegexLexer.ParseReToken lex, tok
+    Assert.AreEqual RETOK_EOF, tok.t
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+' Issue: https://github.com/sihlfall/vba-regex/issues/18
+'@TestMethod("Lexer")
+Private Sub Lexer_CharClass_FormFeedEscape()
+    On Error GoTo TestFail
+
+    Dim lex As RegexLexer.Ty
+    Dim tok As RegexLexer.ReToken
+    Dim ranges As ArrayBuffer.Ty
+    Dim nranges As Long
+
+    RegexLexer.Initialize lex, "[\f]"
+
+    RegexLexer.ParseReToken lex, tok
+    Assert.AreEqual RETOK_ATOM_START_CHARCLASS, tok.t
+
+    RegexLexer.ParseReRanges lex, ranges, nranges, ignoreCase:=False
+
+    Assert.AreEqual 1&, nranges
+    Assert.AreEqual 2&, ranges.Length
+    Assert.AreEqual &HC&, ranges.Buffer(0)
+    Assert.AreEqual &HC&, ranges.Buffer(1)
+
+    RegexLexer.ParseReToken lex, tok
+    Assert.AreEqual RETOK_EOF, tok.t
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+' Issue: https://github.com/sihlfall/vba-regex/issues/17
+'@TestMethod("Lexer")
+Private Sub Lexer_ControlEscapes_ProduceExpectedCharacters()
+    On Error GoTo TestFail
+
+    Dim lex As RegexLexer.Ty
+    Dim tok As RegexLexer.ReToken
+    Dim code As Long
+    Dim pattern As String
+
+    For code = 1 To 26
+        pattern = "\c" & ChrW$(64 + code)
+        RegexLexer.Initialize lex, pattern
+
+        RegexLexer.ParseReToken lex, tok
+        Assert.AreEqual RETOK_ATOM_CHAR, tok.t, pattern
+        Assert.AreEqual code, tok.num, pattern
+
+        RegexLexer.ParseReToken lex, tok
+        Assert.AreEqual RETOK_EOF, tok.t, pattern
+
+        pattern = "\c" & ChrW$(96 + code)
+        RegexLexer.Initialize lex, pattern
+
+        RegexLexer.ParseReToken lex, tok
+        Assert.AreEqual RETOK_ATOM_CHAR, tok.t, pattern
+        Assert.AreEqual code, tok.num, pattern
+
+        RegexLexer.ParseReToken lex, tok
+        Assert.AreEqual RETOK_EOF, tok.t, pattern
+    Next code
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+' Issue: https://github.com/sihlfall/vba-regex/issues/14
+'@TestMethod("Lexer")
+Private Sub Lexer_BareClosingBracket_IsLiteral()
+    ' Compatibility change: accept an unescaped ] outside a character class
+    ' as a literal, following Annex B's non-Unicode pattern syntax.
+    ' A class-closing ] is consumed by ParseReRanges instead.
+    On Error GoTo TestFail
+
+    Dim lex As RegexLexer.Ty
+    Dim tok As RegexLexer.ReToken
+
+    RegexLexer.Initialize lex, "]"
+
+    RegexLexer.ParseReToken lex, tok
+    Assert.AreEqual RETOK_ATOM_CHAR, tok.t
+    Assert.AreEqual 0& + AscW("]"), tok.num
+
+    RegexLexer.ParseReToken lex, tok
+    Assert.AreEqual RETOK_EOF, tok.t
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+' Issue: https://github.com/sihlfall/vba-regex/issues/14
+'@TestMethod("Lexer")
+Private Sub Lexer_BareClosingBrace_IsLiteral()
+    ' Compatibility change: accept an unescaped } outside a quantifier
+    ' as a literal, following Annex B's non-Unicode pattern syntax.
+    ' A quantifier-closing } is consumed by the quantifier lexer instead.
+    On Error GoTo TestFail
+
+    Dim lex As RegexLexer.Ty
+    Dim tok As RegexLexer.ReToken
+
+    RegexLexer.Initialize lex, "}"
+
+    RegexLexer.ParseReToken lex, tok
+    Assert.AreEqual RETOK_ATOM_CHAR, tok.t
+    Assert.AreEqual 0& + AscW("}"), tok.num
+
+    RegexLexer.ParseReToken lex, tok
+    Assert.AreEqual RETOK_EOF, tok.t
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub

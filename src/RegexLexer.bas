@@ -321,7 +321,7 @@ EscapeLowercaseLetter:
         Case UNICODE_LC_C
             x = Advance(lexCtx)
             If (x >= UNICODE_LC_A And x <= UNICODE_LC_Z) Or (x >= UNICODE_UC_A And x <= UNICODE_UC_Z) Then
-                outToken.num = x \ 32
+                outToken.num = x Mod 32
                 outToken.t = RETOK_ATOM_CHAR
             Else
                 Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
@@ -365,9 +365,8 @@ EscapeLowercaseLetter:
         
 EscapeDigit:
         If x = UNICODE_0 Then
-            x = Advance(lexCtx)
-            
-            ' E5 Section 15.10.2.11
+            x = lexCtx.currentCharacter
+            ' Reject a following digit without consuming the next character.
             If x >= UNICODE_0 And x <= UNICODE_9 Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
             outToken.num = 0
             outToken.t = RETOK_ATOM_CHAR
@@ -521,10 +520,6 @@ EndModifierHandling:
         Else
             outToken.t = RETOK_ATOM_START_CHARCLASS
         End If
-    Case UNICODE_RCURLY, UNICODE_RBRACKET
-        ' Although these could be parsed as PatternCharacters unambiguously (here),
-        ' * E5 Section 15.10.1 grammar explicitly forbids these as PatternCharacters.
-        Err.Raise REGEX_ERR_INVALID_REGEXP_CHARACTER
     Case LEXER_ENDOFINPUT
         ' EOF
         outToken.t = RETOK_EOF
@@ -597,7 +592,7 @@ ContinueLoop:
                 ' check below.
                 '
                 ch = &H8&
-            Case x = UNICODE_LC_F
+            Case UNICODE_LC_F
                 ch = &HC&
             Case UNICODE_LC_N
                 ch = &HA&
