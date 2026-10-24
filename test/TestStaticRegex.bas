@@ -653,3 +653,67 @@ TestFail:
     Resume TestExit
 End Sub
 
+'Issue: https://github.com/sihlfall/vba-regex/issues/20
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_MatchNext_SkippedEmptyMatchIsNotRepeated()
+    On Error GoTo TestFail
+
+    Dim r As StaticRegex.RegexTy
+    Dim haystack As String
+    Dim matcherState As StaticRegex.MatcherStateTy
+
+    haystack = "a" & vbLf & "b"
+    StaticRegex.InitializeRegex r, "^"
+    StaticRegex.InitializeMatcherState matcherState, multiline:=True
+
+    Assert.IsTrue StaticRegex.MatchNext(matcherState, r, haystack)
+    Assert.AreEqual 1&, matcherState.captures.entireMatch.start
+    Assert.AreEqual 0&, matcherState.captures.entireMatch.Length
+
+    ' The search skips forward to the empty match at position 3.
+    Assert.IsTrue StaticRegex.MatchNext(matcherState, r, haystack)
+    Assert.AreEqual 3&, matcherState.captures.entireMatch.start
+    Assert.AreEqual 0&, matcherState.captures.entireMatch.Length
+
+    ' Only two line starts exist; position 3 must not be returned twice.
+    Assert.IsFalse StaticRegex.MatchNext(matcherState, r, haystack)
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'Issue: https://github.com/sihlfall/vba-regex/issues/20
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_MatchNext_FailureAfterEmptyMatchStaysExhausted()
+    On Error GoTo TestFail
+
+    Dim r As StaticRegex.RegexTy
+    Dim haystack As String
+    Dim matcherState As StaticRegex.MatcherStateTy
+
+    haystack = "a"
+    StaticRegex.InitializeRegex r, "^"
+    StaticRegex.InitializeMatcherState matcherState
+
+    Assert.IsTrue StaticRegex.MatchNext(matcherState, r, haystack)
+    Assert.AreEqual 1&, matcherState.captures.entireMatch.start
+    Assert.AreEqual 0&, matcherState.captures.entireMatch.Length
+
+    ' A failed match leaves the previous empty capture in the state.
+    Assert.IsFalse StaticRegex.MatchNext(matcherState, r, haystack)
+    Assert.AreEqual -1&, matcherState.current
+
+    ' Further calls must remain exhausted.
+    Assert.IsFalse StaticRegex.MatchNext(matcherState, r, haystack)
+    Assert.AreEqual -1&, matcherState.current
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+

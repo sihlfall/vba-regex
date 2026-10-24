@@ -1772,6 +1772,117 @@ TestFail:
     Resume TestExit
 End Sub
 
+'@TestMethod("DfsMatcher")
+Private Sub DfsMatcher_LookbehindWordBoundary_AtStart()
+    On Error GoTo TestFail
+
+    Dim captures As RegexDfsMatcher.CapturesTy
+    Dim bytecode() As Long
+    Dim s As String
+    Dim result As Long
+
+    ' (?<=\b)x
+    MakeArray bytecode, _
+        1, 0, 0, _
+        REOP_SAVE, 0, _
+        REOP_CHECK_LOOKBEHIND, _
+        REOP_LOOKPOS, 2, _
+        REOP_ASSERT_WORD_BOUNDARY, _
+        REOP_END_LOOKPOS, _
+        REOP_CHAR, AscW("x"), _
+        REOP_SAVE, 1, _
+        REOP_MATCH
+
+    s = "xyz"
+    result = RegexDfsMatcher.DfsMatch(captures, bytecode, s)
+
+    Assert.AreEqual 1&, result
+    Assert.AreEqual 1&, captures.entireMatch.start
+    Assert.AreEqual 1&, captures.entireMatch.Length
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+' Issue: https://github.com/sihlfall/vba-regex/issues/16
+'@TestMethod("DfsMatcher")
+Private Sub DfsMatcher_LookbehindWordBoundary_BetweenWordCharacters()
+    On Error GoTo TestFail
+
+    Dim captures As RegexDfsMatcher.CapturesTy
+    Dim bytecode() As Long
+    Dim s As String
+    Dim result As Long
+
+    ' (?<=\b)b
+    MakeArray bytecode, _
+        1, 0, 0, _
+        REOP_SAVE, 0, _
+        REOP_CHECK_LOOKBEHIND, _
+        REOP_LOOKPOS, 2, _
+        REOP_ASSERT_WORD_BOUNDARY, _
+        REOP_END_LOOKPOS, _
+        REOP_CHAR, AscW("b"), _
+        REOP_SAVE, 1, _
+        REOP_MATCH
+
+    s = "ab"
+    result = RegexDfsMatcher.DfsMatch(captures, bytecode, s)
+
+    Assert.AreEqual -1&, result
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+' Issue: https://github.com/sihlfall/vba-regex/issues/15
+'@TestMethod("DfsMatcher")
+Private Sub DfsMatcher_NegativeLookbehindStart_UsesBoundaryPosition()
+    On Error GoTo TestFail
+
+    Dim captures As RegexDfsMatcher.CapturesTy
+    Dim bytecode() As Long
+    Dim s As String
+    Dim result As Long
+
+    ' (?<!^)b
+    MakeArray bytecode, _
+        1, 0, 0, _
+        REOP_SAVE, 0, _
+        REOP_CHECK_LOOKBEHIND, _
+        REOP_LOOKNEG, 2, _
+        REOP_ASSERT_START, _
+        REOP_END_LOOKNEG, _
+        REOP_CHAR, AscW("b"), _
+        REOP_SAVE, 1, _
+        REOP_MATCH
+
+    ' Boundary 1 is not the start of the string.
+    s = "abc"
+    result = RegexDfsMatcher.DfsMatch(captures, bytecode, s)
+
+    Assert.AreEqual 2&, result
+    Assert.AreEqual 2&, captures.entireMatch.start
+    Assert.AreEqual 1&, captures.entireMatch.Length
+
+    ' Boundary 0 is the start, so the negative lookbehind must fail.
+    s = "b"
+    result = RegexDfsMatcher.DfsMatch(captures, bytecode, s)
+
+    Assert.AreEqual -1&, result
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
 
 
 
