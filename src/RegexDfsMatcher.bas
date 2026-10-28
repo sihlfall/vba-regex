@@ -757,7 +757,8 @@ InternalError:
 End Function
 
 
-'Inspect only the initial straight-line instructions; control flow falls back to the matcher.
+'Inspect only initial metadata and the first required character; control flow falls back.
+'Keep preparation cheap because MatchNext repeats it for every match.
 Private Sub PrepareSearchFilter(ByRef bytecode() As Long, ByVal multiline As Boolean, _
     ByRef prefix As String, ByRef ranges As Long, ByRef absoluteStart As Boolean, ByRef steps As Long)
     Dim pc As Long, op As Long, bound As Long
@@ -776,8 +777,9 @@ Private Sub PrepareSearchFilter(ByRef bytecode() As Long, ByVal multiline As Boo
             Case REOP_CHAR
                 If op And RegexBytecode.MODIFIER_I_ACTIVE Then Exit Do
                 If pc + 1 > bound Then Exit Do
-                prefix = prefix & ChrW$(bytecode(pc + 1))
-                pc = pc + 2
+                prefix = ChrW$(bytecode(pc + 1))
+                steps = steps + 1
+                Exit Do
             Case REOP_RANGES, REOP_INVRANGES
                 If Len(prefix) = 0 Then ranges = pc
                 steps = steps + 1
