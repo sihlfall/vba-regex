@@ -1,0 +1,6722 @@
+[
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 2.8577249904628843,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 2.863800007617101,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 3.0822499975329265,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 3.8892500015208498,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 2.84132499655243,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 2.804025003570132,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 5.408249999163672,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 4.040749990963377,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 2.9597749962704256,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 2.6656749978428707,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 2.821025002049282,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 2.622675005113706,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 2.6518250087974593,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 2.5559250061633065,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.06665195314781158,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 128,
+    "ms": 0.0674835937388707,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 2.8069499967386946,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 2.66357499640435,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 2.8982499934500083,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 3.4426999918650836,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 4.839200002606958,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 5.212799995206296,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 2.725250000366941,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 2.6551749906502664,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 2.53944999712985,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 2.525700008845888,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 2.568199997767806,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 2.830074998200871,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 128,
+    "ms": 0.06478203113147174,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.06349101568048354,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 2.5883750058710575,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 2.542450005421415,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 2.5504999939585105,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 2.620100000058301,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 3.961400012485683,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 4.258199987816624,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 2.687125001102686,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 2.67875001009088,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 2.635575001477264,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 2.629399998113513,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 2.6590250054141507,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 2.6385749952169135,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.06618984366468794,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 128,
+    "ms": 0.06713750008202624,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 2.681024998310022,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 2.6511749892961234,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 2.7712250011973083,
+    "characters": 1000
+  },
+  {
+    "case": "No matches, 1000 characters",
+    "case_id": 0,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 2.7153999981237575,
+    "characters": 1000
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.0649664061711519,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.062001952983337105,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.07469882802979555,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.0680707032643113,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 16,
+    "ms": 1.0685312481655274,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 16,
+    "ms": 1.0893375001614913,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 16,
+    "ms": 1.0990874980052467,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 16,
+    "ms": 1.2034749997837935,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.03761757807296817,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.03446503910708998,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.04370546866994118,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.04867695315624587,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.05765703122051491,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.05662695298269682,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.0641589845145063,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.06896523450450331,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.06747499992343364,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.06823046874160354,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 16,
+    "ms": 1.0645562506397255,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 16,
+    "ms": 1.2227437473484315,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 16,
+    "ms": 1.1532937496667728,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 16,
+    "ms": 1.1870937523781322,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.033261132898587675,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.03404003905416175,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.04289960952519323,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.04411250006342016,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.0577164062178781,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.05629179690913588,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.06593515627173474,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.06526484366986551,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.06164453111523471,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.06274062502598099,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 16,
+    "ms": 1.101349997043144,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 16,
+    "ms": 1.0981250015902333,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 16,
+    "ms": 1.077974997315323,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 16,
+    "ms": 1.0523250020924024,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.03390605468212016,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.03318984374800493,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.04327265605752473,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.042867187403317075,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.0609320311468764,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.05970820325273962,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.07200937511697703,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.0714191407951148,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.0689613282247592,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.0687324218233698,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.08107148437375145,
+    "characters": 26
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "case_id": 1,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.08260937511295197,
+    "characters": 26
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 5.229700007475913,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 5.157350009540096,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 5.7342000072821975,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 5.4955500236246735,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 119.72050002077594,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 121.26850005006418,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 5.172200006200001,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 5.013849993702024,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.034306640600334504,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.034420117117406335,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 3.829199995379895,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 3.6182000039843842,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 4.0948000096250325,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 4.274650011211634,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.06867656247777632,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.07074726568134793,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 5.407449993072078,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 5.288899992592633,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 110.53730000276119,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 106.82939999969676,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 5.028200015658513,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 5.038750008679926,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.037019140563643305,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.03617050776938413,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 3.7911249964963645,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 3.83847500779666,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 3.91585000033956,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 4.003049994935282,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.06498203129012836,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.06731367193424376,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 5.18259999807924,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 4.81670000590384,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 107.80199995497242,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 107.68349998397753,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 5.076100002042949,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 5.063250020612031,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.03420000007281487,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.03353730471644667,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 3.753125012735836,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 3.645374992629513,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 3.891000000294298,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 3.8064250111347064,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.06411093750102737,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.0694374998602143,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 4.675899996072985,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 4.6208999992813915,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 5.424999981187284,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "case_id": 2,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 5.714950006222352,
+    "characters": 2600
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 46.4720000163652,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 46.57100001350045,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 52.55939997732639,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 51.477400003932416,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 1068.911400041543,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 1065.2696000179276,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 40.377299999818206,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 40.16360000241548,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.03682792964809778,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.03554902343694266,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 36.19389998493716,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 37.02849999535829,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 38.55340002337471,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 39.62270001647994,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.06533671876240987,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.06442421863539494,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 51.771099970210344,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 51.72529997071251,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 1062.1446000295691,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 1057.6472000102513,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 41.0179000464268,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 41.11410002224147,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.03900976560089475,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.036676757758868916,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 36.51750000426546,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 36.39109997311607,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 37.95599995646626,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 39.729799958877265,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.06589960935343697,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.06643281267315615,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 46.407399990130216,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 46.18559998925775,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 1059.909300005529,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 1044.886099989526,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 41.29850002937019,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 40.96910002408549,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.037298632832971634,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.03925156249806605,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 36.56919999048114,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 35.67900002235547,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 38.70590002043173,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 37.940000009257346,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.064591406044201,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.06472656241385266,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 46.284699987154454,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 45.28189997654408,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 53.684999991673976,
+    "characters": 26000
+  },
+  {
+    "case": "1000 matches, 3 named captures",
+    "case_id": 3,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 50.970199983567,
+    "characters": 26000
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 6.659749982645735,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 6.706499989377335,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 7.277850003447384,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 7.077999995090067,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 110.07699999026954,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 105.21999996853992,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 6.176599999889731,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 6.063350010663271,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1024,
+    "ms": 0.012274218761376687,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1024,
+    "ms": 0.01198671873225976,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 6.0190000222064555,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 5.866949999472126,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 6.337750004604459,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 6.155499984743074,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1024,
+    "ms": 0.01916054685580093,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1024,
+    "ms": 0.01929970699166006,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 7.118749985238537,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 7.274600007804111,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 105.5589999887161,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 104.25619996385649,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 6.127450003987178,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 6.189750012708828,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1024,
+    "ms": 0.012146484380082256,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1024,
+    "ms": 0.012664355494962365,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 6.873650010675192,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 6.05304999044165,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 6.16939997416921,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 6.450949993450195,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1024,
+    "ms": 0.01933740236381709,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1024,
+    "ms": 0.019119433545711217,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 6.60210000933148,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 6.65165000827983,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 109.64489995967597,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 106.44709999905899,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 6.243650015676394,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 6.103149993577972,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1024,
+    "ms": 0.012273242191440659,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1024,
+    "ms": 0.012483789078032714,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 6.029699987266213,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 6.573099992237985,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 6.423050013836473,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 6.219400005647913,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1024,
+    "ms": 0.041333203114390926,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1024,
+    "ms": 0.01929902339270484,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 6.639950006501749,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 7.446250005159527,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 7.31985000311397,
+    "characters": 2600
+  },
+  {
+    "case": "100 matches, no captures",
+    "case_id": 4,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 7.194150006398559,
+    "characters": 2600
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 56.80069996742532,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 56.10069999238476,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 57.733000023290515,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 56.42129998886958,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 158.3767999545671,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 159.1296999831684,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 56.617300026118755,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 57.75040003936738,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 32,
+    "ms": 0.5577843749051681,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 32,
+    "ms": 0.5460406246129423,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 55.14700000640005,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 54.13339997176081,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 56.10720004187897,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 55.22249999921769,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.06486367192337639,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.06452226557485119,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 58.10220004059374,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 57.95350001426414,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 160.05890001542866,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 157.02750004129484,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 55.77810003887862,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 57.50560003798455,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 32,
+    "ms": 0.5535250002139946,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 32,
+    "ms": 0.5628156250168104,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 54.5377999660559,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 55.950500012841076,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 54.806599975563586,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 55.824599985498935,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.06702773430333764,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.06885273432999384,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 56.558199983555824,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 57.75139998877421,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 161.4179000025615,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 157.20199997304007,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 57.96000000555068,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 58.1186999916099,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 32,
+    "ms": 0.5567093739955453,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 32,
+    "ms": 0.548393749340903,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 55.20729999989271,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 56.035100016742945,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 58.979000023100525,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 56.87119998037815,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.06370585924742045,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.06368320305227826,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 57.18249996425584,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 57.078199984971434,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 58.55749995680526,
+    "characters": 22800
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "case_id": 5,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 56.83190003037453,
+    "characters": 22800
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 10.39780001156032,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 10.26609999826178,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 10.487799998372793,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 10.091600008308887,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 10.511200001928955,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 10.165899991989136,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 10.74309996329248,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 10.37430000724271,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 10.804300021845847,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 10.512100008782,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 10.339400032535195,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 10.03950001904741,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 10.62750001437962,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 10.160200006794184,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.023099023451322864,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.022943945282349887,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 10.24089998099953,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 10.538099973928183,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 10.087800037581474,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 10.563199990428984,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 10.353199962992221,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 10.43640001444146,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 10.165899991989136,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 10.901900008320808,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 10.149300040211529,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 10.454899980686605,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 10.658899962436408,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 10.641500004567206,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.025056640652110218,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.023104492129277787,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 10.407199966721237,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 10.637999977916479,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 10.434399999212474,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 10.16830001026392,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 11.798300023656338,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 10.54160000057891,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 11.0335000208579,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 10.843599971849471,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 10.61259995913133,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 10.250599996652454,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 10.405599954538047,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 10.11789997573942,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.023010937525214104,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.02323808598703181,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 10.645000031217933,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 10.494499991182238,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 10.398199956398457,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, absent",
+    "case_id": 6,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 10.072499979287386,
+    "characters": 10000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 23.0716000078246,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 22.220100043341517,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 23.611399985384196,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 22.96920004300773,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 60.23030000505969,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 60.786399990320206,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 21.986600011587143,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 21.64329995866865,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 64,
+    "ms": 0.2271250004923786,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 64,
+    "ms": 0.21657968773070024,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 22.072700026910752,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 21.102200029417872,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 22.425300034228712,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 21.612500015180558,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.021966992221678083,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.022081445308685943,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 23.701600031927228,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 23.88660004362464,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 61.99610000476241,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 60.19940000260249,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 21.613899967633188,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 22.365499986335635,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 64,
+    "ms": 0.22221874951355858,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 64,
+    "ms": 0.23047812464938033,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 21.516400040127337,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 22.201300016604364,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 21.882199973333627,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 22.423400019761175,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.021727929720327666,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.021765625092484697,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 22.130199999082834,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 23.65220000501722,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 62.1028000023216,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 59.33090002508834,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 22.45200000470504,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 21.95299998857081,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 64,
+    "ms": 0.2295499998581363,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 64,
+    "ms": 0.21644062417180976,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 23.098599980585277,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 21.5576000045985,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 22.810399997979403,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 22.371599974576384,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.023030664124235045,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.02298203128248133,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 23.440900025889277,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 23.81679997779429,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 24.402999959420413,
+    "characters": 21000
+  },
+  {
+    "case": "Literal prefix, sparse",
+    "case_id": 7,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 22.973500017542392,
+    "characters": 21000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 8.960650011431426,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 8.655449986690655,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 8.513399981893599,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 8.413499977905303,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 8.707950008101761,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 8.619400003226474,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 8.587349992012605,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 8.817549998639151,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 8.481600001687184,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 8.392999996431172,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 8.558950008591637,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 9.860899997875094,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 8.631600008811802,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 2,
+    "ms": 8.460550016025081,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.023418359319293813,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.02320546866485529,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 8.33839998813346,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 8.499599993228912,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 8.29764999798499,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 8.44435000908561,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 8.410850015934557,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 8.594600018113852,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 8.484699996188283,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 8.448800013866276,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 8.326000010129064,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 8.593900012783706,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 8.360799984075129,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 8.735199982766062,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.02324453123492276,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.02288613279688434,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 8.415349991992116,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 2,
+    "ms": 8.560099988244474,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 8.512850006809458,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 8.35469999583438,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 8.54814998456277,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 8.421200007433072,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 8.446799998637289,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 8.350050018634647,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 8.456850016955286,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 8.323299989569932,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 8.658800012199208,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 8.412049995968118,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.023051953121466795,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.023219921899908513,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 8.524149976437911,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 8.351299999048933,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 8.471100009046495,
+    "characters": 10000
+  },
+  {
+    "case": "Absolute anchor, absent",
+    "case_id": 8,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 2,
+    "ms": 8.370850002393126,
+    "characters": 10000
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 1.9125875041936524,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 2.120749995810911,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 2.459374998579733,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 2.312437500222586,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 40.599499945528805,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 43.98289998061955,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 1.5144374992814846,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 1.5070499939611182,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1024,
+    "ms": 0.013811718758915958,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1024,
+    "ms": 0.013658496129664854,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 1.3185499992687255,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 1.3178375011193566,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 1.49771250289632,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 1.4981749991420656,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.047051562660271884,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.04976757827535039,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 2.2920624978723936,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 2.2691749982186593,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 39.04130001319572,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 38.265899987891316,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.4191125010256656,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.4418375067180023,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1024,
+    "ms": 0.01401601565476085,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1024,
+    "ms": 0.014525585925184714,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.337112502369564,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.428062496415805,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.5188249963102862,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.4709250026498921,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.04733476566798345,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.04816406249119609,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.865774996986147,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.9494500011205673,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 43.91810001106933,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 42.890199983958155,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 1.510087495262269,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 1.4863625037833117,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1024,
+    "ms": 0.014575781278836075,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1024,
+    "ms": 0.0156686523382632,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 1.4306375014712103,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 1.44106250081677,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 1.632150000659749,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 1.5437500042025931,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.05069687495051767,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.050210156359753455,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 1.9713375004357658,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 1.9922249994124286,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 2.542562499002088,
+    "characters": 3300
+  },
+  {
+    "case": "Long literal runs",
+    "case_id": 9,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 2.420387500023935,
+    "characters": 3300
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 1.9203999981982633,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 1.8922499948530458,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 2.4206375019275583,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 2.456474998325575,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 56.18829996092245,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 39.647000026889145,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 1.911762505187653,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 1.867737497377675,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1024,
+    "ms": 0.012106347639928572,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1024,
+    "ms": 0.012247363258666155,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 16,
+    "ms": 1.2556812471302692,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 16,
+    "ms": 1.2978499980818015,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 1.4538500035996549,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 1.4413125027203932,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.03065878900088137,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.030526562454724626,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 2.4478624982293695,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 2.4158374944818206,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 40.737400006037205,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 40.81099998438731,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.902600000903476,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.9382499958737753,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1024,
+    "ms": 0.01286230468622307,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1024,
+    "ms": 0.012523046905243973,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 16,
+    "ms": 1.2735562522721011,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 16,
+    "ms": 1.2315312524151523,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.4510499968309887,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.4302624986157753,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.030534765642187267,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.03089277333856444,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.9768874990404584,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.8509625006117858,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 39.12009997293353,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 38.07140002027154,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 1.8687500050873496,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 1.8889874991145916,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1024,
+    "ms": 0.012461328083190892,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1024,
+    "ms": 0.01251406246183251,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 16,
+    "ms": 1.2544062483357266,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 16,
+    "ms": 1.2868812482338399,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 1.4802875011810102,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 1.465449997340329,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.03192011718056165,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.030739843737137562,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 1.9764500029850751,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 2.0188749986118637,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 2.532912498281803,
+    "characters": 800
+  },
+  {
+    "case": "UTF16 captures",
+    "case_id": 10,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 2.6326500010327436,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 1.9560875007300638,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 2.0775874945684336,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 2.6319125026930124,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 2.7033500009565614,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 41.133099992293864,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 43.42629999155179,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 2.254425002320204,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 2.307562499481719,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1024,
+    "ms": 0.01341718751746157,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1024,
+    "ms": 0.01428867187769356,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 1.3733625019085594,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 1.32714999926975,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 1.5445125027326867,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 1.5235000028042123,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.02387617178101209,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.02430332028779958,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 2.4790624956949614,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 2.479000002495013,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 38.49389997776598,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 38.04119996493682,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.931350001541432,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.9059499973081984,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1024,
+    "ms": 0.012832617187541473,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1024,
+    "ms": 0.012908105475162301,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.3122250020387582,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.319337505265139,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.5197625034488738,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.5364999999292195,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.02416484380773909,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.023751757794343575,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.9762000010814518,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 1.9969124987255782,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 38.19570003543049,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 39.82390003511682,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 2.069087502604816,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 2.0366625030874275,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1024,
+    "ms": 0.013925878931786428,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1024,
+    "ms": 0.014574511737919238,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 1.4047375007066876,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 1.380012501613237,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 1.6121750013553537,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 1.590262501849793,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.024815625010887743,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.024749414137659187,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 2.0856624978478067,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 2.041749998170417,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 2.622375002829358,
+    "characters": 800
+  },
+  {
+    "case": "Caseless backreferences",
+    "case_id": 11,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 2.5560624999343418,
+    "characters": 800
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 2.825399991706945,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 2.825025003403425,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 3.401900001335889,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 4,
+    "ms": 3.3765749976737425,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 39.670800033491105,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1,
+    "ms": 40.66739999689162,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 2.4392749983235262,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 2.422987497993745,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.02248652344860602,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.022431835986935766,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 2.2118249980849214,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 2.225224998255726,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 2.5297374959336594,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 8,
+    "ms": 2.433737499814015,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.020619921883735515,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.02079277339817054,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 3.4727000020211563,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 3.407174997846596,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 41.45219997735694,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1,
+    "ms": 40.1543999905698,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 2.4038624978857115,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 2.458987495629117,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.023311523477786977,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.023629687461834692,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 2.228937497420702,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 2.2755749960197136,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 2.4348499937332235,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 8,
+    "ms": 2.452200002153404,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.02043847655386344,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.020549999931063212,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 2.87167499482166,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 4,
+    "ms": 3.1085750088095665,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 39.10499997437,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1,
+    "ms": 38.8134999666363,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 2.4198625033022836,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 2.5684499996714294,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.022287499973572267,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.02237050773601368,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 2.299724998010788,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 2.1958750003250316,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 2.431849999993574,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 8,
+    "ms": 2.4088624995783903,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.020333398424554616,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.02063632814497396,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 2.835649996995926,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 2.794225001707673,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 3.3941000001505017,
+    "characters": 700
+  },
+  {
+    "case": "Bounded backtracking",
+    "case_id": 12,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 4,
+    "ms": 3.3392000041203573,
+    "characters": 700
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.03607988287512853,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.03589355469557631,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.0415769532082777,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.041564843741070945,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 32,
+    "ms": 0.42549062527541537,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 32,
+    "ms": 0.40277500011143275,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.05997460925755149,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.05969609378553287,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1024,
+    "ms": 0.01601416016683288,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1024,
+    "ms": 0.015802246082330385,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 1024,
+    "ms": 0.01812441405490972,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 1024,
+    "ms": 0.018028613283149753,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.02920000008543866,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 512,
+    "ms": 0.028758203143297578,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.0426167969180824,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 1,
+    "iterations": 256,
+    "ms": 0.0432488279784593,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.04164453116572986,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.04184648446425854,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 32,
+    "ms": 0.4198468741378747,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 32,
+    "ms": 0.4089968751941342,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.05924843753746245,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.05904921886212833,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1024,
+    "ms": 0.015853320292080753,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1024,
+    "ms": 0.01594335935806157,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 1024,
+    "ms": 0.017914648481109907,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 1024,
+    "ms": 0.01854306640325376,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.028893554599562776,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.02940488286640175,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.04365078120827093,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 256,
+    "ms": 0.04293242182029644,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.03754609372208506,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 2,
+    "iterations": 512,
+    "ms": 0.03692089842388668,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "MatchAll",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 32,
+    "ms": 0.40771874955680687,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "MatchAll",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 32,
+    "ms": 0.3949718739022501,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "MatchAllArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.05952656260888034,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "MatchAllArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.05933632792221033,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "EngineTest",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1024,
+    "ms": 0.016385937499308056,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "EngineTest",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1024,
+    "ms": 0.01608457029078636,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "Iterate",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 1024,
+    "ms": 0.018432226568165788,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "Iterate",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 1024,
+    "ms": 0.018217382830698625,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "Replace",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.030292187602753984,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "Replace",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.029166015679038537,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "Compile",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.0434812500316184,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "Compile",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.04411015606820001,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "List",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.03669179682219692,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "List",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 512,
+    "ms": 0.03602011724979093,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "ListArr",
+    "variant": "baseline",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.04166406256445043,
+    "characters": 12
+  },
+  {
+    "case": "Short input, 12 captures",
+    "case_id": 13,
+    "operation": "ListArr",
+    "variant": "candidate",
+    "sample": 3,
+    "iterations": 256,
+    "ms": 0.04135976564612065,
+    "characters": 12
+  }
+]

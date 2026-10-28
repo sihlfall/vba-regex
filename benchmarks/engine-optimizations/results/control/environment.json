@@ -1,0 +1,20 @@
+{
+  "baseline": "1619cd75526903045b8c5cb8c6048f93bc4160be",
+  "candidate": "1619cd75526903045b8c5cb8c6048f93bc4160be",
+  "native_test_modules": [
+    "TestArrayBuffer",
+    "TestAst",
+    "TestCompileMatch",
+    "TestCompiler",
+    "TestDfsMatcher",
+    "TestLexer",
+    "TestRangeConstants",
+    "TestReplace",
+    "TestStaticRegex",
+    "TestUnicode"
+  ],
+  "measured_at_utc": "2026-10-28T01:06:08.8784135Z",
+  "office_version": "16.0",
+  "samples": 3,
+  "wrapper_sha256": "653BF08340955FE00E847598BC075F2AED4B0C1B563A200B078B56FC3BC0B977"
+}

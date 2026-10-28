@@ -1,0 +1,50 @@
+[
+  {
+    "suite": "TestArrayBuffer",
+    "result": "checks=1\n"
+  },
+  {
+    "suite": "TestAst",
+    "result": "checks=4\n"
+  },
+  {
+    "suite": "TestCompileMatch",
+    "result": "checks=11\n"
+  },
+  {
+    "suite": "TestCompiler",
+    "result": "checks=71\n"
+  },
+  {
+    "suite": "TestDfsMatcher",
+    "result": "checks=65\n"
+  },
+  {
+    "suite": "TestLexer",
+    "result": "checks=215\n"
+  },
+  {
+    "suite": "TestRangeConstants",
+    "result": "checks=12\n"
+  },
+  {
+    "suite": "TestReplace",
+    "result": "checks=11\n"
+  },
+  {
+    "suite": "TestStaticRegex",
+    "result": "checks=187\n"
+  },
+  {
+    "suite": "TestUnicode",
+    "result": "checks=12\n"
+  },
+  {
+    "suite": "stdVBA",
+    "result": 328
+  },
+  {
+    "suite": "differential",
+    "result": 1241
+  }
+]
