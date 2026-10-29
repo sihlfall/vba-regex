@@ -4,12 +4,23 @@ Option Explicit
 Public Enum BytecodeDescriptionConstant
     BYTECODE_IDX_MAX_PROPER_CAPTURE_SLOT = 0
     BYTECODE_IDX_N_IDENTIFIERS = 1
-    BYTECODE_IDX_CASE_INSENSITIVE_INDICATOR = 2
-    BYTECODE_IDENTIFIER_MAP_BEGIN = 3
+    BYTECODE_IDX_PROPERTIES = 2
+    BYTECODE_IDX_START_WITH_PREFIX = 3
+    BYTECODE_IDX_START_ACTUAL = 4
+    BYTECODE_IDX_START_DFA_BW_RUN = 5
+    BYTECODE_IDX_REOP_PERFORM_ASSERT = 6
+    BYTECODE_IDX_REOP_MATCH_PREV = 7
+    BYTECODE_IDX_REOP_MATCH_OLD = 8
+    BYTECODE_FIXED_PROLOGUE_LAST_IDX = 8
+    BYTECODE_IDENTIFIER_MAP_BEGIN = 9
     BYTECODE_IDENTIFIER_MAP_ENTRY_SIZE = 3
     BYTECODE_IDENTIFIER_MAP_ENTRY_START_IN_PATTERN = 0
     BYTECODE_IDENTIFIER_MAP_ENTRY_LENGTH_IN_PATTERN = 1
     BYTECODE_IDENTIFIER_MAP_ENTRY_ID = 2
+    
+    BYTECODE_PROPERTY_CASE_INSENSITIVE = 1
+    BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING = 2
+    BYTECODE_PROPERTY_PREFER_DFS = 4 ' single path after a mandatory start anchor
     
     ' Todo: Introduce special value or restrict max. explicit quantifier value to RegexNumericConstants.LONG_MAX - 1
     RE_QUANTIFIER_INFINITE = &H7FFFFFFF
@@ -66,19 +77,30 @@ Public Enum ReOpType
     REOP_REPEAT_MAX_HUMBLE_INIT = 21 ' <none>
     REOP_REPEAT_MAX_HUMBLE_START = 22 ' quantity, offset
     REOP_REPEAT_MAX_HUMBLE_END = 23 ' quantitiy, offset
-    REOP_REPEAT_GREEDY_MAX_INIT = 24 ' <none>
-    REOP_REPEAT_GREEDY_MAX_START = 25 ' quantity, offset
-    REOP_REPEAT_GREEDY_MAX_END = 26 ' quantitiy, offset
+    REOP_REPEAT_MAX_GREEDY_INIT = 24 ' <none>
+    REOP_REPEAT_MAX_GREEDY_START = 25 ' quantity, offset
+    REOP_REPEAT_MAX_GREEDY_END = 26 ' quantitiy, offset
     REOP_CHECK_LOOKAHEAD = 27 ' <none>
     REOP_CHECK_LOOKBEHIND = 28 ' <none>
     REOP_END_LOOKPOS = 29 ' <none>
     REOP_END_LOOKNEG = 30 ' <none>
     REOP_COMMIT_POSSESSIVE = 31 ' <none>
     REOP_FAIL = 32
+    REOP_STRING = 33
+    
+    REOP_PERFORM_ASSERT = 34 ' <none>, used internally by DFA matcher
+    REOP_MATCH_PREV = 35
+    REOP_MATCH_OLD = 36
+    ' Post-body splits: relative body target, with the continuation immediately
+    ' after the operand. These keep initial entry distinct from another iteration.
+    REOP_LOOP_GREEDY = 37 ' prefer body
+    REOP_LOOP_HUMBLE = 38 ' prefer continuation
+    REOP_LOOP_INIT = 39 ' entry marker for +; no operands, not a repeat target
 End Enum
 
 Public Function isCaseInsensitive(ByRef bytecode() As Long) As Boolean
-    isCaseInsensitive = bytecode(BYTECODE_IDX_CASE_INSENSITIVE_INDICATOR) <> 0
+    isCaseInsensitive = _
+        (bytecode(BYTECODE_IDX_PROPERTIES) And BYTECODE_PROPERTY_CASE_INSENSITIVE) <> 0
 End Function
 
 Public Function GetIdentifierId( _

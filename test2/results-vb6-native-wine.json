@@ -1,0 +1,219 @@
+{
+  "date": "2026-10-28",
+  "base_revision": "8010884",
+  "compiler": "VB6 native code, speed optimization",
+  "wine": "6.0.3",
+  "corpus": {
+    "repository": "https://github.com/sihlfall/regex-test-cases",
+    "revision": "0ab3381ad388eaa44576fe33fa66aa3458c61c43",
+    "suites": [
+      "000_EgrepLiterals_Lowercase",
+      "001_EgrepLiterals_Lowercase",
+      "002_EgrepLiterals_Lowercase",
+      "003_EgrepLiterals_Lowercase",
+      "004_EgrepLiterals_MixedCase",
+      "005_EgrepLiterals_MixedCase",
+      "006_EgrepLiterals_MixedCase",
+      "007_EgrepLiterals_MixedCase",
+      "008_EgrepLiterals_FoldCase",
+      "009_EgrepLiterals_FoldCase",
+      "010_EgrepLiterals_FoldCase",
+      "011_EgrepLiterals_FoldCase",
+      "016_Repetition_Simple",
+      "017_Repetition_Simple",
+      "018_Repetition_Capturing",
+      "019_Repetition_Capturing",
+      "020_EmptyString_Exhaustive",
+      "021_Punctuation_Literals",
+      "023_CharacterClasses_Exhaustive",
+      "024_CharacterClasses_ExhaustiveAB"
+    ],
+    "patterns_per_engine": 92856,
+    "cases_per_engine": 4651912,
+    "reference": "RE2 unanchored, leftmost-first; ASCII subset with existing \\C to . translation"
+  },
+  "comparison": {
+    "dfs": "whole match and numbered captures",
+    "nfa": "whole match and numbered captures",
+    "dfa": "whole match only; no capture fallback"
+  },
+  "skips": "Only BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING for NFA/DFA; unsupported patterns produce null.",
+  "state_lifetime": "Fresh adapter per compiled pattern; state reused across its input strings.",
+  "validation": "Python comparison and PowerShell checker; known mismatches cause a nonzero checker exit.",
+  "totals": {
+    "dfs": {
+      "Passed": 4651912,
+      "Failed": 0,
+      "SkippedPatterns": 0,
+      "SkippedCases": 0
+    },
+    "nfa": {
+      "Passed": 4392540,
+      "Failed": 13132,
+      "SkippedPatterns": 2080,
+      "SkippedCases": 246240
+    },
+    "dfa": {
+      "Passed": 4392540,
+      "Failed": 13132,
+      "SkippedPatterns": 2080,
+      "SkippedCases": 246240
+    }
+  },
+  "nullable_loop_reproductions": {
+    "RegexTest2Project.exe/dfs": [
+      [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    ],
+    "RegexTest2Project.exe/nfa": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    ],
+    "RegexTest2Project.exe/dfa": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    ],
+    "RegexTest2Pcode.exe/dfs": [
+      [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    ],
+    "RegexTest2Pcode.exe/nfa": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    ],
+    "RegexTest2Pcode.exe/dfa": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    ]
+  },
+  "harness_checks": {
+    "native_smoke_assertions": 23,
+    "pcode_smoke_assertions": 23,
+    "powershell_runner_suites": [
+      "000_EgrepLiterals_Lowercase",
+      "016_Repetition_Simple"
+    ],
+    "checker_negative_controls": [
+      "injected mismatch",
+      "missing result file"
+    ]
+  },
+  "additional_finding": "Reinitializing a reused DFA context for another compiled pattern can raise VB6 error 10 in InitializeTables. This run uses a new matcher per pattern.",
+  "matcher_implementations_changed": false,
+  "nfa_failed_pattern_entries_by_suite": {
+    "016_Repetition_Simple": 48,
+    "017_Repetition_Simple": 32,
+    "018_Repetition_Capturing": 48,
+    "019_Repetition_Capturing": 32,
+    "020_EmptyString_Exhaustive": 4
+  },
+  "nfa_distinct_failed_pattern_strings": 68
+}

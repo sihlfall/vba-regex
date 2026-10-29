@@ -153,381 +153,477 @@ Public Sub ParseReToken(ByRef lexCtx As Ty, ByRef outToken As ReToken)
     outToken = emptyReToken
 
     x = Advance(lexCtx)
-    Select Case x
-    Case UNICODE_PIPE
-        outToken.t = RETOK_DISJUNCTION
-    Case UNICODE_CARET
-        outToken.t = RETOK_ASSERT_START
-    Case UNICODE_DOLLAR
-        outToken.t = RETOK_ASSERT_END
-    Case UNICODE_QUESTION
-        With outToken
-            .qmin = 0
-            .qmax = 1
-            If lexCtx.currentCharacter = UNICODE_QUESTION Then
-                Advance lexCtx
-                .t = RETOK_QUANTIFIER
-                .quantifierType = QUANTIFIER_HUMBLE
-            ElseIf lexCtx.currentCharacter = UNICODE_PLUS Then
-                Advance lexCtx
-                .t = RETOK_QUANTIFIER
-                .quantifierType = QUANTIFIER_POSSESSIVE
-            Else
-                .t = RETOK_QUANTIFIER
-                .quantifierType = QUANTIFIER_GREEDY
-            End If
-        End With
-    Case UNICODE_STAR
-        With outToken
-            .qmin = 0
-            .qmax = RE_QUANTIFIER_INFINITE
-            If lexCtx.currentCharacter = UNICODE_QUESTION Then
-                Advance lexCtx
-                .t = RETOK_QUANTIFIER
-                .quantifierType = QUANTIFIER_HUMBLE
-            ElseIf lexCtx.currentCharacter = UNICODE_PLUS Then
-                Advance lexCtx
-                .t = RETOK_QUANTIFIER
-                .quantifierType = QUANTIFIER_POSSESSIVE
-            Else
-                .t = RETOK_QUANTIFIER
-                .quantifierType = QUANTIFIER_GREEDY
-            End If
-        End With
-    Case UNICODE_PLUS
-        With outToken
-            .qmin = 1
-            .qmax = RE_QUANTIFIER_INFINITE
-            If lexCtx.currentCharacter = UNICODE_QUESTION Then
-                Advance lexCtx
-                .t = RETOK_QUANTIFIER
-                .quantifierType = QUANTIFIER_HUMBLE
-            ElseIf lexCtx.currentCharacter = UNICODE_PLUS Then
-                Advance lexCtx
-                .t = RETOK_QUANTIFIER
-                .quantifierType = QUANTIFIER_POSSESSIVE
-            Else
-                .t = RETOK_QUANTIFIER
-                .quantifierType = QUANTIFIER_GREEDY
-            End If
-        End With
-    Case UNICODE_LCURLY
-        ' Production allows 'DecimalDigits', including leading zeroes
-        val1 = 0
-        val2 = RE_QUANTIFIER_INFINITE
-        
-        digits = 0
+    
+    If x <= 32 Then GoTo L_any_or_EOF
+    If x >= 126 Then GoTo L_any
 
-        Do
-            x = Advance(lexCtx)
-            If (x >= UNICODE_0) And (x <= UNICODE_9) Then
-                digits = digits + 1
-                ' Be careful to prevent overflow
-                If val1 > RegexNumericConstants.LONG_MAX_DIV_10 Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER
-                val1 = val1 * 10
-                tmp = x - UNICODE_0
-                If RegexNumericConstants.LONG_MAX - val1 < tmp Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER
-                val1 = val1 + tmp
-            ElseIf x = UNICODE_COMMA Then
-                If val2 <> RE_QUANTIFIER_INFINITE Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER
-                If lexCtx.currentCharacter = UNICODE_RCURLY Then
-                    ' form: { DecimalDigits , }, val1 = min count
-                    If digits = 0 Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER
-                    outToken.qmin = val1
-                    outToken.qmax = RE_QUANTIFIER_INFINITE
-                    Advance lexCtx
-                    Exit Do
-                End If
-                val2 = val1
-                val1 = 0
-                digits = 0 ' not strictly necessary because of lookahead '}' above
-            ElseIf x = UNICODE_RCURLY Then
-                If digits = 0 Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER
-                If val2 <> RE_QUANTIFIER_INFINITE Then
-                    ' val2 = min count, val1 = max count
-                    outToken.qmin = val2
-                    outToken.qmax = val1
-                Else
-                    ' val1 = count
-                    outToken.qmin = val1
-                    outToken.qmax = val1
-                End If
-                Exit Do
-            Else
-                Err.Raise REGEX_ERR_INVALID_QUANTIFIER
-            End If
-        Loop
-        If lexCtx.currentCharacter = UNICODE_QUESTION Then
-            outToken.quantifierType = QUANTIFIER_HUMBLE
-            Advance lexCtx
-        ElseIf lexCtx.currentCharacter = UNICODE_PLUS Then
-            outToken.quantifierType = QUANTIFIER_POSSESSIVE
-            Advance lexCtx
-        Else
-            outToken.quantifierType = QUANTIFIER_GREEDY
-        End If
-        outToken.t = RETOK_QUANTIFIER
-    Case UNICODE_PERIOD
-        outToken.t = RETOK_ATOM_PERIOD
-    Case UNICODE_BACKSLASH
-        ' The E5.1 specification does not seem to allow IdentifierPart characters
-        ' to be used as identity escapes.  Unfortunately this includes '$', which
-        ' cannot be escaped as '\$'; it needs to be escaped e.g. as '\u0024'.
-        ' Many other implementations (including V8 and Rhino, for instance) do
-        ' accept '\$' as a valid identity escape, which is quite pragmatic, and
-        ' ES2015 Annex B relaxes the rules to allow these (and other) real world forms.
-        '
-        ' Here, we use a Perl-like convention:
-        '   \<character> is an identity escape (= represents the character itself)
-        '   unless the character is within [0-9A-Za-z];
-        '   we hope that this will not require any breaking changes in the future.
-        x = Advance(lexCtx)
-        
-        If x >= UNICODE_UC_A Then
-            If x < UNICODE_LC_A Then
-                If x > UNICODE_UC_Z Then GoTo IdentityEscape Else GoTo EscapeUppercaseLetter
-            Else
-                If x <= UNICODE_LC_Z Then GoTo EscapeLowercaseLetter Else GoTo IdentityEscape
-            End If
-        Else
-            If x < UNICODE_0 Then
-                If x < 0 Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE Else GoTo IdentityEscape
-            Else
-                If x <= UNICODE_9 Then GoTo EscapeDigit Else GoTo IdentityEscape
-            End If
-        End If
-        Err.Raise REGEX_ERR_INTERNAL_LOGIC_ERR
-        ' unreachable
-        
-EscapeUppercaseLetter:
-        Select Case x
-        Case UNICODE_UC_B
-            outToken.t = RETOK_ASSERT_NOT_WORD_BOUNDARY
-        Case UNICODE_UC_D
-            outToken.t = RETOK_ATOM_NOT_DIGIT
-        Case UNICODE_UC_S
-            outToken.t = RETOK_ATOM_NOT_WHITE
-        Case UNICODE_UC_W
-            outToken.t = RETOK_ATOM_NOT_WORD_CHAR
-        Case Else
-            Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
-        End Select
-        GoTo EndEscapeHandling
-        
-EscapeLowercaseLetter:
-        Select Case x
-        Case UNICODE_LC_B
-            outToken.t = RETOK_ASSERT_WORD_BOUNDARY
-        Case UNICODE_LC_C
-            x = Advance(lexCtx)
-            If (x >= UNICODE_LC_A And x <= UNICODE_LC_Z) Or (x >= UNICODE_UC_A And x <= UNICODE_UC_Z) Then
-                outToken.num = x Mod 32
-                outToken.t = RETOK_ATOM_CHAR
-            Else
-                Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
-            End If
-        Case UNICODE_LC_D
-            outToken.t = RETOK_ATOM_DIGIT
-        Case UNICODE_LC_F
-            outToken.num = &HC&
-            outToken.t = RETOK_ATOM_CHAR
-        Case UNICODE_LC_N
-            outToken.num = &HA&
-            outToken.t = RETOK_ATOM_CHAR
-        Case UNICODE_LC_T
-            outToken.num = &H9&
-            outToken.t = RETOK_ATOM_CHAR
-        Case UNICODE_LC_R
-            outToken.num = &HD&
-            outToken.t = RETOK_ATOM_CHAR
-        Case UNICODE_LC_S
-            outToken.t = RETOK_ATOM_WHITE
-        Case UNICODE_LC_U
-            ' Todo: What does the following mean?
-            ' The token value is the Unicode codepoint without
-            ' it being decode into surrogate pair characters
-            ' here.  The \u{H+} is only allowed in Unicode mode
-            ' which we don't support yet.
-            outToken.num = LexerParseEscapeU(lexCtx)
-            outToken.t = RETOK_ATOM_CHAR
-        Case UNICODE_LC_V
-            outToken.num = &HB&
-            outToken.t = RETOK_ATOM_CHAR
-        Case UNICODE_LC_W
-            outToken.t = RETOK_ATOM_WORD_CHAR
-        Case UNICODE_LC_X
-            outToken.num = LexerParseEscapeX(lexCtx)
-            outToken.t = RETOK_ATOM_CHAR
-        Case Else
-            Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
-        End Select
-        GoTo EndEscapeHandling
-        
-EscapeDigit:
-        If x = UNICODE_0 Then
-            x = lexCtx.currentCharacter
-            ' Reject a following digit without consuming the next character.
-            If x >= UNICODE_0 And x <= UNICODE_9 Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
-            outToken.num = 0
-            outToken.t = RETOK_ATOM_CHAR
-        Else
-            val1 = 0
-            i = 0
-            Do
-                ' We have to be careful here to make sure there will be no overflow.
-                ' 2^31 - 1 backreferences is a bit ridiculous, though.
-                If val1 > RegexNumericConstants.LONG_MAX_DIV_10 Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
-                val1 = val1 * 10
-                tmp = x - UNICODE_0
-                If RegexNumericConstants.LONG_MAX - val1 < tmp Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
-                val1 = val1 + tmp
-                x = lexCtx.currentCharacter
-                If x < UNICODE_0 Or x > UNICODE_9 Then Exit Do
-                Advance lexCtx
-                i = i + 1
-            Loop
-            outToken.t = RETOK_ATOM_BACKREFERENCE
-            outToken.num = val1
-        End If
-        GoTo EndEscapeHandling
-        
-IdentityEscape:
-        outToken.num = x
-        outToken.t = RETOK_ATOM_CHAR
-        
-EndEscapeHandling:
-        ' end case
-        
-    Case UNICODE_LPAREN
-        If lexCtx.currentCharacter = UNICODE_QUESTION Then
-            Advance lexCtx
-            x = Advance(lexCtx)
-            Select Case x
-            Case UNICODE_EQUALS
-                ' (?=
-                outToken.t = RETOK_ASSERT_START_POS_LOOKAHEAD
-            Case UNICODE_EXCLAMATION
-                ' (?!
-                outToken.t = RETOK_ASSERT_START_NEG_LOOKAHEAD
-            Case UNICODE_COLON
-                ' (?:
-                outToken.t = RETOK_ATOM_START_NONCAPTURE_GROUP
-                outToken.num = 0 ' no modifiers
-            Case UNICODE_GT
-                outToken.t = RETOK_ATOM_START_ATOMIC_GROUP
-                outToken.num = 0 ' no modifiers
-            Case UNICODE_LT
-                x = Advance(lexCtx)
-                If x = UNICODE_EQUALS Then
-                    outToken.t = RETOK_ASSERT_START_POS_LOOKBEHIND
-                ElseIf x = UNICODE_EXCLAMATION Then
-                    outToken.t = RETOK_ASSERT_START_NEG_LOOKBEHIND
-                ElseIf IsIdentifierChar(x) Then
-                    With lexCtx
-                        val1 = .identifierTree.nEntries
-                        val2 = .iCurrent - 1
-                        Do
-                            x = Advance(lexCtx)
-                            If x = UNICODE_GT Then Exit Do
-                            ' Todo: Allow unicode escape sequences
-                            If Not IsIdentifierChar(x) Then Err.Raise REGEX_ERR_INVALID_IDENTIFIER
-                        Loop
-                        outToken.t = RETOK_ATOM_START_CAPTURE_GROUP
-                        With slp
-                            .start = val2: .Length = lexCtx.iCurrent - 1 - val2
-                        End With
-                        outToken.num = RegexIdentifierSupport.RedBlackFindOrInsert( _
-                            lexCtx.inputStr, _
-                            lexCtx.identifierTree, _
-                            slp _
-                        )
-                    End With
-                Else
-                    Err.Raise REGEX_ERR_INVALID_REGEXP_GROUP
-                End If
-            Case Else
-                ' modifier
-
-                tmp = 0
-                Do
-                    If x = UNICODE_LC_I Then
-                        If tmp And RegexBytecode.MODIFIER_I_WRITE Then Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
-                        tmp = tmp Or (RegexBytecode.MODIFIER_I_WRITE Or RegexBytecode.MODIFIER_I_ACTIVE)
-                    ElseIf x = UNICODE_LC_M Then
-                        If tmp And RegexBytecode.MODIFIER_M_WRITE Then Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
-                        tmp = tmp Or (RegexBytecode.MODIFIER_M_WRITE Or RegexBytecode.MODIFIER_M_ACTIVE)
-                    ElseIf x = UNICODE_LC_S Then
-                        If tmp And RegexBytecode.MODIFIER_S_WRITE Then Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
-                        tmp = tmp Or (RegexBytecode.MODIFIER_S_WRITE Or RegexBytecode.MODIFIER_S_ACTIVE)
-                    ElseIf x = UNICODE_MINUS Then
-                        Exit Do
-                    ElseIf x = UNICODE_COLON Then
-                        GoTo EndOfBoundedModifier
-                    ElseIf x = UNICODE_RPAREN Then
-                        GoTo EndOfUnboundedModifier
-                    Else
-                        Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
-                    End If
-                    
-                    x = Advance(lexCtx)
-                Loop
-                
-                x = Advance(lexCtx) ' skip dash
-                
-                Do
-                    If x = UNICODE_LC_I Then
-                        If tmp And RegexBytecode.MODIFIER_I_WRITE Then Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
-                        tmp = tmp Or RegexBytecode.MODIFIER_I_WRITE
-                    ElseIf x = UNICODE_LC_M Then
-                        If tmp And RegexBytecode.MODIFIER_M_WRITE Then Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
-                        tmp = tmp Or RegexBytecode.MODIFIER_M_WRITE
-                    ElseIf x = UNICODE_LC_S Then
-                        If tmp And RegexBytecode.MODIFIER_S_WRITE Then Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
-                        tmp = tmp Or RegexBytecode.MODIFIER_S_WRITE
-                    ElseIf x = UNICODE_COLON Then
-                        GoTo EndOfBoundedModifier
-                    ElseIf x = UNICODE_RPAREN Then
-                        GoTo EndOfUnboundedModifier
-                    Else
-                        Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
-                    End If
-                    
-                    x = Advance(lexCtx)
-                Loop
-EndOfBoundedModifier:
-                outToken.t = RETOK_ATOM_START_NONCAPTURE_GROUP
-                outToken.num = tmp ' no modifiers
-                GoTo EndModifierHandling
-EndOfUnboundedModifier:
-                outToken.t = RETOK_UNBOUNDED_MODIFIER
-                outToken.num = tmp
-EndModifierHandling:
-            End Select
-        Else
-            ' (
-            outToken.t = RETOK_ATOM_START_CAPTURE_GROUP
-            outToken.num = -1
-        End If
-    Case UNICODE_RPAREN
-        outToken.t = RETOK_ATOM_END
-    Case UNICODE_LBRACKET
-        ' To avoid creating a heavy intermediate value for the list of ranges,
-        ' only the start token ('[' or '[^') is parsed here.  The regexp
-        ' compiler parses the ranges itself.
-        If lexCtx.currentCharacter = UNICODE_CARET Then
-            Advance lexCtx
-            outToken.t = RETOK_ATOM_START_CHARCLASS_INVERTED
-        Else
-            outToken.t = RETOK_ATOM_START_CHARCLASS
-        End If
-    Case LEXER_ENDOFINPUT
+    On x - 32 GoTo _
+        L_any, L_any, L_any, L_036, L_any, L_any, L_any, _
+        L_040, L_041, L_042, L_043, L_any, L_any, L_046, L_any, _
+        L_any, L_any, L_any, L_any, L_any, L_any, L_any, L_any, _
+        L_any, L_any, L_any, L_any, L_any, L_any, L_any, L_063, _
+        L_any, L_any, L_any, L_any, L_any, L_any, L_any, L_any, _
+        L_any, L_any, L_any, L_any, L_any, L_any, L_any, L_any, _
+        L_any, L_any, L_any, L_any, L_any, L_any, L_any, L_any, _
+        L_any, L_any, L_any, L_091, L_092, L_093, L_094, L_any, _
+        L_any, L_any, L_any, L_any, L_any, L_any, L_any, L_any, _
+        L_any, L_any, L_any, L_any, L_any, L_any, L_any, L_any, _
+        L_any, L_any, L_any, L_any, L_any, L_any, L_any, L_any, _
+        L_any, L_any, L_any, L_123, L_124, L_125
+    
+    ' unreachable
+    
+L_any_or_EOF:
+    If x = LEXER_ENDOFINPUT Then
         ' EOF
         outToken.t = RETOK_EOF
-    Case Else
-        ' PatternCharacter, all excluded characters are matched by cases above
-        outToken.t = RETOK_ATOM_CHAR
-        outToken.num = x
-    End Select
+        Exit Sub
+    End If
+    ' Fallthrough for other characters
+
+L_any:
+    ' Pattern character
+    outToken.t = RETOK_ATOM_CHAR
+    outToken.num = x
+    Exit Sub
+    
+L_036: ' $
+    outToken.t = RETOK_ASSERT_END
+    Exit Sub
+        
+L_040: ' (
+    If lexCtx.currentCharacter <> UNICODE_QUESTION Then ' (
+        outToken.t = RETOK_ATOM_START_CAPTURE_GROUP
+        outToken.num = -1
+        Exit Sub
+    End If
+    
+    Advance lexCtx
+    x = Advance(lexCtx)
+    
+    If x <= 32 Then GoTo G_any
+    If x >= 63 Then GoTo G_any
+    
+    On x - 32 GoTo _
+        G_033, G_any, G_any, G_any, G_any, G_any, G_any, _
+        G_any, G_any, G_any, G_any, G_any, G_any, G_any, G_any, _
+        G_any, G_any, G_any, G_any, G_any, G_any, G_any, G_any, _
+        G_any, G_any, G_058, G_any, G_060, G_061, G_062
+    
+    ' unreachable
+    Err.Raise RegexErrors.REGEX_ERR_INTERNAL_LOGIC_ERR
+    
+G_033: ' (?!
+    outToken.t = RETOK_ASSERT_START_NEG_LOOKAHEAD
+    Exit Sub
+    
+G_058: ' (?:
+    outToken.t = RETOK_ATOM_START_NONCAPTURE_GROUP
+    outToken.num = 0 ' no modifiers
+    Exit Sub
+    
+G_060: ' (?<
+    x = Advance(lexCtx)
+    If x = UNICODE_EQUALS Then
+        outToken.t = RETOK_ASSERT_START_POS_LOOKBEHIND
+    ElseIf x = UNICODE_EXCLAMATION Then
+        outToken.t = RETOK_ASSERT_START_NEG_LOOKBEHIND
+    ElseIf IsIdentifierChar(x) Then
+        With lexCtx
+            val1 = .identifierTree.nEntries
+            val2 = .iCurrent - 1
+            Do
+                x = Advance(lexCtx)
+                If x = UNICODE_GT Then Exit Do
+                ' Todo: Allow unicode escape sequences
+                If Not IsIdentifierChar(x) Then Err.Raise REGEX_ERR_INVALID_IDENTIFIER
+            Loop
+            outToken.t = RETOK_ATOM_START_CAPTURE_GROUP
+            With slp
+                .start = val2: .Length = lexCtx.iCurrent - 1 - val2
+            End With
+            outToken.num = RegexIdentifierSupport.RedBlackFindOrInsert( _
+                lexCtx.inputStr, _
+                lexCtx.identifierTree, _
+                slp _
+            )
+        End With
+    Else
+        Err.Raise REGEX_ERR_INVALID_REGEXP_GROUP
+    End If
+    Exit Sub
+    
+G_061: ' (?=
+    outToken.t = RETOK_ASSERT_START_POS_LOOKAHEAD
+    Exit Sub
+    
+G_062: ' (?>
+    outToken.t = RETOK_ATOM_START_ATOMIC_GROUP
+    outToken.num = 0 ' no modifiers
+    Exit Sub
+    
+G_any: ' (?modifier
+    tmp = 0
+    Do
+        If x = UNICODE_LC_I Then
+            If tmp And RegexBytecode.MODIFIER_I_WRITE Then Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
+            tmp = tmp Or (RegexBytecode.MODIFIER_I_WRITE Or RegexBytecode.MODIFIER_I_ACTIVE)
+        ElseIf x = UNICODE_LC_M Then
+            If tmp And RegexBytecode.MODIFIER_M_WRITE Then Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
+            tmp = tmp Or (RegexBytecode.MODIFIER_M_WRITE Or RegexBytecode.MODIFIER_M_ACTIVE)
+        ElseIf x = UNICODE_LC_S Then
+            If tmp And RegexBytecode.MODIFIER_S_WRITE Then Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
+            tmp = tmp Or (RegexBytecode.MODIFIER_S_WRITE Or RegexBytecode.MODIFIER_S_ACTIVE)
+        ElseIf x = UNICODE_MINUS Then
+            Exit Do
+        ElseIf x = UNICODE_COLON Then
+            GoTo EndOfBoundedModifier
+        ElseIf x = UNICODE_RPAREN Then
+            GoTo EndOfUnboundedModifier
+        Else
+            Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
+        End If
+        
+        x = Advance(lexCtx)
+    Loop
+    
+    x = Advance(lexCtx) ' skip dash
+    
+    Do
+        If x = UNICODE_LC_I Then
+            If tmp And RegexBytecode.MODIFIER_I_WRITE Then Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
+            tmp = tmp Or RegexBytecode.MODIFIER_I_WRITE
+        ElseIf x = UNICODE_LC_M Then
+            If tmp And RegexBytecode.MODIFIER_M_WRITE Then Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
+            tmp = tmp Or RegexBytecode.MODIFIER_M_WRITE
+        ElseIf x = UNICODE_LC_S Then
+            If tmp And RegexBytecode.MODIFIER_S_WRITE Then Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
+            tmp = tmp Or RegexBytecode.MODIFIER_S_WRITE
+        ElseIf x = UNICODE_COLON Then
+            GoTo EndOfBoundedModifier
+        ElseIf x = UNICODE_RPAREN Then
+            GoTo EndOfUnboundedModifier
+        Else
+            Err.Raise RegexErrors.REGEX_ERR_INVALID_MODIFIER
+        End If
+        
+        x = Advance(lexCtx)
+    Loop
+    
+    ' unreachable
+    Err.Raise RegexErrors.REGEX_ERR_INTERNAL_LOGIC_ERR
+    
+EndOfBoundedModifier:
+    outToken.t = RETOK_ATOM_START_NONCAPTURE_GROUP
+    outToken.num = tmp ' no modifiers
+    Exit Sub
+
+EndOfUnboundedModifier:
+    outToken.t = RETOK_UNBOUNDED_MODIFIER
+    outToken.num = tmp
+    Exit Sub
+
+L_041: ' )
+    outToken.t = RETOK_ATOM_END
+    Exit Sub
+
+L_042: ' *
+    With outToken
+        .qmin = 0
+        .qmax = RE_QUANTIFIER_INFINITE
+        If lexCtx.currentCharacter = UNICODE_QUESTION Then
+            Advance lexCtx
+            .t = RETOK_QUANTIFIER
+            .quantifierType = QUANTIFIER_HUMBLE
+        ElseIf lexCtx.currentCharacter = UNICODE_PLUS Then
+            Advance lexCtx
+            .t = RETOK_QUANTIFIER
+            .quantifierType = QUANTIFIER_POSSESSIVE
+        Else
+            .t = RETOK_QUANTIFIER
+            .quantifierType = QUANTIFIER_GREEDY
+        End If
+    End With
+    Exit Sub
+
+L_043: ' +
+    With outToken
+        .qmin = 1
+        .qmax = RE_QUANTIFIER_INFINITE
+        If lexCtx.currentCharacter = UNICODE_QUESTION Then
+            Advance lexCtx
+            .t = RETOK_QUANTIFIER
+            .quantifierType = QUANTIFIER_HUMBLE
+        ElseIf lexCtx.currentCharacter = UNICODE_PLUS Then
+            Advance lexCtx
+            .t = RETOK_QUANTIFIER
+            .quantifierType = QUANTIFIER_POSSESSIVE
+        Else
+            .t = RETOK_QUANTIFIER
+            .quantifierType = QUANTIFIER_GREEDY
+        End If
+    End With
+    Exit Sub
+
+L_046: ' .
+    outToken.t = RETOK_ATOM_PERIOD
+    Exit Sub
+    
+L_063: ' ?
+    With outToken
+        .qmin = 0
+        .qmax = 1
+        If lexCtx.currentCharacter = UNICODE_QUESTION Then
+            Advance lexCtx
+            .t = RETOK_QUANTIFIER
+            .quantifierType = QUANTIFIER_HUMBLE
+        ElseIf lexCtx.currentCharacter = UNICODE_PLUS Then
+            Advance lexCtx
+            .t = RETOK_QUANTIFIER
+            .quantifierType = QUANTIFIER_POSSESSIVE
+        Else
+            .t = RETOK_QUANTIFIER
+            .quantifierType = QUANTIFIER_GREEDY
+        End If
+    End With
+    Exit Sub
+    
+L_091: ' [
+    ' To avoid creating a heavy intermediate value for the list of ranges,
+    ' only the start token ('[' or '[^') is parsed here.  The regexp
+    ' compiler parses the ranges itself.
+    If lexCtx.currentCharacter = UNICODE_CARET Then
+        Advance lexCtx
+        outToken.t = RETOK_ATOM_START_CHARCLASS_INVERTED
+    Else
+        outToken.t = RETOK_ATOM_START_CHARCLASS
+    End If
+    Exit Sub
+    
+L_092: ' \
+    ' The E5.1 specification does not seem to allow IdentifierPart characters
+    ' to be used as identity escapes.  Unfortunately this includes '$', which
+    ' cannot be escaped as '\$'; it needs to be escaped e.g. as '\u0024'.
+    ' Many other implementations (including V8 and Rhino, for instance) do
+    ' accept '\$' as a valid identity escape, which is quite pragmatic, and
+    ' ES2015 Annex B relaxes the rules to allow these (and other) real world forms.
+    '
+    ' Here, we use a Perl-like convention:
+    '   \<character> is an identity escape (= represents the character itself)
+    '   unless the character is within [0-9A-Za-z];
+    '   we hope that this will not require any breaking changes in the future.
+    x = Advance(lexCtx)
+    
+    If x <= 47 Then GoTo IdentityEscape_or_EOF
+    If x >= 123 Then GoTo IdentityEscape
+    
+    On x - 47 GoTo _
+        E_Digit0, E_Digit, E_Digit, E_Digit, E_Digit, E_Digit, E_Digit, E_Digit, _
+        E_Digit, E_Digit, IdentityEscape, IdentityEscape, IdentityEscape, IdentityEscape, IdentityEscape, IdentityEscape, _
+        IdentityEscape, E_Invalid, E_066, E_Invalid, E_068, E_Invalid, E_Invalid, E_Invalid, _
+        E_Invalid, E_Invalid, E_Invalid, E_Invalid, E_Invalid, E_Invalid, E_Invalid, E_Invalid, _
+        E_Invalid, E_Invalid, E_Invalid, E_083, E_Invalid, E_Invalid, E_Invalid, E_087, _
+        E_Invalid, E_Invalid, E_Invalid, IdentityEscape, IdentityEscape, IdentityEscape, IdentityEscape, IdentityEscape, _
+        IdentityEscape, E_Invalid, E_098, E_099, E_100, E_Invalid, E_102, E_Invalid, _
+        E_Invalid, E_Invalid, E_Invalid, E_Invalid, E_Invalid, E_Invalid, E_110, E_Invalid, _
+        E_Invalid, E_Invalid, E_114, E_115, E_116, E_117, E_118, E_119, _
+        E_120, E_Invalid, E_Invalid
+        
+    ' unreachable
+    Err.Raise RegexErrors.REGEX_ERR_INTERNAL_LOGIC_ERR
+            
+IdentityEscape_or_EOF:
+    If x < 0 Then Err.Raise RegexErrors.REGEX_ERR_INVALID_REGEXP_ESCAPE
+    ' else fallthrough
+    
+IdentityEscape:
+    outToken.num = x
+    outToken.t = RETOK_ATOM_CHAR
+    Exit Sub
+            
+E_Digit0: ' \0
+    x = lexCtx.currentCharacter
+    
+    ' Reject a following digit without consuming the next character.
+    If x >= UNICODE_0 And x <= UNICODE_9 Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
+    outToken.num = 0
+    outToken.t = RETOK_ATOM_CHAR
+    Exit Sub
+    
+E_Digit: ' \1... to \9...
+    val1 = 0
+    i = 0
+    Do
+        ' We have to be careful here to make sure there will be no overflow.
+        ' 2^31 - 1 backreferences is a bit ridiculous, though.
+        If val1 > RegexNumericConstants.LONG_MAX_DIV_10 Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
+        val1 = val1 * 10
+        tmp = x - UNICODE_0
+        If RegexNumericConstants.LONG_MAX - val1 < tmp Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
+        val1 = val1 + tmp
+        x = lexCtx.currentCharacter
+        If x < UNICODE_0 Or x > UNICODE_9 Then Exit Do
+        Advance lexCtx
+        i = i + 1
+    Loop
+    outToken.t = RETOK_ATOM_BACKREFERENCE
+    outToken.num = val1
+    Exit Sub
+    
+E_066: ' \B
+    outToken.t = RETOK_ASSERT_NOT_WORD_BOUNDARY
+    Exit Sub
+    
+E_068: ' \D
+    outToken.t = RETOK_ATOM_NOT_DIGIT
+    Exit Sub
+    
+E_083: ' \S
+    outToken.t = RETOK_ATOM_NOT_WHITE
+    Exit Sub
+    
+E_087: ' \W
+    outToken.t = RETOK_ATOM_NOT_WORD_CHAR
+    Exit Sub
+
+E_098: ' \b
+    outToken.t = RETOK_ASSERT_WORD_BOUNDARY
+    Exit Sub
+    
+E_099: ' \c
+    x = Advance(lexCtx)
+    If x < UNICODE_UC_A Then GoTo E_Invalid
+    If x > UNICODE_LC_Z Then GoTo E_Invalid
+    If x > UNICODE_UC_Z And x < UNICODE_LC_A Then GoTo E_Invalid
+    ' subtract 64, for lowercase deliver corresponding uppercase value
+    outToken.num = (x - 64) And &H1F&
+    outToken.t = RETOK_ATOM_CHAR
+    Exit Sub
+
+E_100: ' \d
+    outToken.t = RETOK_ATOM_DIGIT
+    Exit Sub
+    
+E_102: ' \f
+    outToken.num = &HC&
+    outToken.t = RETOK_ATOM_CHAR
+    Exit Sub
+    
+E_110: ' \n
+    outToken.num = &HA&
+    outToken.t = RETOK_ATOM_CHAR
+    Exit Sub
+    
+E_114: ' \r
+    outToken.num = &HD&
+    outToken.t = RETOK_ATOM_CHAR
+    Exit Sub
+    
+E_115: ' \s
+    outToken.t = RETOK_ATOM_WHITE
+    Exit Sub
+
+E_116: ' \t
+    outToken.num = &H9&
+    outToken.t = RETOK_ATOM_CHAR
+    Exit Sub
+    
+E_117: ' \u
+    ' Todo: What does the following mean?
+    ' The token value is the Unicode codepoint without
+    ' it being decode into surrogate pair characters
+    ' here.  The \u{H+} is only allowed in Unicode mode
+    ' which we don't support yet.
+    outToken.num = LexerParseEscapeU(lexCtx)
+    outToken.t = RETOK_ATOM_CHAR
+    Exit Sub
+    
+E_118: ' \v
+    outToken.num = &HB&
+    outToken.t = RETOK_ATOM_CHAR
+    Exit Sub
+    
+E_119: ' \w
+    outToken.t = RETOK_ATOM_WORD_CHAR
+    Exit Sub
+
+E_120: ' \x
+    outToken.num = LexerParseEscapeX(lexCtx)
+    outToken.t = RETOK_ATOM_CHAR
+    Exit Sub
+    
+E_Invalid:
+    Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
+    
+L_093: ' ]
+L_125: ' }
+    GoTo L_any
+
+L_094: ' ^
+    outToken.t = RETOK_ASSERT_START
+    Exit Sub
+    
+L_123: ' {
+    ' Production allows 'DecimalDigits', including leading zeroes
+    val1 = 0
+    val2 = RE_QUANTIFIER_INFINITE
+    
+    digits = 0
+
+    Do
+        x = Advance(lexCtx)
+        If (x >= UNICODE_0) And (x <= UNICODE_9) Then
+            digits = digits + 1
+            ' Be careful to prevent overflow
+            If val1 > RegexNumericConstants.LONG_MAX_DIV_10 Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER
+            val1 = val1 * 10
+            tmp = x - UNICODE_0
+            If RegexNumericConstants.LONG_MAX - val1 < tmp Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER
+            val1 = val1 + tmp
+        ElseIf x = UNICODE_COMMA Then
+            If val2 <> RE_QUANTIFIER_INFINITE Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER
+            If lexCtx.currentCharacter = UNICODE_RCURLY Then
+                ' form: { DecimalDigits , }, val1 = min count
+                If digits = 0 Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER
+                outToken.qmin = val1
+                outToken.qmax = RE_QUANTIFIER_INFINITE
+                Advance lexCtx
+                Exit Do
+            End If
+            val2 = val1
+            val1 = 0
+            digits = 0 ' not strictly necessary because of lookahead '}' above
+        ElseIf x = UNICODE_RCURLY Then
+            If digits = 0 Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER
+            If val2 <> RE_QUANTIFIER_INFINITE Then
+                ' val2 = min count, val1 = max count
+                outToken.qmin = val2
+                outToken.qmax = val1
+            Else
+                ' val1 = count
+                outToken.qmin = val1
+                outToken.qmax = val1
+            End If
+            Exit Do
+        Else
+            Err.Raise REGEX_ERR_INVALID_QUANTIFIER
+        End If
+    Loop
+    If lexCtx.currentCharacter = UNICODE_QUESTION Then
+        outToken.quantifierType = QUANTIFIER_HUMBLE
+        Advance lexCtx
+    ElseIf lexCtx.currentCharacter = UNICODE_PLUS Then
+        outToken.quantifierType = QUANTIFIER_POSSESSIVE
+        Advance lexCtx
+    Else
+        outToken.quantifierType = QUANTIFIER_GREEDY
+    End If
+    outToken.t = RETOK_QUANTIFIER
+    Exit Sub
+
+L_124: ' |
+    outToken.t = RETOK_DISJUNCTION
+    Exit Sub
 End Sub
 
 Public Sub ParseReRanges(lexCtx As Ty, ByRef outBuffer As ArrayBuffer.Ty, ByRef nranges As Long, ByVal ignoreCase As Boolean)
@@ -541,155 +637,186 @@ Public Sub ParseReRanges(lexCtx As Ty, ByRef outBuffer As ArrayBuffer.Ty, ByRef 
     start = -2
     dash = False
     
-    Do
+    ' begin loop
 ContinueLoop:
         x = Advance(lexCtx)
 
-        If x < 0 Then GoTo FailUntermCharclass
+        If x < 0 Then Err.Raise REGEX_ERR_UNTERMINATED_CHARCLASS
         
         Select Case x
-        Case UNICODE_RBRACKET
-            If start >= 0 Then
-                RegexpGenerateRanges outBuffer, ignoreCase, start, start
-                Exit Do
-            ElseIf start = -1 Then
-                Exit Do
-            Else ' start = -2
-                ' ] at the very beginning of a range expression is interpreted literally,
-                '   since empty ranges are not permitted.
-                '   This corresponds to what RE2 does.
-                ch = x
-            End If
-        Case UNICODE_MINUS
-            If start >= 0 Then
-                If Not dash Then
-                    If lexCtx.currentCharacter <> UNICODE_RBRACKET Then
-                        ' '-' as a range indicator
-                        dash = True
-                        GoTo ContinueLoop
-                    End If
-                End If
-            End If
-            ' '-' verbatim
-            ch = x
-        Case UNICODE_BACKSLASH
-            '
-            '  The escapes are same as outside a character class, except that \b has a
-            '  different meaning, and \B and backreferences are prohibited (see E5
-            '  Section 15.10.2.19).  However, it's difficult to share code because we
-            '  handle e.g. "\n" very differently: here we generate a single character
-            '  range for it.
-            '
-
-            ' XXX: ES2015 surrogate pair handling.
-
-            x = Advance(lexCtx)
-
-            Select Case x
-            Case UNICODE_LC_B
-                ' Note: '\b' in char class is different than outside (assertion),
-                ' '\B' is not allowed and is caught by the duk_unicode_is_identifier_part()
-                ' check below.
-                '
-                ch = &H8&
-            Case UNICODE_LC_F
-                ch = &HC&
-            Case UNICODE_LC_N
-                ch = &HA&
-            Case UNICODE_LC_T
-                ch = &H9&
-            Case UNICODE_LC_R
-                ch = &HD&
-            Case UNICODE_LC_V
-                ch = &HB&
-            Case UNICODE_LC_C
-                x = Advance(lexCtx)
-                If ((x >= UNICODE_LC_A And x <= UNICODE_LC_Z) Or (x >= UNICODE_UC_A And x <= UNICODE_UC_Z)) Then
-                    ch = x Mod 32
-                Else
-                    GoTo FailEscape
-                End If
-            Case UNICODE_LC_X
-                ch = LexerParseEscapeX(lexCtx)
-            Case UNICODE_LC_U
-                ch = LexerParseEscapeU(lexCtx)
-            Case UNICODE_LC_D
-                RegexRanges.EmitPredefinedRange outBuffer, RegexUnicodeSupport.StaticData, RegexUnicodeSupport.RANGE_TABLE_DIGIT_START, RegexUnicodeSupport.RANGE_TABLE_DIGIT_LENGTH
-                ch = -1
-            Case UNICODE_UC_D
-                RegexRanges.EmitPredefinedRange outBuffer, RegexUnicodeSupport.StaticData, RegexUnicodeSupport.RANGE_TABLE_NOTDIGIT_START, RegexUnicodeSupport.RANGE_TABLE_NOTDIGIT_LENGTH
-                ch = -1
-            Case UNICODE_LC_S
-                RegexRanges.EmitPredefinedRange outBuffer, RegexUnicodeSupport.StaticData, RegexUnicodeSupport.RANGE_TABLE_WHITE_START, RegexUnicodeSupport.RANGE_TABLE_WHITE_LENGTH
-                ch = -1
-            Case UNICODE_UC_S
-                RegexRanges.EmitPredefinedRange outBuffer, RegexUnicodeSupport.StaticData, RegexUnicodeSupport.RANGE_TABLE_NOTWHITE_START, RegexUnicodeSupport.RANGE_TABLE_NOTWHITE_LENGTH
-                ch = -1
-            Case UNICODE_LC_W
-                RegexRanges.EmitPredefinedRange outBuffer, RegexUnicodeSupport.StaticData, RegexUnicodeSupport.RANGE_TABLE_WORDCHAR_START, RegexUnicodeSupport.RANGE_TABLE_WORDCHAR_LENGTH
-                ch = -1
-            Case UNICODE_UC_W
-                RegexRanges.EmitPredefinedRange outBuffer, RegexUnicodeSupport.StaticData, RegexUnicodeSupport.RANGE_TABLE_NOTWORDCHAR_START, RegexUnicodeSupport.RANGE_TABLE_NOTWORDCHAR_LENGTH
-                ch = -1
-            Case Else
-                If x < 0 Then GoTo FailEscape
-                If x <= UNICODE_7 Then
-                    If x >= UNICODE_0 Then
-                        ' \0 or octal escape from \0 up to \377
-                        ch = LexerParseLegacyOctal(lexCtx, x)
-                    Else
-                        ' IdentityEscape: ES2015 Annex B allows almost all
-                        ' source characters here.  Match anything except
-                        ' EOF here.
-                        ch = x
-                    End If
-                Else
-                    ' IdentityEscape: ES2015 Annex B allows almost all
-                    ' source characters here.  Match anything except
-                    ' EOF here.
-                    ch = x
-                End If
-            End Select
-        Case Else
-            ' character represents itself
-            ch = x
+        Case UNICODE_RBRACKET: GoTo RngRBracket
+        Case UNICODE_MINUS: GoTo RngMinus
+        Case UNICODE_BACKSLASH: GoTo RngBackslash
+        Case Else: ch = x: GoTo RngFinalizeLiteral ' character represents itself
         End Select
-
-        ' ch is a literal character here or -1 if parsed entity was
-        ' an escape such as "\s".
-        '
-
-        If ch < 0 Then
-            ' multi-character sets not allowed as part of ranges, see
-            ' E5 Section 15.10.2.15, abstract operation CharacterRange.
-            '
-            If start >= 0 Then
-                If dash Then
-                    GoTo FailRange
-                Else
-                    RegexpGenerateRanges outBuffer, ignoreCase, start, start
+        
+        ' unreachable
+        Err.Raise RegexErrors.REGEX_ERR_INTERNAL_LOGIC_ERR
+        
+RngRBracket:
+        If start >= 0 Then
+            RegexpGenerateRanges outBuffer, ignoreCase, start, start
+            GoTo ExitLoop
+        ElseIf start = -1 Then
+            GoTo ExitLoop
+        Else ' start = -2
+            ' ] at the very beginning of a range expression is interpreted literally,
+            '   since empty ranges are not permitted.
+            '   This corresponds to what RE2 does.
+            ch = x
+        End If
+        GoTo RngFinalizeLiteral
+        
+RngMinus:
+        If start >= 0 Then
+            If Not dash Then
+                If lexCtx.currentCharacter <> UNICODE_RBRACKET Then
+                    ' '-' as a range indicator
+                    dash = True
+                    GoTo ContinueLoop
                 End If
-            End If
-            start = -1
-            ' dash is already 0
-        Else
-            If start >= 0 Then
-                If dash Then
-                    If start > ch Then GoTo FailRange
-                    RegexpGenerateRanges outBuffer, ignoreCase, start, ch
-                    start = -1
-                    dash = 0
-                Else
-                    RegexpGenerateRanges outBuffer, ignoreCase, start, start
-                    start = ch
-                    ' dash is already 0
-                End If
-            Else
-                start = ch
             End If
         End If
-    Loop
+        ' '-' verbatim
+        ch = x
+        GoTo RngFinalizeLiteral
+        
+RngBackslash:
+        '
+        '  The escapes are same as outside a character class, except that \b has a
+        '  different meaning, and \B and backreferences are prohibited (see E5
+        '  Section 15.10.2.19).  However, it's difficult to share code because we
+        '  handle e.g. "\n" very differently: here we generate a single character
+        '  range for it.
+        '
 
+        ' XXX: ES2015 surrogate pair handling.
+
+        x = Advance(lexCtx)
+
+        If x <= 47 Then GoTo RngIdentityEscape_or_EOF
+        If x >= 123 Then GoTo RngIdentityEscape
+        
+        On x - 47 GoTo _
+            RngE_OctDigit, RngE_OctDigit, RngE_OctDigit, RngE_OctDigit, RngE_OctDigit, RngE_OctDigit, RngE_OctDigit, RngE_OctDigit, _
+            RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, _
+            RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngE_068, RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, _
+            RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, _
+            RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngE_083, RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngE_087, _
+            RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, _
+            RngIdentityEscape, RngIdentityEscape, RngE_098, RngE_099, RngE_100, RngIdentityEscape, RngE_102, RngIdentityEscape, _
+            RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngIdentityEscape, RngE_110, RngIdentityEscape, _
+            RngIdentityEscape, RngIdentityEscape, RngE_114, RngE_115, RngE_116, RngE_117, RngE_118, RngE_119, _
+            RngE_120, RngIdentityEscape, RngIdentityEscape
+            
+        ' unreachable
+        Err.Raise RegexErrors.REGEX_ERR_INTERNAL_LOGIC_ERR
+        
+RngIdentityEscape_or_EOF:
+        If x < 0 Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
+        ' else fallthrough
+RngIdentityEscape:
+        ' IdentityEscape: ES2015 Annex B allows almost all
+        ' source characters here.
+        ch = x
+        GoTo RngFinalizeLiteral
+RngE_OctDigit: ' \0... to \7... -> \0 or octal escape from \0 up to \377
+        ch = LexerParseLegacyOctal(lexCtx, x)
+        GoTo RngFinalizeLiteral
+RngE_068: ' \D
+        RegexRanges.EmitPredefinedRange outBuffer, RegexUnicodeSupport.StaticData, RegexUnicodeSupport.RANGE_TABLE_NOTDIGIT_START, RegexUnicodeSupport.RANGE_TABLE_NOTDIGIT_LENGTH
+        GoTo RngFinalizePredefined
+RngE_083: ' \S
+        RegexRanges.EmitPredefinedRange outBuffer, RegexUnicodeSupport.StaticData, RegexUnicodeSupport.RANGE_TABLE_NOTWHITE_START, RegexUnicodeSupport.RANGE_TABLE_NOTWHITE_LENGTH
+        GoTo RngFinalizePredefined
+RngE_087: ' \W
+        RegexRanges.EmitPredefinedRange outBuffer, RegexUnicodeSupport.StaticData, RegexUnicodeSupport.RANGE_TABLE_NOTWORDCHAR_START, RegexUnicodeSupport.RANGE_TABLE_NOTWORDCHAR_LENGTH
+        GoTo RngFinalizePredefined
+RngE_098: ' \b
+        ' Note: '\b' in char class is different than outside (assertion),
+        ' '\B' is not allowed and is caught by the duk_unicode_is_identifier_part()
+        ' check below.
+        ch = &H8&
+        GoTo RngFinalizeLiteral
+RngE_099: ' \c
+        x = Advance(lexCtx)
+        If x < UNICODE_UC_A Then GoTo RngE_099_FailEscape
+        If x > UNICODE_LC_Z Then GoTo RngE_099_FailEscape
+        If x > UNICODE_UC_Z And x < UNICODE_LC_A Then GoTo RngE_099_FailEscape
+        ' subtract 64, for lowercase deliver corresponding uppercase value
+        ch = (x - 64) And &H1F&
+        GoTo RngFinalizeLiteral
+RngE_099_FailEscape: ' \cX with X not a letter
+        Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
+RngE_100: ' \d
+        RegexRanges.EmitPredefinedRange outBuffer, RegexUnicodeSupport.StaticData, RegexUnicodeSupport.RANGE_TABLE_DIGIT_START, RegexUnicodeSupport.RANGE_TABLE_DIGIT_LENGTH
+        GoTo RngFinalizePredefined
+RngE_102: ' \f
+        ch = &HC&
+        GoTo RngFinalizeLiteral
+RngE_110: ' \n
+        ch = &HA&
+        GoTo RngFinalizeLiteral
+RngE_114: ' \r
+        ch = &HD&
+        GoTo RngFinalizeLiteral
+RngE_115: ' \s
+        RegexRanges.EmitPredefinedRange outBuffer, RegexUnicodeSupport.StaticData, RegexUnicodeSupport.RANGE_TABLE_WHITE_START, RegexUnicodeSupport.RANGE_TABLE_WHITE_LENGTH
+        GoTo RngFinalizePredefined
+RngE_116: ' \t
+        ch = &H9&
+        GoTo RngFinalizeLiteral
+RngE_117: ' \u
+        ch = LexerParseEscapeU(lexCtx)
+        GoTo RngFinalizeLiteral
+RngE_118: ' \v
+        ch = &HB&
+        GoTo RngFinalizeLiteral
+RngE_119: ' \w
+        RegexRanges.EmitPredefinedRange outBuffer, RegexUnicodeSupport.StaticData, RegexUnicodeSupport.RANGE_TABLE_WORDCHAR_START, RegexUnicodeSupport.RANGE_TABLE_WORDCHAR_LENGTH
+        GoTo RngFinalizePredefined
+RngE_120: ' \x
+        ch = LexerParseEscapeX(lexCtx)
+        GoTo RngFinalizeLiteral
+
+RngFinalizeLiteral:
+        ' final part of loop body if parsed entity was a literal character
+        If start >= 0 Then
+            If dash Then
+                If start > ch Then Err.Raise REGEX_ERR_INVALID_RANGE
+                RegexpGenerateRanges outBuffer, ignoreCase, start, ch
+                start = -1
+                dash = 0
+            Else
+                RegexpGenerateRanges outBuffer, ignoreCase, start, start
+                start = ch
+                ' dash is already 0
+            End If
+        Else
+            start = ch
+        End If
+        GoTo ContinueLoop
+        
+RngFinalizePredefined:
+        ' final part of loop body if parsed entity was a predefined range such as \s
+            
+        ' multi-character sets not allowed as part of ranges, see
+        ' E5 Section 15.10.2.15, abstract operation CharacterRange.
+        '
+        If start >= 0 Then
+            If dash Then
+                Err.Raise REGEX_ERR_INVALID_RANGE
+            Else
+                RegexpGenerateRanges outBuffer, ignoreCase, start, start
+            End If
+        End If
+        start = -1
+        ' dash is already 0
+        GoTo ContinueLoop
+
+    ' end loop
+    
+ExitLoop:
     If outBuffer.Length - 2 > bufferStart Then
         ' We have at least 2 intervals.
         HeapsortPairs outBuffer.Buffer, bufferStart, outBuffer.Length - 2
@@ -697,17 +824,6 @@ ContinueLoop:
     End If
     
     nranges = (outBuffer.Length - bufferStart) \ 2
-    
-    Exit Sub
-
-FailEscape:
-    Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
-
-FailRange:
-    Err.Raise REGEX_ERR_INVALID_RANGE
-
-FailUntermCharclass:
-    Err.Raise REGEX_ERR_UNTERMINATED_CHARCLASS
 End Sub
 
 ' input: array of pairs [x0, y0, x1, y1, ..., x(n-1), y(n-1)]

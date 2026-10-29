@@ -1,0 +1,2 @@
+# Writes the VBA project and Excel package without Office or COM (MIT license).
+pyOpenVBA==6.5.0

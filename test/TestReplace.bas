@@ -214,7 +214,7 @@ Private Sub RegexReplace0020()
     replacer = "abc$<z>$<y>$<x>$<w>abc"
     pattern = "xzyw"
     MakeArray dummyBytecode, _
-        0, 4, 0, _
+        0, 4, 0, 0, 0, 0, 0, 0, 0, _
         4, 1, 10, _
         1, 1, 11, _
         3, 1, 12, _

@@ -207,7 +207,7 @@ Loop
 
 `InitializeMatcherState` starts iteration from the beginning and sets the three matching options. `ResetMatcherState matcherState` restarts iteration while preserving those options. A newly declared matcher state, as used in Example 3, starts at the beginning with all options set to `False`.
 
-For patterns that require more matching work, you can adjust `regex.stepsLimit` after `InitializeRegex`. It defaults to `10000` matcher steps per attempted starting position. Reaching the limit counts as a failed attempt at that position rather than raising an error.
+For patterns that require more matching work, you can adjust `regex.stepsLimit` after `InitializeRegex`. This branch defaults to `RegexDfsMatcher.DEFAULT_STEPS_LIMIT` (currently `100000000`) steps for a DFS search. Setting a nondefault budget selects DFS for the public matching methods so that the limit is honored. Reaching the limit returns no match by default; `MatchNext(..., raiseOnLimit:=True)` instead raises `REGEX_ERR_STEP_LIMIT` and selects DFS even with the default budget.
 
 ## <a id='singlefile'></a>Building a single-file version of the regex engine
 
@@ -233,6 +233,10 @@ All unit tests are intended to be run with [Rubberduck](https://github.com/rubbe
 In addition, the regex engine was tested against (a subset of) the test cases for [RE2](https://github.com/google/re2). These test cases, as well as the results delivered by RE2, are available on [Github](https://github.com/sihlfall/regex-test-cases).
 
 Building the test executable requires VB 6.
+
+The [test2 runner](test2/README.md) tests DFS, NFA, and DFA separately. It skips
+unsupported bytecode for NFA/DFA and compares DFA's whole-match span and DFS/NFA's
+captures against RE2. Results and skip counts are reported per engine.
 
 To run the tests and compare the results, three PowerShell scripts are provided in `test2\`. These scripts expect the following directory structure:
 

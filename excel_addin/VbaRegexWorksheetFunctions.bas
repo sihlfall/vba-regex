@@ -13,6 +13,9 @@ Private Type ArgumentInfo
     rows As Long
     columns As Long
     t As Integer
+    arrayDimensions As Long
+    lowerRow As Long
+    lowerColumn As Long
     verticallySufficient As Long    ' must be either -1 or 0, as it will be And'ed with the row number
     horizontallySufficient As Long  ' must be either -1 or 0, as it will be And'ed with the column number
     rngCells As Range
@@ -36,6 +39,30 @@ Private Type ExpectedString
     isFine As Boolean
 End Type
 
+Private Const RX_TEST As Long = 0
+Private Const RX_MATCH As Long = 1
+Private Const RX_REPLACE As Long = 2
+Private Const RX_FIND As Long = 3
+Private Const RX_LENGTH As Long = 4
+Private Const RX_COUNT As Long = 5
+Private Const RX_ERR_NUM As Long = vbObjectError + 3100
+' Mirrors RegexErrors.REGEX_ERR_STEP_LIMIT in the generated engine.
+Private Const RX_STEP_LIMIT As Long = vbObjectError + 3051
+Private Const RX_MAX_TEXT As Long = 32767
+Private Const RX_MAX_ROWS As Long = 1048576
+Private Const RX_MAX_COLUMNS As Long = 16384
+
+Private Type RxCache
+    regex As StaticRegexSingle.RegexTy
+    format As StaticRegexSingle.FormatTy
+    pattern As String
+    regexReady As Boolean
+    formatReady As Boolean
+End Type
+
+' The original Regex* entry points below retain their original contracts.
+' Rx* uses the same dimension handling, with its own argument/result rules.
+
 Private Function TryGetArgumentInfo(ByRef argInfo As ArgumentInfo, ByRef a As Variant) As Boolean
     Dim rng As Range
     If IsObject(a) Then
@@ -46,8 +73,19 @@ Private Function TryGetArgumentInfo(ByRef argInfo As ArgumentInfo, ByRef a As Va
         End With
     ElseIf IsArray(a) Then
         With argInfo
-            ' Arrays passed to worksheet functions are 1-based
-            .rows = UBound(a, 1): .columns = UBound(a, 2): .t = ARG_ARRAY: Set .rngCells = Nothing
+            ' Excel may pass literal rows as 1-D arrays; Range.Value2 is 2-D.
+            .arrayDimensions = ArgumentArrayDimensions(a)
+            If .arrayDimensions < 1 Or .arrayDimensions > 2 Then Exit Function
+            .lowerRow = LBound(a, 1)
+            If .arrayDimensions = 1 Then
+                .rows = 1: .columns = UBound(a, 1) - .lowerRow + 1
+            Else
+                .lowerColumn = LBound(a, 2)
+                .rows = UBound(a, 1) - .lowerRow + 1
+                .columns = UBound(a, 2) - .lowerColumn + 1
+            End If
+            If .rows < 1 Or .columns < 1 Then Exit Function
+            .t = ARG_ARRAY: Set .rngCells = Nothing
         End With
     Else
         With argInfo
@@ -57,14 +95,24 @@ Private Function TryGetArgumentInfo(ByRef argInfo As ArgumentInfo, ByRef a As Va
     TryGetArgumentInfo = True
 End Function
 
+Private Function ArgumentArrayDimensions(ByRef a As Variant) As Long
+    Dim dimension As Long, bound As Long
+    On Error GoTo Done
+    For dimension = 1 To 3
+        bound = UBound(a, dimension)
+        ArgumentArrayDimensions = dimension
+    Next
+Done:
+End Function
+
 Private Function TryDetermineCommonDimensions(ByRef nRows As Long, ByRef nColumns As Long, ByRef argInfo() As ArgumentInfo) As Boolean
     Dim j As Long
     For j = LBound(argInfo) To UBound(argInfo)
         With argInfo(j)
-            If .rows > nRows Then
+            If .rows <> nRows And (.rows <> 1 Or nRows = 0) Then
                 If nRows <= 1 Then nRows = .rows Else TryDetermineCommonDimensions = False: Exit Function
             End If
-            If .columns > nColumns Then
+            If .columns <> nColumns And (.columns <> 1 Or nColumns = 0) Then
                 If nColumns <= 1 Then nColumns = .columns Else TryDetermineCommonDimensions = False: Exit Function
             End If
         End With
@@ -87,7 +135,11 @@ Private Function GetStringArgumentValue(ByRef argInfo As ArgumentInfo, ByRef a A
     Case ARG_ARRAY:
         col = col And argInfo.horizontallySufficient
         row = row And argInfo.verticallySufficient
-        GetStringArgumentValue = ExpectString(a(row + 1, col + 1))
+        If argInfo.arrayDimensions = 1 Then
+            GetStringArgumentValue = ExpectString(a(col + argInfo.lowerRow))
+        Else
+            GetStringArgumentValue = ExpectString(a(row + argInfo.lowerRow, col + argInfo.lowerColumn))
+        End If
     Case ARG_SCALAR:
         GetStringArgumentValue = ExpectString(a)
     End Select
@@ -102,7 +154,11 @@ Private Function GetBooleanArgumentValue(ByRef argInfo As ArgumentInfo, ByRef a 
     Case ARG_ARRAY:
         col = col And argInfo.horizontallySufficient
         row = row And argInfo.verticallySufficient
-        GetBooleanArgumentValue = ExpectBoolean(a(row + 1, col + 1))
+        If argInfo.arrayDimensions = 1 Then
+            GetBooleanArgumentValue = ExpectBoolean(a(col + argInfo.lowerRow))
+        Else
+            GetBooleanArgumentValue = ExpectBoolean(a(row + argInfo.lowerRow, col + argInfo.lowerColumn))
+        End If
     Case ARG_SCALAR:
         GetBooleanArgumentValue = ExpectBoolean(a)
     End Select
@@ -648,3 +704,394 @@ ValueError:
     RegexReplace = CVErr(xlErrValue)
 End Function
 
+
+' One result per broadcast position.
+Public Function RxTest(ByRef text As Variant, ByRef pattern As Variant, _
+    Optional ByRef startAt As Variant = 1) As Variant
+    RxTest = RxBroadcast(RX_TEST, text, pattern, "", 1, startAt)
+End Function
+
+Public Function RxMatch(ByRef text As Variant, ByRef pattern As Variant, _
+    Optional ByRef format As Variant = "$&", Optional ByRef occurrence As Variant = 1, _
+    Optional ByRef startAt As Variant = 1) As Variant
+    RxMatch = RxBroadcast(RX_MATCH, text, pattern, format, occurrence, startAt)
+End Function
+
+Public Function RxReplace(ByRef text As Variant, ByRef pattern As Variant, ByRef replacement As Variant, _
+    Optional ByRef occurrence As Variant = 0, _
+    Optional ByRef startAt As Variant = 1) As Variant
+    RxReplace = RxBroadcast(RX_REPLACE, text, pattern, replacement, occurrence, startAt)
+End Function
+
+Public Function RxFind(ByRef text As Variant, ByRef pattern As Variant, _
+    Optional ByRef occurrence As Variant = 1, _
+    Optional ByRef startAt As Variant = 1) As Variant
+    RxFind = RxBroadcast(RX_FIND, text, pattern, "", occurrence, startAt)
+End Function
+
+Public Function RxLength(ByRef text As Variant, ByRef pattern As Variant, _
+    Optional ByRef occurrence As Variant = 1, _
+    Optional ByRef startAt As Variant = 1) As Variant
+    RxLength = RxBroadcast(RX_LENGTH, text, pattern, "", occurrence, startAt)
+End Function
+
+Public Function RxCount(ByRef text As Variant, ByRef pattern As Variant, _
+    Optional ByRef startAt As Variant = 1) As Variant
+    RxCount = RxBroadcast(RX_COUNT, text, pattern, "", 1, startAt)
+End Function
+
+Private Function RxBroadcast(ByVal operation As Long, ByRef text As Variant, ByRef pattern As Variant, _
+    ByRef format As Variant, ByRef occurrence As Variant, ByRef startAt As Variant) As Variant
+    On Error GoTo Failed
+    Dim ai(0 To 4) As ArgumentInfo, args(0 To 4) As Variant, values(0 To 4) As Variant
+    Dim output() As Variant, cache As RxCache, nr As Long, nc As Long, r As Long, c As Long, k As Long
+    Dim outer As Long, inner As Long, columnsFirst As Boolean
+    ' Preserve Range objects instead of coercing them through their default property.
+    RxAssign args(0), text: RxAssign args(1), pattern: RxAssign args(2), format
+    RxAssign args(3), occurrence: RxAssign args(4), startAt
+    For k = 0 To 4
+        If Not TryGetArgumentInfo(ai(k), args(k)) Then GoTo Failed
+        If ai(k).t = ARG_RANGE Then If args(k).Areas.Count <> 1 Then GoTo Failed
+    Next
+    If Not TryDetermineCommonDimensions(nr, nc, ai) Then GoTo Failed
+    If nr > RX_MAX_ROWS Or nc > RX_MAX_COLUMNS Then RxBroadcast = CVErr(xlErrNum): Exit Function
+    ReDim output(0 To nr - 1, 0 To nc - 1)
+    ' Reuse compilation when patterns vary only across columns.
+    columnsFirst = (ai(1).rows = 1)
+    For outer = 0 To IIf(columnsFirst, nc, nr) - 1
+        For inner = 0 To IIf(columnsFirst, nr, nc) - 1
+            If columnsFirst Then c = outer: r = inner Else r = outer: c = inner
+            For k = 0 To 4
+                values(k) = RxArgumentValue(ai(k), args(k), r, c)
+            Next
+            output(r, c) = RxEvaluate(operation, values, cache)
+        Next
+    Next
+    RxBroadcast = output
+    Exit Function
+Failed:
+    RxBroadcast = CVErr(xlErrValue)
+End Function
+
+Private Sub RxAssign(ByRef target As Variant, ByRef source As Variant)
+    If IsObject(source) Then Set target = source Else target = source
+End Sub
+
+Private Function RxArgumentValue(ByRef ai As ArgumentInfo, ByRef arg As Variant, ByVal row As Long, ByVal col As Long) As Variant
+    If ai.rows = 1 Then row = 0
+    If ai.columns = 1 Then col = 0
+    Select Case ai.t
+    Case ARG_RANGE: RxArgumentValue = ai.rngCells(row + 1, col + 1).Value2
+    Case ARG_ARRAY
+        If ai.arrayDimensions = 1 Then
+            RxArgumentValue = arg(col + ai.lowerRow)
+        Else
+            RxArgumentValue = arg(row + ai.lowerRow, col + ai.lowerColumn)
+        End If
+    Case ARG_SCALAR: RxArgumentValue = arg
+    End Select
+End Function
+
+Private Function RxScalar(ByRef arg As Variant) As Variant
+    Dim ai As ArgumentInfo
+    If Not TryGetArgumentInfo(ai, arg) Then Err.Raise 5
+    If ai.rows <> 1 Or ai.columns <> 1 Then Err.Raise 5
+    If ai.t = ARG_RANGE Then If arg.Areas.Count <> 1 Then Err.Raise 5
+    RxScalar = RxArgumentValue(ai, arg, 0, 0)
+End Function
+
+Private Function RxString(ByRef arg As Variant) As String
+    If IsEmpty(arg) Then Exit Function
+    If VarType(arg) <> vbString Then Err.Raise 5
+    RxString = arg
+End Function
+
+Private Function RxInteger(ByRef arg As Variant, ByVal default As Long, ByVal minimum As Long, ByVal maximum As Long) As Long
+    Dim number As Double
+    If IsEmpty(arg) Then
+        number = default
+    Else
+        Select Case VarType(arg)
+        Case vbByte, vbInteger, vbLong, vbSingle, vbDouble, vbCurrency, vbDecimal, 20
+            number = CDbl(arg)
+        Case Else: Err.Raise 5
+        End Select
+    End If
+    If number < minimum Or number > maximum Then Err.Raise 5
+    If number <> Fix(number) Then Err.Raise 5
+    RxInteger = CLng(number)
+End Function
+
+Private Sub RxCompile(ByRef cache As RxCache, ByRef pattern As String)
+    If cache.regexReady Then
+        If cache.pattern = pattern Then Exit Sub
+    End If
+    cache.regexReady = False
+    cache.formatReady = False
+    StaticRegexSingle.InitializeRegex cache.regex, pattern
+    cache.pattern = pattern
+    cache.regexReady = True
+End Sub
+
+Private Sub RxCompileFormat(ByRef cache As RxCache, ByRef format As String)
+    If cache.formatReady Then If cache.format.text = format Then Exit Sub
+    cache.formatReady = False
+    StaticRegexSingle.InitializeFormat cache.format, cache.regex, format
+    cache.formatReady = True
+End Sub
+
+Private Sub RxAppend(ByRef result As String, ByVal addition As String)
+    If Len(result) + Len(addition) > RX_MAX_TEXT Then Err.Raise RX_ERR_NUM
+    result = result & addition
+End Sub
+
+Private Function RxFailure(ByVal number As Long) As Variant
+    If number = RX_STEP_LIMIT Or number = RX_ERR_NUM Then
+        RxFailure = CVErr(xlErrNum)
+    Else
+        RxFailure = CVErr(xlErrValue)
+    End If
+End Function
+
+Private Function RxEvaluate(ByVal operation As Long, ByRef values() As Variant, ByRef cache As RxCache) As Variant
+    On Error GoTo Failed
+    Dim text As String, pattern As String, format As String, result As String
+    Dim state As StaticRegexSingle.MatcherStateTy
+    Dim occurrence As Long, position As Long, n As Long, lastEnd As Long, k As Long
+    For k = 0 To 4
+        If IsError(values(k)) Then RxEvaluate = values(k): Exit Function
+    Next
+    text = RxString(values(0)): pattern = RxString(values(1))
+    position = RxInteger(values(4), 1, 1, Len(text) + 1)
+    occurrence = RxInteger(values(3), IIf(operation = RX_REPLACE, 0, 1), IIf(operation = RX_REPLACE, 0, 1), &H7FFFFFFF)
+    RxCompile cache, pattern
+    state.current = position - 1
+    If operation = RX_MATCH Or operation = RX_REPLACE Then
+        format = RxString(values(2))
+        RxCompileFormat cache, format
+    End If
+    lastEnd = 1
+    Do While StaticRegexSingle.MatchNext(state, cache.regex, text, raiseOnLimit:=True)
+        n = n + 1
+        Select Case operation
+        Case RX_TEST
+            RxEvaluate = True: Exit Function
+        Case RX_MATCH
+            If n = occurrence Then
+                result = StaticRegexSingle.FormatMatch(state, text, cache.format)
+                If Len(result) > RX_MAX_TEXT Then Err.Raise RX_ERR_NUM
+                RxEvaluate = result: Exit Function
+            End If
+        Case RX_FIND, RX_LENGTH
+            If n = occurrence Then
+                If operation = RX_FIND Then
+                    RxEvaluate = state.captures.entireMatch.start
+                Else
+                    RxEvaluate = state.captures.entireMatch.Length
+                End If
+                Exit Function
+            End If
+        Case RX_REPLACE
+            If occurrence = 0 Or n = occurrence Then
+                RxAppend result, Mid$(text, lastEnd, state.captures.entireMatch.start - lastEnd)
+                RxAppend result, StaticRegexSingle.FormatMatch(state, text, cache.format)
+                lastEnd = state.captures.entireMatch.start + state.captures.entireMatch.Length
+                If occurrence > 0 Then Exit Do
+            End If
+        End Select
+    Loop
+    Select Case operation
+    Case RX_TEST: RxEvaluate = False
+    Case RX_MATCH, RX_FIND, RX_LENGTH: RxEvaluate = CVErr(xlErrNA)
+    Case RX_COUNT: RxEvaluate = n
+    Case RX_REPLACE
+        RxAppend result, Mid$(text, lastEnd)
+        RxEvaluate = result
+    End Select
+    Exit Function
+Failed:
+    RxEvaluate = RxFailure(Err.Number)
+End Function
+
+' Variable-size results: one input text, one pattern, scalar options.
+Public Function RxMatches(ByRef text As Variant, ByRef pattern As Variant, _
+    Optional ByRef format As Variant = "$&", _
+    Optional ByRef startAt As Variant = 1) As Variant
+    On Error GoTo Failed
+    Dim values(0 To 2) As Variant, ai As ArgumentInfo, k As Long, j As Long
+    Dim s As String, p As String, f As String, position As Long
+    Dim regex As StaticRegexSingle.RegexTy, state As StaticRegexSingle.MatcherStateTy
+    Dim formats() As StaticRegexSingle.FormatTy, v As Variant, rows As Collection
+    Dim row() As Variant, output() As Variant, nr As Long, nc As Long
+    values(0) = RxScalar(text): values(1) = RxScalar(pattern)
+    values(2) = RxScalar(startAt)
+    For k = 0 To 2
+        If IsError(values(k)) Then RxMatches = values(k): Exit Function
+    Next
+    s = RxString(values(0)): p = RxString(values(1))
+    position = RxInteger(values(2), 1, 1, Len(s) + 1)
+    If Not TryGetArgumentInfo(ai, format) Then Err.Raise 5
+    If ai.rows <> 1 Or ai.columns < 1 Then Err.Raise 5
+    If ai.t = ARG_RANGE Then If format.Areas.Count <> 1 Then Err.Raise 5
+    nc = ai.columns
+    If nc > RX_MAX_COLUMNS Then Err.Raise RX_ERR_NUM
+    StaticRegexSingle.InitializeRegex regex, p
+    ReDim formats(0 To nc - 1)
+    For j = 0 To nc - 1
+        v = RxArgumentValue(ai, format, 0, j)
+        If IsError(v) Then RxMatches = v: Exit Function
+        f = RxString(v)
+        StaticRegexSingle.InitializeFormat formats(j), regex, f
+    Next
+    state.current = position - 1
+    Set rows = New Collection
+    Do While StaticRegexSingle.MatchNext(state, regex, s, raiseOnLimit:=True)
+        If rows.Count >= RX_MAX_ROWS Then Err.Raise RX_ERR_NUM
+        ReDim row(0 To nc - 1)
+        For j = 0 To nc - 1
+            row(j) = StaticRegexSingle.FormatMatch(state, s, formats(j))
+            If Len(row(j)) > RX_MAX_TEXT Then Err.Raise RX_ERR_NUM
+        Next
+        rows.Add row
+    Loop
+    nr = rows.Count
+    If nr = 0 Then RxMatches = CVErr(xlErrNA): Exit Function
+    ReDim output(0 To nr - 1, 0 To nc - 1)
+    For k = 0 To nr - 1
+        v = rows(k + 1)
+        For j = 0 To nc - 1
+            output(k, j) = v(j)
+        Next
+    Next
+    RxMatches = output
+    Exit Function
+Failed:
+    RxMatches = RxFailure(Err.Number)
+End Function
+
+Public Function RxSplit(ByRef text As Variant, ByRef pattern As Variant, _
+    Optional ByRef ignoreEmpty As Variant = False) As Variant
+    On Error GoTo Failed
+    Dim ai(0 To 2) As ArgumentInfo, args(0 To 2) As Variant, values(0 To 2) As Variant
+    Dim rows() As Variant, fields As Variant, output() As Variant, cache As RxCache
+    Dim nr As Long, nc As Long, width As Long, r As Long, c As Long, k As Long
+    RxAssign args(0), text: RxAssign args(1), pattern
+    RxAssign args(2), ignoreEmpty
+    For k = 0 To 2
+        If Not TryGetArgumentInfo(ai(k), args(k)) Then Err.Raise 5
+        ' Split fields expand horizontally, so source arguments must be columns.
+        If ai(k).columns <> 1 Then Err.Raise 5
+        If ai(k).t = ARG_RANGE Then If args(k).Areas.Count <> 1 Then Err.Raise 5
+    Next
+    If Not TryDetermineCommonDimensions(nr, nc, ai) Then Err.Raise 5
+    If nr > RX_MAX_ROWS Then Err.Raise RX_ERR_NUM
+    ReDim rows(0 To nr - 1)
+    width = 1
+    For r = 0 To nr - 1
+        For k = 0 To 2
+            values(k) = RxArgumentValue(ai(k), args(k), r, 0)
+        Next
+        rows(r) = RxSplitRow(values, cache)
+        If IsArray(rows(r)) Then
+            fields = rows(r)
+            If UBound(fields) + 1 > width Then width = UBound(fields) + 1
+        End If
+    Next
+    ' Keep scalar error results compatible with the single-text API.
+    If nr = 1 Then
+        If IsError(rows(0)) Then RxSplit = rows(0): Exit Function
+    End If
+    ReDim output(0 To nr - 1, 0 To width - 1)
+    For r = 0 To nr - 1
+        fields = rows(r)
+        For c = 0 To width - 1
+            If IsError(fields) Then
+                output(r, c) = fields
+            ElseIf c <= UBound(fields) Then
+                output(r, c) = fields(c)
+            Else
+                output(r, c) = CVErr(xlErrNA)
+            End If
+        Next
+    Next
+    RxSplit = output
+    Exit Function
+Failed:
+    RxSplit = RxFailure(Err.Number)
+End Function
+
+Private Function RxSplitRow(ByRef values() As Variant, ByRef cache As RxCache) As Variant
+    On Error GoTo Failed
+    Dim k As Long, s As String, p As String, piece As String
+    Dim ignore As ExpectedBoolean, lastEnd As Long, pieces As Collection
+    Dim state As StaticRegexSingle.MatcherStateTy, fields() As Variant
+    For k = 0 To 2
+        If IsError(values(k)) Then RxSplitRow = values(k): Exit Function
+    Next
+    s = RxString(values(0)): p = RxString(values(1))
+    ignore = ExpectBoolean(values(2))
+    If Not ignore.isFine Then Err.Raise 5
+    RxCompile cache, p
+    lastEnd = 1: Set pieces = New Collection
+    Do While StaticRegexSingle.MatchNext(state, cache.regex, s, raiseOnLimit:=True)
+        piece = Mid$(s, lastEnd, state.captures.entireMatch.start - lastEnd)
+        RxAddPiece pieces, piece, ignore.b
+        lastEnd = state.captures.entireMatch.start + state.captures.entireMatch.Length
+    Loop
+    RxAddPiece pieces, Mid$(s, lastEnd), ignore.b
+    If pieces.Count = 0 Then RxSplitRow = CVErr(xlErrNA): Exit Function
+    ReDim fields(0 To pieces.Count - 1)
+    For k = 1 To pieces.Count
+        fields(k - 1) = pieces(k)
+    Next
+    RxSplitRow = fields
+    Exit Function
+Failed:
+    RxSplitRow = RxFailure(Err.Number)
+End Function
+
+Private Sub RxAddPiece(ByRef pieces As Collection, ByVal piece As String, ByVal ignore As Boolean)
+    If ignore And Len(piece) = 0 Then Exit Sub
+    If pieces.Count >= RX_MAX_COLUMNS Or Len(piece) > RX_MAX_TEXT Then Err.Raise RX_ERR_NUM
+    pieces.Add piece
+End Sub
+
+' Called by Workbook_Open in built add-ins, and by the test runner.
+Public Sub RegisterRxFunctions()
+    Dim prefix As String, wasAddin As Boolean, number As Long, description As String
+    On Error GoTo Failed
+    wasAddin = ThisWorkbook.IsAddin
+    ' MacroOptions cannot edit a workbook while Excel marks it as an add-in.
+    ThisWorkbook.IsAddin = False
+    prefix = "'" & ThisWorkbook.Name & "'!"
+    Application.MacroOptions Macro:=prefix & "RxTest", Category:="VbaRegex", _
+        Description:="Tests whether text contains a regex match. Broadcasts arrays and ranges.", _
+        ArgumentDescriptions:=Array("Text or range of text.", "Regex pattern.", "1-based UTF-16 start position. Default 1.")
+    Application.MacroOptions Macro:=prefix & "RxMatch", Category:="VbaRegex", _
+        Description:="Returns a formatted match, or #N/A. Broadcasts arrays and ranges.", _
+        ArgumentDescriptions:=Array("Text or range of text.", "Regex pattern.", "Capture format. Default $&.", "Positive match number. Default 1.", "1-based UTF-16 start position. Default 1.")
+    Application.MacroOptions Macro:=prefix & "RxFind", Category:="VbaRegex", _
+        Description:="Returns the 1-based position of a regex match, or #N/A. Broadcasts arrays and ranges.", _
+        ArgumentDescriptions:=Array("Text or range of text.", "Regex pattern.", "Positive match number. Default 1.", "1-based UTF-16 start position. Default 1.")
+    Application.MacroOptions Macro:=prefix & "RxLength", Category:="VbaRegex", _
+        Description:="Returns a regex match's length in UTF-16 code units, or #N/A. Broadcasts arrays and ranges.", _
+        ArgumentDescriptions:=Array("Text or range of text.", "Regex pattern.", "Positive match number. Default 1.", "1-based UTF-16 start position. Default 1.")
+    Application.MacroOptions Macro:=prefix & "RxCount", Category:="VbaRegex", _
+        Description:="Counts nonoverlapping regex matches. Returns zero for no matches. Broadcasts arrays and ranges.", _
+        ArgumentDescriptions:=Array("Text or range of text.", "Regex pattern.", "1-based UTF-16 start position. Default 1.")
+    Application.MacroOptions Macro:=prefix & "RxMatches", Category:="VbaRegex", _
+        Description:="Returns all matches down rows; a row of formats produces columns.", _
+        ArgumentDescriptions:=Array("One text or single cell.", "One regex pattern.", "Capture format or one row of formats. Default $&.", "1-based UTF-16 start position. Default 1.")
+    Application.MacroOptions Macro:=prefix & "RxReplace", Category:="VbaRegex", _
+        Description:="Replaces regex matches. Broadcasts arrays and ranges.", _
+        ArgumentDescriptions:=Array("Text or range of text.", "Regex pattern.", "Replacement capture format.", "0 for all; positive match number for one. Default 0.", "1-based UTF-16 start position. Default 1.")
+    Application.MacroOptions Macro:=prefix & "RxSplit", Category:="VbaRegex", _
+        Description:="Splits each input row across columns. Broadcasts columns; pads shorter rows with #N/A.", _
+        ArgumentDescriptions:=Array("Text or a single column of texts.", "Regex delimiter or compatible column of patterns.", "TRUE discards empty fields. Default FALSE. May be a column.")
+    ThisWorkbook.IsAddin = wasAddin
+    Exit Sub
+Failed:
+    number = Err.Number: description = Err.Description
+    ThisWorkbook.IsAddin = wasAddin
+    Err.Raise number, "RegisterRxFunctions", description
+End Sub

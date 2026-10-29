@@ -180,7 +180,7 @@ function CreateSingleFile {
     }
     ProcessFile "RegexCompiler.bas" { }
 
-    ProcessFile "RegexDfsMatcher.bas" {
+    ProcessFile "RegexMatcherCommon.bas" { 
         $startIdx = -1
         $endIdx = -1
         for ($i = 0; $i -lt $_[0].Count; $i++) {
@@ -198,7 +198,16 @@ function CreateSingleFile {
         if ( ($startIdx -ne -1) -and ($endIdx -ne -1) ) {
             $_[0] = $_[0][0..($startIdx - 1)] + $_[0][($endIdx + 1)..($_[0].Count - 1)]
         }
+
     }
+
+    ProcessFile "RegexDfsMatcher.bas" { }
+
+    ProcessFile "RegexNfaThreadPool.bas" { }
+
+    ProcessFile "RegexNfaMatcher.bas" { }
+
+    ProcessFile "RegexDfaMatcher.bas" { }
 
     ProcessFile "RegexReplace.bas" { }
 
@@ -231,7 +240,11 @@ function CreateSingleFile {
         $_ = [regex]::Replace($_, "RegexLexer\.Ty", "LexerContext")
         $_ = [regex]::Replace($_, "RegexLexer\.", "")
         $_ = [regex]::Replace($_, "RegexCompiler\.", "")
+        $_ = [regex]::Replace($_, "RegexMatcherCommon\.", "")
         $_ = [regex]::Replace($_, "RegexDfsMatcher\.", "")
+        $_ = [regex]::Replace($_, "RegexNfaThreadPool\.", "")
+        $_ = [regex]::Replace($_, "RegexNfaMatcher\.", "")
+        $_ = [regex]::Replace($_, "RegexDfaMatcher\.", "")
         $_ = [regex]::Replace($_, "RegexReplace\.", "")
         $_ = [regex]::Replace($_, "Private Sub InitializeRegex\(",  "Public Sub InitializeRegex(")
         $_ = [regex]::Replace($_, "Private Function TryInitializeRegex\(",  "Public Function TryInitializeRegex(")
@@ -246,6 +259,9 @@ function CreateSingleFile {
         $_ = [regex]::Replace($_, "Private Sub MatchThenList\(", "Public Sub MatchThenList(")
         $_ = [regex]::Replace($_, "Private Sub InitializeMatcherState\(", "Public Sub InitializeMatcherState(")
         $_ = [regex]::Replace($_, "Private Sub ResetMatcherState\(", "Public Sub ResetMatcherState(")
+        $_ = [regex]::Replace($_, "Private Type FormatTy", "Public Type FormatTy")
+        $_ = [regex]::Replace($_, "Private Sub InitializeFormat\(", "Public Sub InitializeFormat(")
+        $_ = [regex]::Replace($_, "Private Function FormatMatch\(", "Public Function FormatMatch(")
         $_ = [regex]::Replace($_, "Private Type RegexTy", "Public Type RegexTy")
         $_ = [regex]::Replace($_, "Private Type MatcherStateTy", "Public Type MatcherStateTy")
         $_
