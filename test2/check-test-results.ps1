@@ -1,78 +1,92 @@
-﻿param(
-    [string]$testRun = ""
+param(
+    [string]$testRun = '',
+    [string]$TestCasesRoot = (Join-Path $PSScriptRoot '../../regex-test-cases')
 )
 
-function local:runScript {
-    $actualResultsRootdir = ".\test-results"
+$ErrorActionPreference = 'Stop'
+if (!$testRun) {
+    $testRun = (Get-ChildItem (Join-Path $PSScriptRoot 'test-results') -Directory |
+        Sort-Object Name | Select-Object -Last 1).FullName
+} elseif (!(Test-Path -LiteralPath $testRun)) {
+    $testRun = Join-Path $PSScriptRoot "test-results/$testRun"
+}
 
-    if ($testRun -eq "") {
-        $testRun = (Get-ChildItem $actualResultsRootdir) | Sort-Object -Property Name | Select-Object -Last 1
+function Compare-Offsets($expected, $actual) {
+    $count = [Math]::Max($expected.Count, $actual.Count)
+    for ($i = 0; $i -lt $count; ++$i) {
+        $e = if ($i -lt $expected.Count) { $expected[$i] } else { -1 }
+        $a = if ($i -lt $actual.Count) { $actual[$i] } else { -1 }
+        if ($e -ne $a) { return $false }
     }
+    return $true
+}
 
-    $actualResultsDir = (Join-Path $actualResultsRootdir -ChildPath $testRun)
-
-    Write-Host "Analysing files in " $actualResultsDir
-
-    $testCasesDir = "..\..\regex-test-cases"
-    $tempDir = ".\temp"
-
-    function compareArrays {
-        param (
-            $expected,
-            $actual
-        )
-
-        $minAryLength = [System.Math]::Min($expected.Length, $actual.Length)
-
-        $i = 0
-        for(; $i -lt $minAryLength; ++$i) {
-            if ($expected[$i] -ne $actual[$i]) { return $false }
+$summary = @()
+$totalFailed = 0
+Write-Host "Analysing files in $testRun"
+$run = Get-Content -Raw (Join-Path $testRun 'run.json') | ConvertFrom-Json
+$totalSuites = @($run.Engines).Count * @($run.TestCases).Count
+$suiteIndex = 0
+foreach ($engine in $run.Engines) {
+    $engineDir = Join-Path $testRun $engine
+    $files = @($run.TestCases | ForEach-Object { Get-Item -LiteralPath (Join-Path $engineDir "$_.json") })
+    if (!$files.Count) { throw "No test results for $engine" }
+    foreach ($file in $files) {
+        ++$suiteIndex
+        $suiteLabel = "$engine/$($file.BaseName)"
+        $suiteTimer = [System.Diagnostics.Stopwatch]::StartNew()
+        Write-Host "[$suiteIndex/$totalSuites] ${suiteLabel}: loading test cases"
+        $cases = Get-Content -Raw (Join-Path $TestCasesRoot "test-cases/$($file.Name)") | ConvertFrom-Json
+        Write-Host "${suiteLabel}: loading RE2 reference results"
+        $expected = Get-Content -Raw (Join-Path $TestCasesRoot "test-results/re2/$($file.Name)") | ConvertFrom-Json
+        Write-Host "${suiteLabel}: loading matcher results"
+        $actual = Get-Content -Raw -LiteralPath $file.FullName | ConvertFrom-Json
+        if ($actual.Count -ne $cases.regexs.Count -or $expected.Count -ne $cases.regexs.Count) {
+            throw "Wrong pattern count: $($file.FullName)"
         }
-        for(; $i -lt $expected.Length; ++$i) {
-            if ($expected[$i] -ne -1) { return $false }
-        }
-        for(; $i -lt $actual.Length; ++$i) {
-            if ($actual[$i] -ne -1) { return $false }
-        }
-        return $true
-    }
-
-    Get-ChildItem $actualResultsDir | %{
-
-        $testCaseFileNameBase = $_.BaseName
-
-        Write-Host "Test case: " $testCaseFileNameBase
-
-        $testCaseFilePath = Join-Path (Join-Path $testCasesDir -ChildPath "test-cases") -ChildPath "$testCaseFileNameBase.json"
-        $expectedResultsFilePath = Join-Path (Join-Path $testCasesDir -ChildPath "test-results\re2") -ChildPath "$testCaseFileNameBase.json"
-        $actualResultsFilePath = join-path $actualResultsDir -ChildPath "$testCaseFileNameBase.json"
-        $tempFilePath = Join-Path $tempDir -ChildPath "$testCaseFileNameBase.json"
-
-        $testCaseData = Get-Content -Raw $testCaseFilePath | ConvertFrom-Json
-        $tempData = Get-Content -Raw $tempFilePath | ConvertFrom-Json
-        $expectedResultsAllData = Get-Content -Raw $expectedResultsFilePath | ConvertFrom-Json
-        $actualResultsData = Get-Content -Raw $actualResultsFilePath | ConvertFrom-Json
-
-#        write-host (ConvertTo-Json $expectedResultsAllData[10][10])
-
-#        exit
-
-        for ($regexIndex = 0; $regexIndex -lt $testCaseData.regexs.Length; ++$regexIndex) {
-            $regexExpected = $testCaseData.regexs[$regexIndex]
-            $regexActual = $tempData.regexs[$regexIndex]
-
-            for ($strIndex = 0; $strIndex -lt $testCaseData.strs.Length; ++$strIndex) {
-                $str = $testCaseData.strs[$strIndex]
-
-                $expected = $expectedResultsAllData[$regexIndex][$strIndex][1]
-                $actual = $actualResultsData[$regexIndex][$strIndex]
-                if(-not (compareArrays $expected $actual)) {
-                    Write-Host $str $regexExpected "Expected: " (ConvertTo-Json -Compress $expected) $regexActual "Actual: " (ConvertTo-Json -Compress $actual)
+        $passed = 0; $failed = 0; $skippedPatterns = 0
+        $caseCount = $cases.regexs.Count * $cases.strs.Count
+        Write-Host "${suiteLabel}: comparing $caseCount cases ($($cases.regexs.Count) patterns x $($cases.strs.Count) strings)"
+        $nextProgressMs = $suiteTimer.ElapsedMilliseconds + 5000
+        for ($r = 0; $r -lt $cases.regexs.Count; ++$r) {
+            # Keep progress visible in consoles and captured logs without adding
+            # output or a clock check to every pattern/string comparison.
+            if ($suiteTimer.ElapsedMilliseconds -ge $nextProgressMs) {
+                Write-Host "${suiteLabel}: patterns $r/$($cases.regexs.Count); passed=$passed failed=$failed skippedPatterns=$skippedPatterns; $([Math]::Round($suiteTimer.Elapsed.TotalSeconds, 1))s elapsed"
+                $nextProgressMs = $suiteTimer.ElapsedMilliseconds + 5000
+            }
+            if ($null -eq $actual[$r]) {
+                if ($engine -eq 'dfs') { throw "Unexpected DFS skip at pattern $r" }
+                ++$skippedPatterns
+                continue
+            }
+            if ($actual[$r].Count -ne $cases.strs.Count) { throw "Wrong string count at pattern $r" }
+            for ($s = 0; $s -lt $cases.strs.Count; ++$s) {
+                $e = @($expected[$r][$s][1]) # RE2, unanchored, leftmost-first.
+                $a = @($actual[$r][$s])
+                if ($engine -eq 'dfa') {
+                    if ($a.Count -ne 2) { throw 'DFA must return exactly one span.' }
+                    if ($e.Count -gt 2) { $e = $e[0..1] }
+                }
+                if (Compare-Offsets $e $a) {
+                    ++$passed
+                } else {
+                    ++$failed
+                    if ($failed -le 10) {
+                        Write-Host "$engine/$($file.BaseName) regex[$r]=$($cases.regexs[$r]) string[$s]=$($cases.strs[$s]) expected=[$e] actual=[$a]"
+                    }
                 }
             }
         }
-
+        $totalFailed += $failed
+        $summary += [pscustomobject]@{
+            Engine = $engine; Suite = $file.BaseName; Passed = $passed; Failed = $failed
+            SkippedPatterns = $skippedPatterns; SkippedCases = $skippedPatterns * $cases.strs.Count
+        }
+        Write-Host "${suiteLabel}: complete; passed=$passed failed=$failed skippedPatterns=$skippedPatterns; $([Math]::Round($suiteTimer.Elapsed.TotalSeconds, 1))s elapsed"
     }
 }
-
-runScript
+if (!$summary.Count) { throw "No engine results in $testRun" }
+$summary | Export-Csv -NoTypeInformation -Path (Join-Path $testRun 'summary.csv')
+$summary | Format-Table -AutoSize
+if ($totalFailed) { throw "$totalFailed matcher results differ from RE2." }

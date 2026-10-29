@@ -7,17 +7,20 @@ Option Explicit
 ' t = - AST_ASSERT_POS_LOOKAHEAD -> lookahead                                         |
 ' t = - AST_ASSERT_NEG_LOOKAHEAD -> lookbehind                                        |
 ' t = - AST_ASSERT_POS_LOOKBEHIND -> lookahead                                        |
-' t = - AST_ASSERT_NEG_LOOKBEHIND -> lookbehin                                        |
-' t = - (MAX_AST_CODE + 1) -> non-capturing group              PSF_NONCAPTURE         | PSF_MIN_EXPLICIT   | PSF_MAX_WITH_MODIFIERS
-' t = - (MAX_AST_CODE + 2) -> modifier scope not ending at |   PSF_MODSCOPE_SPANNING                       |
-' t = - (MAX_AST_CODE + 3) -> modifier scope ending at |       PSF_MODSCOPE_LOCAL                          |
+' t = - AST_ASSERT_NEG_LOOKBEHIND -> lookbehind                                       |
+' t = - (MAX_AST_CODE + 1) -> atomic group                     PSF_ATOMIC             |
+' t = - (MAX_AST_CODE + 2) -> non-capturing group              PSF_NONCAPTURE         | PSF_MIN_EXPLICIT   | PSF_MAX_WITH_MODIFIERS
+' t = - (MAX_AST_CODE + 3) -> modifier scope not ending at |   PSF_MODSCOPE_SPANNING                       |
+' t = - (MAX_AST_CODE + 4) -> modifier scope ending at |       PSF_MODSCOPE_LOCAL                          |
 Private Enum ParseStackFrameTypeConstant
-    PSF_NONCAPTURE = -(RegexAst.MAX_AST_CODE + 1)
+    PSF_ATOMIC = -(RegexAst.MAX_AST_CODE + 1)
+    
+    PSF_NONCAPTURE = -(RegexAst.MAX_AST_CODE + 2)
     PSF_MAX_WITH_MODIFIERS = PSF_NONCAPTURE
     PSF_MIN_EXPLICIT = PSF_NONCAPTURE
     
-    PSF_MODSCOPE_SPANNING = -(RegexAst.MAX_AST_CODE + 2)
-    PSF_MODSCOPE_LOCAL = -(RegexAst.MAX_AST_CODE + 3)
+    PSF_MODSCOPE_SPANNING = -(RegexAst.MAX_AST_CODE + 3)
+    PSF_MODSCOPE_LOCAL = -(RegexAst.MAX_AST_CODE + 4)
     
     PSF_NONE = RegexNumericConstants.LONG_MIN ' not a valid stack frame type, for indicating nothing has been handled
     
@@ -35,19 +38,115 @@ Public Sub Compile(ByRef outBytecode() As Long, ByRef s As String, Optional ByVa
     
     RegexLexer.Initialize lex, s
     Parse lex, caseInsensitive, ast
-    RegexAst.AstToBytecode ast.Buffer, lex.identifierTree, caseInsensitive, outBytecode
+    RegexAst.AstToBytecode ast, lex.identifierTree, caseInsensitive, outBytecode
 End Sub
 
 Private Sub PerformPotentialConcat( _
     ByRef ast As ArrayBuffer.Ty, ByRef potentialConcat2 As Long, ByRef potentialConcat1 As Long _
 )
-    Dim tmp As Long
-    If potentialConcat2 <> -1 Then
+    Dim tmp As Long, b1 As Long, b2 As Long
+    If potentialConcat2 = -1 Then Exit Sub
+    
+    Select Case ast.Buffer(potentialConcat2)
+    Case AST_CHAR: b2 = 1
+    Case AST_STRING: b2 = 2
+    Case AST_EMPTY: b2 = 3
+    Case AST_CHAR_CONCAT: b2 = 4
+    Case AST_STRING_CONCAT: b2 = 5
+    Case Else: b2 = 0
+    End Select
+    
+    Select Case ast.Buffer(potentialConcat1)
+    Case AST_CHAR: b1 = 1
+    Case AST_STRING: b1 = 2
+    Case AST_EMPTY: b1 = 3
+    Case Else: b1 = 0
+    End Select
+    
+    On 4 * b2 + b1 GoTo _
+                   L_X_CHAR, L_GENERAL, L_X_EMPTY, _
+        L_GENERAL, L_CHAR_CHAR, L_GENERAL, L_X_EMPTY, _
+        L_GENERAL, L_STRING_CHAR, L_GENERAL, L_X_EMPTY, _
+        L_EMPTY_X, L_EMPTY_X, L_EMPTY_X, L_X_EMPTY, _
+        L_GENERAL, L_CHAR_CONCAT_CHAR, L_GENERAL, L_X_EMPTY, _
+        L_GENERAL, L_STRING_CONCAT_CHAR, L_GENERAL, L_X_EMPTY
+        
+    ' Fallthrough for 0
+    
+L_GENERAL:
+    tmp = ast.Length
+    ArrayBuffer.AppendThree ast, RegexAst.AST_CONCAT, _
+        potentialConcat2, potentialConcat1
+    potentialConcat2 = -1
+    potentialConcat1 = tmp
+    Exit Sub
+    
+L_X_CHAR:
+    If potentialConcat1 <> ast.Length - 2 Then
         tmp = ast.Length
-        ArrayBuffer.AppendThree ast, RegexAst.AST_CONCAT, potentialConcat2, potentialConcat1
+        ArrayBuffer.AppendThree ast, RegexAst.AST_CHAR_CONCAT, _
+            potentialConcat2, ast.Buffer(potentialConcat1 + 1)
         potentialConcat2 = -1
         potentialConcat1 = tmp
+        Exit Sub
+    Else
+        ArrayBuffer.AppendLong ast, ast.Buffer(potentialConcat1 + 1)
+        ast.Buffer(potentialConcat1) = AST_CHAR_CONCAT
+        ast.Buffer(potentialConcat1 + 1) = potentialConcat2
+        potentialConcat2 = -1
+        Exit Sub
     End If
+
+L_X_EMPTY:
+    If ast.Length = potentialConcat1 + 1 Then ast.Length = potentialConcat1
+    potentialConcat1 = potentialConcat2
+    potentialConcat2 = -1
+    Exit Sub
+    
+L_CHAR_CHAR:
+    If potentialConcat1 - 2 <> potentialConcat2 Then GoTo L_GENERAL
+    ast.Buffer(potentialConcat2 + 2) = ast.Buffer(potentialConcat2 + 1)
+    ast.Buffer(potentialConcat2 + 3) = ast.Buffer(potentialConcat1 + 1)
+    ast.Buffer(potentialConcat2) = AST_STRING
+    ast.Buffer(potentialConcat2 + 1) = 2
+    potentialConcat1 = potentialConcat2
+    potentialConcat2 = -1
+    Exit Sub
+
+L_STRING_CHAR:
+    tmp = ast.Buffer(potentialConcat2 + 1) ' string length
+    If potentialConcat1 - tmp - 2 <> potentialConcat2 Then _
+        GoTo L_GENERAL
+    If ast.Length = potentialConcat1 + 2 Then ast.Length = potentialConcat1 + 1
+    ast.Buffer(potentialConcat2 + 1) = tmp + 1  ' increment string length
+    ast.Buffer(potentialConcat1) = ast.Buffer(potentialConcat1 + 1) ' move character
+    potentialConcat1 = potentialConcat2
+    potentialConcat2 = -1
+    Exit Sub
+
+L_EMPTY_X:
+    potentialConcat2 = -1
+    Exit Sub
+
+L_CHAR_CONCAT_CHAR:
+    If potentialConcat1 - 3 <> potentialConcat2 Then GoTo L_GENERAL
+    ast.Buffer(potentialConcat2) = AST_STRING_CONCAT
+    ast.Buffer(potentialConcat2 + 3) = ast.Buffer(potentialConcat2 + 2)
+    ast.Buffer(potentialConcat2 + 2) = 2
+    potentialConcat1 = potentialConcat2
+    potentialConcat2 = -1
+    Exit Sub
+
+L_STRING_CONCAT_CHAR:
+    tmp = ast.Buffer(potentialConcat2 + 2) ' string length
+    If potentialConcat1 - tmp - 3 <> potentialConcat2 Then _
+        GoTo L_GENERAL
+    If ast.Length = potentialConcat1 + 2 Then ast.Length = potentialConcat1 + 1
+    ast.Buffer(potentialConcat2 + 2) = tmp + 1  ' increment string length
+    ast.Buffer(potentialConcat1) = ast.Buffer(potentialConcat1 + 1) ' move character
+    potentialConcat1 = potentialConcat2
+    potentialConcat2 = -1
+    Exit Sub
 End Sub
 
 ' implicit groups are removed from the stack, explicit groups are left on the stack
@@ -205,6 +304,10 @@ ContinueLoop:
             
             If qmin = 0 Then
                 n1 = -1
+            ElseIf currToken.quantifierType = TokenQuantifierType.QUANTIFIER_POSSESSIVE Then
+                currentAstNode = ast.Length
+                ArrayBuffer.AppendThree ast, AST_REPEAT_EXACTLY_POSSESSIVE, potentialConcat1, qmin
+                n1 = currentAstNode
             ElseIf qmin = 1 Then
                 n1 = potentialConcat1
             ElseIf qmin > 1 Then
@@ -216,17 +319,38 @@ ContinueLoop:
             End If
             
             If qmax = RE_QUANTIFIER_INFINITE Then
-                If currToken.greedy Then tmp = AST_STAR_GREEDY Else tmp = AST_STAR_HUMBLE
+                Select Case currToken.quantifierType
+                Case TokenQuantifierType.QUANTIFIER_GREEDY
+                    tmp = AST_STAR_GREEDY
+                Case TokenQuantifierType.QUANTIFIER_HUMBLE
+                    tmp = AST_STAR_HUMBLE
+                Case TokenQuantifierType.QUANTIFIER_POSSESSIVE
+                    tmp = AST_STAR_POSSESSIVE
+                End Select
                 currentAstNode = ast.Length
                 ArrayBuffer.AppendTwo ast, tmp, potentialConcat1
                 n2 = currentAstNode
             ElseIf qmax - qmin = 1 Then
-                If currToken.greedy Then tmp = AST_ZEROONE_GREEDY Else tmp = AST_ZEROONE_HUMBLE
+                Select Case currToken.quantifierType
+                Case TokenQuantifierType.QUANTIFIER_GREEDY
+                    tmp = AST_ZEROONE_GREEDY
+                Case TokenQuantifierType.QUANTIFIER_HUMBLE
+                    tmp = AST_ZEROONE_HUMBLE
+                Case TokenQuantifierType.QUANTIFIER_POSSESSIVE
+                    tmp = AST_ZEROONE_POSSESSIVE
+                End Select
                 currentAstNode = ast.Length
                 ArrayBuffer.AppendTwo ast, tmp, potentialConcat1
                 n2 = currentAstNode
             ElseIf qmax - qmin > 1 Then
-                If currToken.greedy Then tmp = AST_REPEAT_MAX_GREEDY Else tmp = AST_REPEAT_MAX_HUMBLE
+                Select Case currToken.quantifierType
+                Case TokenQuantifierType.QUANTIFIER_GREEDY
+                    tmp = AST_REPEAT_MAX_GREEDY
+                Case TokenQuantifierType.QUANTIFIER_HUMBLE
+                    tmp = AST_REPEAT_MAX_HUMBLE
+                Case TokenQuantifierType.QUANTIFIER_POSSESSIVE
+                    tmp = AST_REPEAT_MAX_POSSESSIVE
+                End Select
                 currentAstNode = ast.Length
                 ArrayBuffer.AppendThree ast, tmp, potentialConcat1, qmax - qmin
                 n2 = currentAstNode
@@ -248,6 +372,13 @@ ContinueLoop:
                 If n2 = -1 Then
                     potentialConcat1 = n1
                 Else
+                    ' This is the only place where our AST becomes a DAG, in that the
+                    ' n1 effectively has two parents. In the long run, we should
+                    ' somehow mark the node, in order to enable optimizing the DAG.
+                    ' For now, the only optimization we are doing is concatenation
+                    ' of AST_STRING, AST_CHAR and AST_EMPTY nodes. Since n2 never
+                    ' is such a node and n1 is shielded by the AST_CONCAT node, we
+                    ' are fine for now.
                     currentAstNode = ast.Length
                     ArrayBuffer.AppendThree ast, AST_CONCAT, n1, n2
                     potentialConcat1 = currentAstNode
@@ -262,6 +393,15 @@ ContinueLoop:
                 currToken.num, pendingDisjunction, currentDisjunction, potentialConcat1, _
                 nCaptures
                 
+            pendingDisjunction = -1
+            potentialConcat2 = -1
+            potentialConcat1 = -1
+            currentDisjunction = -1
+            
+        Case RETOK_ATOM_START_ATOMIC_GROUP
+            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+            ArrayBuffer.AppendFive parseStack, _
+                0, pendingDisjunction, currentDisjunction, potentialConcat1, PSF_ATOMIC
             pendingDisjunction = -1
             potentialConcat2 = -1
             potentialConcat1 = -1
@@ -365,6 +505,10 @@ ContinueLoop:
                 potentialConcat1 = currentAstNode
             ElseIf tmp = PSF_NONCAPTURE Then ' non-capture group
                 ' nothing to do
+            ElseIf tmp = PSF_ATOMIC Then ' atomic group
+                currentAstNode = ast.Length
+                ArrayBuffer.AppendThree ast, AST_REPEAT_EXACTLY_POSSESSIVE, potentialConcat1, 1
+                potentialConcat1 = currentAstNode
             Else ' lookahead or lookbehind
                 currentAstNode = ast.Length
                 ArrayBuffer.AppendTwo ast, -tmp, potentialConcat1

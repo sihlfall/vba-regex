@@ -490,7 +490,9 @@ Private Function json_ParseObject(json_String As String, ByRef json_Index As Lon
             json_Key = json_ParseKey(json_String, json_Index)
             json_NextChar = json_Peek(json_String, json_Index)
             If json_NextChar = "[" Or json_NextChar = "{" Then
-                Set json_ParseObject.Item(json_Key) = json_ParseValue(json_String, json_Index)
+                ' Wine's Dictionary does not support PROPERTYPUTREF; Add accepts object values.
+                If json_ParseObject.Exists(json_Key) Then json_ParseObject.Remove json_Key
+                json_ParseObject.Add json_Key, json_ParseValue(json_String, json_Index)
             Else
                 json_ParseObject.Item(json_Key) = json_ParseValue(json_String, json_Index)
             End If
@@ -583,7 +585,7 @@ Private Function json_ParseString(json_String As String, ByRef json_Index As Lon
                 json_BufferAppend json_Buffer, vbFormFeed, json_BufferPosition, json_BufferLength
                 json_Index = json_Index + 1
             Case "n"
-                json_BufferAppend json_Buffer, vbCrLf, json_BufferPosition, json_BufferLength
+                json_BufferAppend json_Buffer, vbLf, json_BufferPosition, json_BufferLength
                 json_Index = json_Index + 1
             Case "r"
                 json_BufferAppend json_Buffer, vbCr, json_BufferPosition, json_BufferLength

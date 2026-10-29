@@ -23,6 +23,30 @@ Failed:
     RunRxTests = currentCase & ": " & Err.Description
 End Function
 
+Public Function RunRxExecutionLimitTests() As Variant
+    ' The runner supplies a 10,000-step budget in the temporary workbook only.
+    On Error GoTo Failed
+    Dim inputs(1 To 3, 1 To 1) As Variant
+    checks = 0: failures = vbNullString
+    Check "test execution limit", RxTest(String$(18, "a"), "(a+)+b"), CVErr(xlErrNum)
+    Check "match execution limit", RxMatch(String$(18, "a"), "(a+)+b"), CVErr(xlErrNum)
+    Check "replace execution limit", RxReplace(String$(18, "a"), "(a+)+b", "x"), CVErr(xlErrNum)
+    Check "find execution limit", RxFind(String$(18, "a"), "(a+)+b"), CVErr(xlErrNum)
+    Check "length execution limit", RxLength(String$(18, "a"), "(a+)+b"), CVErr(xlErrNum)
+    Check "count execution limit", RxCount(String$(18, "a"), "(a+)+b"), CVErr(xlErrNum)
+    Check "count fails instead of partial count", RxCount("b" & String$(18, "a"), "b|(a+)+z"), CVErr(xlErrNum)
+    Check "find stops after selected match", RxFind("b" & String$(18, "a"), "b|(a+)+z"), 1&
+    Check "length stops after selected match", RxLength("b" & String$(18, "a"), "b|(a+)+z"), 1&
+    Check "matches execution limit", RxMatches(String$(18, "a"), "(a+)+b"), CVErr(xlErrNum)
+    Check "split execution limit", RxSplit(String$(18, "a"), "(a+)+b"), CVErr(xlErrNum)
+    inputs(1, 1) = String$(18, "a"): inputs(2, 1) = "b": inputs(3, 1) = "c"
+    Grid "split row execution limit", RxSplit(inputs, "(a+)+b"), 3, 1, Array(CVErr(xlErrNum), "b", "c")
+    If Len(failures) > 0 Then RunRxExecutionLimitTests = failures Else RunRxExecutionLimitTests = checks
+    Exit Function
+Failed:
+    RunRxExecutionLimitTests = currentCase & ": " & Err.Description
+End Function
+
 Private Sub TestScalars()
     Check "test hit", RxTest("ab12cd34", "\d+"), True
     Check "test miss", RxTest("abc", "\d+"), False
@@ -39,48 +63,52 @@ Private Sub TestScalars()
     Check "replace absent nth", RxReplace("a12", "\d+", "X", 2), "a12"
     Check "replace miss", RxReplace("abc", "\d+", "X"), "abc"
     Check "replace captures", RxReplace("a1 b2", "([a-z])(\d)", "$2$1"), "1a 2b"
+    Check "disable inline case modifier", RxTest("Ab", "(?i)a(?-i)b"), True
+    Check "modifier starts midpattern", RxTest("aBC", "a(?i)bc"), True
+    Check "disabled case modifier rejects uppercase", RxTest("AB", "(?i)a(?-i)b"), False
+    Check "scoped case modifier", RxTest("Ab", "(?i:a)b"), True
+    Check "scoped case modifier ends", RxTest("AB", "(?i:a)b"), False
+    Check "disable inline multiline", RxTest("x" & vbLf & "a", "(?m)(?-m)^a"), False
+    Check "disable inline dotAll", RxTest("a" & vbLf & "b", "(?s)(?-s)a.b"), False
     Check "case sensitive default", RxTest("ABC", "abc"), False
-    Check "case flag", RxTest("ABC", "abc", "i"), True
-    Check "match case flag", RxMatch("ABC", "abc", , , "i"), "ABC"
-    Check "replace case flag", RxReplace("Aa", "a", "x", , "i"), "xx"
+    Check "case modifier", RxTest("ABC", "(?i)abc"), True
+    Check "match case modifier", RxMatch("ABC", "(?i)abc"), "ABC"
+    Check "replace case modifier", RxReplace("Aa", "(?i)a", "x"), "xx"
     Check "multiline off", RxTest("x" & vbLf & "a", "^a"), False
-    Check "multiline on", RxTest("x" & vbLf & "a", "^a", "m"), True
-    Check "match multiline", RxMatch("x" & vbLf & "a", "^a", , , "m"), "a"
-    Check "replace multiline", RxReplace("a" & vbLf & "a", "^a", "x", , "m"), "x" & vbLf & "x"
+    Check "multiline on", RxTest("x" & vbLf & "a", "(?m)^a"), True
+    Check "match multiline", RxMatch("x" & vbLf & "a", "(?m)^a"), "a"
+    Check "replace multiline", RxReplace("a" & vbLf & "a", "(?m)^a", "x"), "x" & vbLf & "x"
     Check "dotAll off", RxTest("a" & vbLf & "b", "a.b"), False
-    Check "dotAll on", RxTest("a" & vbLf & "b", "a.b", "s"), True
-    Check "match dotAll", RxMatch("a" & vbLf & "b", "a.b", , , "s"), "a" & vbLf & "b"
-    Check "replace dotAll", RxReplace("a" & vbLf & "b", "a.b", "x", , "s"), "x"
-    Check "combined flags", RxTest("x" & vbLf & "A" & vbLf & "B", "^a.b$", "ims"), True
-    Check "reordered repeated flags", RxTest("A" & vbLf & "B", "a.b", "sii"), True
-    Check "test startAt", RxTest("a1b2", "\d", , 3), True
-    Check "match startAt", RxMatch("a1b2", "\d", , , , 3), "2"
-    Check "occurrence after startAt", RxMatch("1a2b3", "\d", , 2, , 3), "3"
-    Check "anchor retains original text", RxTest("abc", "^b", , 2), False
-    Check "word boundary retains prefix", RxTest("ab", "\bb", , 2), False
-    Check "prefix format", RxMatch("ab12", "\d+", "$" & Chr$(96), , , 3), "ab"
+    Check "dotAll on", RxTest("a" & vbLf & "b", "(?s)a.b"), True
+    Check "match dotAll", RxMatch("a" & vbLf & "b", "(?s)a.b"), "a" & vbLf & "b"
+    Check "replace dotAll", RxReplace("a" & vbLf & "b", "(?s)a.b", "x"), "x"
+    Check "combined modifiers", RxTest("x" & vbLf & "A" & vbLf & "B", "(?ims)^a.b$"), True
+    Check "reordered modifiers", RxTest("A" & vbLf & "B", "(?si)a.b"), True
+    Check "test startAt", RxTest("a1b2", "\d", 3), True
+    Check "match startAt", RxMatch("a1b2", "\d", , , 3), "2"
+    Check "occurrence after startAt", RxMatch("1a2b3", "\d", , 2, 3), "3"
+    Check "anchor retains original text", RxTest("abc", "^b", 2), False
+    Check "word boundary retains prefix", RxTest("ab", "\bb", 2), False
+    Check "prefix format", RxMatch("ab12", "\d+", "$" & Chr$(96), , 3), "ab"
     Check "suffix format", RxMatch("ab12cd", "\d+", "$'"), "cd"
-    Check "replace preserves prefix", RxReplace("1a2b3", "\d", "X", , , 3), "1aXbX"
-    Check "replace counts after startAt", RxReplace("1a2b3", "\d", "X", 2, , 3), "1a2bX"
-    Check "empty match at end", RxMatch("ab", "$", , , , 3), ""
-    Check "test terminal nonempty", RxTest("ab", ".", , 3), False
-    Check "replace terminal match", RxReplace("ab", "$", "X", , , 3), "abX"
+    Check "replace preserves prefix", RxReplace("1a2b3", "\d", "X", , 3), "1aXbX"
+    Check "replace counts after startAt", RxReplace("1a2b3", "\d", "X", 2, 3), "1a2bX"
+    Check "empty match at end", RxMatch("ab", "$", , , 3), ""
+    Check "test terminal nonempty", RxTest("ab", ".", 3), False
+    Check "replace terminal match", RxReplace("ab", "$", "X", , 3), "abX"
     Check "empty input", RxMatch("", "^$"), ""
     Check "replace zero length", RxReplace("ab", "", "-"), "-a-b-"
     Check "replace zero length nth", RxReplace("ab", "", "-", 2), "a-b"
     Check "literal dollar", RxReplace("a", "a", "$$"), "$"
     Check "max result length", RxReplace("a", "a", String$(32767, "x")), String$(32767, "x")
     Check "result length exceeded", RxReplace("aa", "a", String$(16384, "x")), CVErr(xlErrNum)
-    Check "test execution limit", RxTest(String$(18, "a"), "(a+)+b"), CVErr(xlErrNum)
-    Check "match execution limit", RxMatch(String$(18, "a"), "(a+)+b"), CVErr(xlErrNum)
-    Check "replace execution limit", RxReplace(String$(18, "a"), "(a+)+b", "x"), CVErr(xlErrNum)
 End Sub
 
 Private Sub TestNumericResults()
     Dim invalid As Variant, emptyValue As Variant, surrogate As String, ws As Worksheet
     Dim inputs(1 To 2, 1 To 1) As Variant, patterns(1 To 1, 1 To 2) As Variant
     Dim starts(1 To 2, 1 To 1) As Variant, occurrences(1 To 2, 1 To 1) As Variant
-    Dim flags(1 To 2, 1 To 1) As Variant
+    Dim modifierPatterns(1 To 2, 1 To 1) As Variant
     Set ws = ThisWorkbook.Worksheets(1)
 
     Check "find first", RxFind("ab12cd345", "\d+"), 3&
@@ -92,20 +120,20 @@ Private Sub TestNumericResults()
     Check "length missing", RxLength("abc", "\d+"), CVErr(xlErrNA)
     Check "length nth missing", RxLength("a1", "\d", 2), CVErr(xlErrNA)
     Check "length entire match", RxLength("AB-123", "([A-Z]+)-(\d+)"), 6&
-    Check "find absolute position after start", RxFind("ab12cd345", "\d+", , , 5), 7&
-    Check "length after start", RxLength("ab12cd345", "\d+", , , 5), 3&
-    Check "find counts after start", RxFind("1a22b333", "\d+", 2, , 3), 6&
-    Check "length counts after start", RxLength("1a22b333", "\d+", 2, , 3), 3&
-    Check "find anchors retain input", RxFind("ab", "^b", , , 2), CVErr(xlErrNA)
-    Check "length boundary retains input", RxLength("ab", "\bb", , , 2), CVErr(xlErrNA)
-    Check "find case flags", RxFind("xABC", "abc", , "i"), 2&
-    Check "length case flags", RxLength("xABC", "abc", , "i"), 3&
-    Check "find multiline", RxFind("x" & vbLf & "a", "^a", , "m"), 3&
-    Check "length dotAll", RxLength("a" & vbLf & "b", "a.b", , "s"), 3&
+    Check "find absolute position after start", RxFind("ab12cd345", "\d+", , 5), 7&
+    Check "length after start", RxLength("ab12cd345", "\d+", , 5), 3&
+    Check "find counts after start", RxFind("1a22b333", "\d+", 2, 3), 6&
+    Check "length counts after start", RxLength("1a22b333", "\d+", 2, 3), 3&
+    Check "find anchors retain input", RxFind("ab", "^b", , 2), CVErr(xlErrNA)
+    Check "length boundary retains input", RxLength("ab", "\bb", , 2), CVErr(xlErrNA)
+    Check "find case modifiers", RxFind("xABC", "(?i)abc"), 2&
+    Check "length case modifiers", RxLength("xABC", "(?i)abc"), 3&
+    Check "find multiline", RxFind("x" & vbLf & "a", "(?m)^a"), 3&
+    Check "length dotAll", RxLength("a" & vbLf & "b", "(?s)a.b"), 3&
     Check "find empty input", RxFind("", "^$"), 1&
     Check "length empty input", RxLength("", "^$"), 0&
-    Check "find terminal empty", RxFind("ab", "$", , , 3), 3&
-    Check "length terminal empty", RxLength("ab", "$", , , 3), 0&
+    Check "find terminal empty", RxFind("ab", "$", , 3), 3&
+    Check "length terminal empty", RxLength("ab", "$", , 3), 0&
     Check "find nth zero length", RxFind("ab", "", 2), 2&
     Check "length nth zero length", RxLength("ab", "", 2), 0&
     surrogate = ChrW$(&HD83D) & ChrW$(&HDE00)
@@ -118,24 +146,24 @@ Private Sub TestNumericResults()
     Check "count empty input", RxCount("", "."), 0&
     Check "count empty match", RxCount("", "^$"), 1&
     Check "count zero length", RxCount("ab", ""), 3&
-    Check "count terminal empty", RxCount("ab", "$", , 3), 1&
-    Check "count terminal nonempty", RxCount("ab", ".", , 3), 0&
-    Check "count after start", RxCount("1a2b3", "\d", , 3), 2&
-    Check "count from inside match", RxCount("aaa", "aa", , 2), 1&
-    Check "count anchors retain input", RxCount("ab", "^b", , 2), 0&
+    Check "count terminal empty", RxCount("ab", "$", 3), 1&
+    Check "count terminal nonempty", RxCount("ab", ".", 3), 0&
+    Check "count after start", RxCount("1a2b3", "\d", 3), 2&
+    Check "count from inside match", RxCount("aaa", "aa", 2), 1&
+    Check "count anchors retain input", RxCount("ab", "^b", 2), 0&
     Check "count default case", RxCount("Aa", "a"), 1&
-    Check "count case flag", RxCount("Aa", "a", "i"), 2&
-    Check "count multiline", RxCount("a" & vbLf & "a", "^a", "m"), 2&
-    Check "count dotAll", RxCount("a" & vbLf & "b", "a.b", "s"), 1&
+    Check "count case modifier", RxCount("Aa", "(?i)a"), 2&
+    Check "count multiline", RxCount("a" & vbLf & "a", "(?m)^a"), 2&
+    Check "count dotAll", RxCount("a" & vbLf & "b", "(?s)a.b"), 1&
     Check "count many without spilling", RxCount(String$(5000, "a"), "a"), 5000&
     Check "find empty default occurrence", RxFind("a1", "\d", emptyValue), 2&
-    Check "length empty default start", RxLength("a1", "\d", , , emptyValue), 1&
+    Check "length empty default start", RxLength("a1", "\d", , emptyValue), 1&
     Check "count blank input", RxCount(emptyValue, "^$"), 1&
 
     For Each invalid In Array(0, -1, 1.5, "1", True, 4)
-        Check "find invalid start " & CStr(invalid), RxFind("ab", ".", , , invalid), CVErr(xlErrValue)
-        Check "length invalid start " & CStr(invalid), RxLength("ab", ".", , , invalid), CVErr(xlErrValue)
-        Check "count invalid start " & CStr(invalid), RxCount("ab", ".", , invalid), CVErr(xlErrValue)
+        Check "find invalid start " & CStr(invalid), RxFind("ab", ".", , invalid), CVErr(xlErrValue)
+        Check "length invalid start " & CStr(invalid), RxLength("ab", ".", , invalid), CVErr(xlErrValue)
+        Check "count invalid start " & CStr(invalid), RxCount("ab", ".", invalid), CVErr(xlErrValue)
     Next
     For Each invalid In Array(0, -1, 1.5, "1", True)
         Check "find invalid occurrence " & CStr(invalid), RxFind("ab", ".", invalid), CVErr(xlErrValue)
@@ -144,9 +172,9 @@ Private Sub TestNumericResults()
     Check "find bad pattern", RxFind("a", "["), CVErr(xlErrValue)
     Check "length bad pattern", RxLength("a", "["), CVErr(xlErrValue)
     Check "count bad pattern", RxCount("a", "["), CVErr(xlErrValue)
-    Check "find bad flags", RxFind("a", ".", , "x"), CVErr(xlErrValue)
-    Check "length bad flags", RxLength("a", ".", , "x"), CVErr(xlErrValue)
-    Check "count bad flags", RxCount("a", ".", "x"), CVErr(xlErrValue)
+    Check "find bad modifiers", RxFind("a", "(?x)."), CVErr(xlErrValue)
+    Check "length bad modifiers", RxLength("a", "(?x)."), CVErr(xlErrValue)
+    Check "count bad modifiers", RxCount("a", "(?x)."), CVErr(xlErrValue)
     Check "find nontext input", RxFind(123, "."), CVErr(xlErrValue)
     Check "length nontext input", RxLength(123, "."), CVErr(xlErrValue)
     Check "count nontext input", RxCount(123, "."), CVErr(xlErrValue)
@@ -155,13 +183,7 @@ Private Sub TestNumericResults()
     Check "count input error", RxCount(CVErr(xlErrDiv0), "."), CVErr(xlErrDiv0)
     Check "find option error", RxFind("a", ".", CVErr(xlErrRef)), CVErr(xlErrRef)
     Check "length option error", RxLength("a", ".", , CVErr(xlErrNA)), CVErr(xlErrNA)
-    Check "count option error", RxCount("a", ".", , CVErr(xlErrDiv0)), CVErr(xlErrDiv0)
-    Check "find execution limit", RxFind(String$(18, "a"), "(a+)+b"), CVErr(xlErrNum)
-    Check "length execution limit", RxLength(String$(18, "a"), "(a+)+b"), CVErr(xlErrNum)
-    Check "count execution limit", RxCount(String$(18, "a"), "(a+)+b"), CVErr(xlErrNum)
-    Check "count fails instead of partial count", RxCount("b" & String$(18, "a"), "b|(a+)+z"), CVErr(xlErrNum)
-    Check "find stops after selected match", RxFind("b" & String$(18, "a"), "b|(a+)+z"), 1&
-    Check "length stops after selected match", RxLength("b" & String$(18, "a"), "b|(a+)+z"), 1&
+    Check "count option error", RxCount("a", ".", CVErr(xlErrDiv0)), CVErr(xlErrDiv0)
 
     inputs(1, 1) = "ab1cd22": inputs(2, 1) = "z333"
     patterns(1, 1) = "[a-z]+": patterns(1, 2) = "\d+"
@@ -175,13 +197,13 @@ Private Sub TestNumericResults()
     Grid "count ranges", RxCount(ws.Range("A60:A61"), ws.Range("C60:D60")), 2, 2, Array(2&, 2&, 1&, 1&)
     occurrences(1, 1) = 2: occurrences(2, 1) = 1
     starts(1, 1) = 1: starts(2, 1) = 3
-    Grid "find broadcast options", RxFind("1a22b333", "\d+", occurrences, , starts), 2, 1, Array(3&, 3&)
-    Grid "length broadcast options", RxLength("1a22b333", "\d+", occurrences, , starts), 2, 1, Array(2&, 2&)
-    Grid "count broadcast start", RxCount("1a22b333", "\d+", , starts), 2, 1, Array(3&, 2&)
-    flags(1, 1) = "": flags(2, 1) = "i"
-    Grid "find broadcast flags", RxFind("A", "a", , flags), 2, 1, Array(CVErr(xlErrNA), 1&)
-    Grid "length broadcast flags", RxLength("A", "a", , flags), 2, 1, Array(CVErr(xlErrNA), 1&)
-    Grid "count broadcast flags", RxCount("A", "a", flags), 2, 1, Array(0&, 1&)
+    Grid "find broadcast options", RxFind("1a22b333", "\d+", occurrences, starts), 2, 1, Array(3&, 3&)
+    Grid "length broadcast options", RxLength("1a22b333", "\d+", occurrences, starts), 2, 1, Array(2&, 2&)
+    Grid "count broadcast start", RxCount("1a22b333", "\d+", starts), 2, 1, Array(3&, 2&)
+    modifierPatterns(1, 1) = "a": modifierPatterns(2, 1) = "(?i)a"
+    Grid "find broadcast modifiers", RxFind("A", modifierPatterns), 2, 1, Array(CVErr(xlErrNA), 1&)
+    Grid "length broadcast modifiers", RxLength("A", modifierPatterns), 2, 1, Array(CVErr(xlErrNA), 1&)
+    Grid "count broadcast modifiers", RxCount("A", modifierPatterns), 2, 1, Array(0&, 1&)
     inputs(1, 1) = CVErr(xlErrRef)
     Grid "find local error", RxFind(inputs, "\d+"), 2, 1, Array(CVErr(xlErrRef), 2&)
     Grid "length local error", RxLength(inputs, "\d+"), 2, 1, Array(CVErr(xlErrRef), 3&)
@@ -196,11 +218,11 @@ Private Sub TestSpills()
     Set ws = ThisWorkbook.Worksheets(1)
     Grid "all matches", RxMatches("a12 b34", "\d+"), 2, 1, Array("12", "34")
     Grid "all formatted", RxMatches("a12 b34", "\d+", "[$&]"), 2, 1, Array("[12]", "[34]")
-    Grid "all startAt", RxMatches("1a2b3", "\d", , , 3), 2, 1, Array("2", "3")
-    Grid "all flags", RxMatches("A" & vbLf & "B", "^.$", , "im"), 2, 1, Array("A", "B")
-    Grid "all dotAll", RxMatches("A" & vbLf & "B", "a.b", , "is"), 1, 1, Array("A" & vbLf & "B")
+    Grid "all startAt", RxMatches("1a2b3", "\d", , 3), 2, 1, Array("2", "3")
+    Grid "all modifiers", RxMatches("A" & vbLf & "B", "(?im)^.$"), 2, 1, Array("A", "B")
+    Grid "all dotAll", RxMatches("A" & vbLf & "B", "(?is)a.b"), 1, 1, Array("A" & vbLf & "B")
     Check "all missing", RxMatches("abc", "\d"), CVErr(xlErrNA)
-    Grid "all empty at end", RxMatches("ab", "$", , , 3), 1, 1, Array("")
+    Grid "all empty at end", RxMatches("ab", "$", , 3), 1, 1, Array("")
     Grid "all zero length", RxMatches("ab", ""), 3, 1, Array("", "", "")
     Grid "all empty input", RxMatches("", ""), 1, 1, Array("")
     formats(1, 1) = "$1": formats(1, 2) = "$2"
@@ -218,11 +240,9 @@ Private Sub TestSpills()
     Check "split empty ignored", RxSplit("", ",", True), CVErr(xlErrNA)
     Grid "split zero length", RxSplit("ab", ""), 1, 4, Array("", "a", "b", "")
     Grid "split zero length ignored", RxSplit("ab", "", True), 1, 2, Array("a", "b")
-    Grid "split flags", RxSplit("aXbxc", "x", , "i"), 1, 3, Array("a", "b", "c")
-    Grid "split multiline", RxSplit("a" & vbLf & "b", "^", True, "m"), 1, 2, Array("a" & vbLf, "b")
-    Grid "split dotAll", RxSplit("a" & vbLf & "b", "a.b", , "s"), 1, 2, Array("", "")
-    Check "matches execution limit", RxMatches(String$(18, "a"), "(a+)+b"), CVErr(xlErrNum)
-    Check "split execution limit", RxSplit(String$(18, "a"), "(a+)+b"), CVErr(xlErrNum)
+    Grid "split modifiers", RxSplit("aXbxc", "(?i)x"), 1, 3, Array("a", "b", "c")
+    Grid "split multiline", RxSplit("a" & vbLf & "b", "(?m)^", True), 1, 2, Array("a" & vbLf, "b")
+    Grid "split dotAll", RxSplit("a" & vbLf & "b", "(?s)a.b"), 1, 2, Array("", "")
     Check "split column limit", RxSplit(String$(16384, ","), ","), CVErr(xlErrNum)
     column(1, 1) = "a": column(2, 1) = "b"
     Check "matches rejects texts", RxMatches(column, "."), CVErr(xlErrValue)
@@ -235,7 +255,7 @@ End Sub
 
 Private Sub TestSplitBroadcast()
     Dim inputs(1 To 3, 1 To 1) As Variant, patterns(1 To 3, 1 To 1) As Variant
-    Dim ignore(1 To 3, 1 To 1) As Variant, flags(1 To 3, 1 To 1) As Variant
+    Dim ignore(1 To 3, 1 To 1) As Variant
     Dim short(1 To 2, 1 To 1) As Variant, zero(0 To 1, 0 To 0) As Variant
     Dim ws As Worksheet
     Set ws = ThisWorkbook.Worksheets(1)
@@ -255,14 +275,14 @@ Private Sub TestSplitBroadcast()
     ignore(1, 1) = False: ignore(2, 1) = True: ignore(3, 1) = False
     Grid "split per row ignoreEmpty", RxSplit(",a,,", ",", ignore), 3, 4, _
         Array("", "a", "", "", "a", CVErr(xlErrNA), CVErr(xlErrNA), CVErr(xlErrNA), "", "a", "", "")
-    flags(1, 1) = "": flags(2, 1) = "i": flags(3, 1) = ""
-    Grid "split per row flags", RxSplit("aXbxc", "x", , flags), 3, 3, _
+    patterns(1, 1) = "x": patterns(2, 1) = "(?i)x": patterns(3, 1) = "x"
+    Grid "split per row modifiers", RxSplit("aXbxc", patterns), 3, 3, _
         Array("aXb", "c", CVErr(xlErrNA), "a", "b", "c", "aXb", "c", CVErr(xlErrNA))
-    flags(1, 1) = "s": flags(2, 1) = "": flags(3, 1) = "s"
-    Grid "split per row dotAll", RxSplit("a" & vbLf & "b", "a.b", , flags), 3, 2, _
+    patterns(1, 1) = "(?s)a.b": patterns(2, 1) = "a.b": patterns(3, 1) = "(?s)a.b"
+    Grid "split per row dotAll", RxSplit("a" & vbLf & "b", patterns), 3, 2, _
         Array("", "", "a" & vbLf & "b", CVErr(xlErrNA), "", "")
-    flags(1, 1) = "m": flags(2, 1) = "": flags(3, 1) = "m"
-    Grid "split per row multiline", RxSplit("a" & vbLf & "b", "^", True, flags), 3, 2, _
+    patterns(1, 1) = "(?m)^": patterns(2, 1) = "^": patterns(3, 1) = "(?m)^"
+    Grid "split per row multiline", RxSplit("a" & vbLf & "b", patterns, True), 3, 2, _
         Array("a" & vbLf, "b", "a" & vbLf & "b", CVErr(xlErrNA), "a" & vbLf, "b")
     inputs(1, 1) = "a,,": inputs(2, 1) = "": inputs(3, 1) = "b"
     Grid "split keeps empty fields distinct from padding", RxSplit(inputs, ","), 3, 3, _
@@ -283,14 +303,12 @@ Private Sub TestSplitBroadcast()
     patterns(1, 1) = CVErr(xlErrDiv0)
     Grid "split row pattern cell error", RxSplit("a,b", patterns), 3, 2, _
         Array(CVErr(xlErrDiv0), CVErr(xlErrDiv0), "a", "b", "a", "b")
-    flags(1, 1) = "x": flags(2, 1) = "": flags(3, 1) = ""
-    Grid "split row option error", RxSplit("a,b", ",", , flags), 3, 2, _
+    patterns(1, 1) = "(?x),": patterns(2, 1) = ",": patterns(3, 1) = ","
+    Grid "split row option error", RxSplit("a,b", patterns), 3, 2, _
         Array(CVErr(xlErrValue), CVErr(xlErrValue), "a", "b", "a", "b")
     ignore(1, 1) = "true"
     Grid "split row boolean error", RxSplit("a,b", ",", ignore), 3, 2, _
         Array(CVErr(xlErrValue), CVErr(xlErrValue), "a", "b", "a", "b")
-    inputs(1, 1) = String$(18, "a"): inputs(2, 1) = "b": inputs(3, 1) = "c"
-    Grid "split row execution limit", RxSplit(inputs, "(a+)+b"), 3, 1, Array(CVErr(xlErrNum), "b", "c")
     inputs(1, 1) = String$(16384, ","): inputs(2, 1) = "a,b": inputs(3, 1) = "c"
     Grid "split row column limit", RxSplit(inputs, ","), 3, 2, _
         Array(CVErr(xlErrNum), CVErr(xlErrNum), "a", "b", "c", CVErr(xlErrNA))
@@ -301,7 +319,7 @@ Private Sub TestSplitBroadcast()
     Check "split incompatible rows reversed", RxSplit(short, inputs), CVErr(xlErrValue)
     Check "split rejects text row", RxSplit(Array("a,b", "c,d"), ","), CVErr(xlErrValue)
     Check "split rejects pattern row", RxSplit("a,b", Array(",", ";")), CVErr(xlErrValue)
-    Check "split rejects flags row", RxSplit("a,b", ",", , Array("", "i")), CVErr(xlErrValue)
+    Check "split rejects ignoreEmpty row", RxSplit("a,b", ",", Array(False, True)), CVErr(xlErrValue)
     Check "split rejects multiple areas", RxSplit(Union(ws.Range("A70"), ws.Range("A72")), ","), CVErr(xlErrValue)
     zero(0, 0) = "a,b": zero(1, 0) = "c"
     Grid "split zero based column", RxSplit(zero, ","), 2, 2, Array("a", "b", "c", CVErr(xlErrNA))
@@ -311,14 +329,15 @@ Private Sub TestArguments()
     Dim invalid As Variant, emptyValue As Variant, ws As Worksheet
     Set ws = ThisWorkbook.Worksheets(1)
     For Each invalid In Array(0, -1, 1.5, "1", True, 4, 1E+20)
-        Check "invalid start " & CStr(invalid), RxTest("ab", ".", , invalid), CVErr(xlErrValue)
+        Check "invalid start " & CStr(invalid), RxTest("ab", ".", invalid), CVErr(xlErrValue)
     Next
     For Each invalid In Array(0, -1, 1.5, "1", True)
         Check "invalid occurrence " & CStr(invalid), RxMatch("ab", ".", , invalid), CVErr(xlErrValue)
     Next
     Check "invalid replace occurrence", RxReplace("ab", ".", "x", -1), CVErr(xlErrValue)
-    Check "invalid flags", RxTest("a", ".", "x"), CVErr(xlErrValue)
-    Check "uppercase flag", RxTest("a", ".", "I"), CVErr(xlErrValue)
+    Check "invalid modifiers", RxTest("a", "(?x)."), CVErr(xlErrValue)
+    Check "uppercase modifier", RxTest("a", "(?I)."), CVErr(xlErrValue)
+    Check "duplicate modifier", RxTest("a", "(?ii)."), CVErr(xlErrValue)
     Check "nontext input", RxTest(123, "."), CVErr(xlErrValue)
     Check "nontext pattern", RxMatch("a", 1), CVErr(xlErrValue)
     Check "nontext replacement", RxReplace("a", ".", 1), CVErr(xlErrValue)
@@ -336,12 +355,12 @@ Private Sub TestArguments()
     Check "pattern error", RxMatch("a", CVErr(xlErrRef)), CVErr(xlErrRef)
     Check "format error", RxMatch("a", ".", CVErr(xlErrDiv0)), CVErr(xlErrDiv0)
     Check "occurrence error", RxReplace("a", ".", "x", CVErr(xlErrRef)), CVErr(xlErrRef)
-    Check "flags error", RxTest("a", ".", CVErr(xlErrDiv0)), CVErr(xlErrDiv0)
-    Check "start error", RxTest("a", ".", , CVErr(xlErrNA)), CVErr(xlErrNA)
+    Check "position error", RxTest("a", ".", CVErr(xlErrDiv0)), CVErr(xlErrDiv0)
+    Check "start error", RxTest("a", ".", CVErr(xlErrNA)), CVErr(xlErrNA)
     Check "matches error", RxMatches(CVErr(xlErrRef), "."), CVErr(xlErrRef)
     Check "split error", RxSplit("a", ".", CVErr(xlErrNA)), CVErr(xlErrNA)
     Check "empty variant text", RxTest(emptyValue, "^$"), True
-    Check "empty position defaults", RxTest("a", ".", , emptyValue), True
+    Check "empty position defaults", RxTest("a", ".", emptyValue), True
     ws.Range("A20").ClearContents
     Check "blank range", RxMatch(ws.Range("A20"), "^$"), ""
     ws.Range("A20").Value2 = "ab"
@@ -362,14 +381,14 @@ Private Sub TestBroadcast()
     ws.Range("A30:A31").Value2 = a: ws.Range("C30:D30").Value2 = p
     Grid "range match", RxMatch(ws.Range("A30:A31"), ws.Range("C30:D30")), 2, 2, Array("a", "1", "b", "2")
     Grid "mixed replace", RxReplace(ws.Range("A30:A31"), p, "X"), 2, 2, Array("X1", "aX", "X2", "bX")
-    opts(1, 1) = "": opts(2, 1) = "i"
-    Grid "flags compilation", RxTest("A", "a", opts), 2, 1, Array(False, True)
-    Grid "flags match", RxMatch("A", "a", , , opts), 2, 1, Array(CVErr(xlErrNA), "A")
-    Grid "flags replacement", RxReplace("A", "a", "x", , opts), 2, 1, Array("A", "x")
+    opts(1, 1) = "a": opts(2, 1) = "(?i)a"
+    Grid "modifiers compilation", RxTest("A", opts), 2, 1, Array(False, True)
+    Grid "modifiers match", RxMatch("A", opts), 2, 1, Array(CVErr(xlErrNA), "A")
+    Grid "modifiers replacement", RxReplace("A", opts, "x"), 2, 1, Array("A", "x")
     start(1, 1) = 1: start(2, 1) = 3: nth(1, 1) = 2: nth(2, 1) = 1
-    Grid "start positions", RxMatch("1a2b3", "\d", , , , start), 2, 1, Array("1", "2")
-    Grid "occurrence positions", RxMatch("1a2b3", "\d", , nth, , start), 2, 1, Array("2", "2")
-    Grid "replacement positions", RxReplace("1a2b3", "\d", "X", nth, , start), 2, 1, Array("1aXb3", "1aXb3")
+    Grid "start positions", RxMatch("1a2b3", "\d", , , start), 2, 1, Array("1", "2")
+    Grid "occurrence positions", RxMatch("1a2b3", "\d", , nth, start), 2, 1, Array("2", "2")
+    Grid "replacement positions", RxReplace("1a2b3", "\d", "X", nth, start), 2, 1, Array("1aXb3", "1aXb3")
     fmts(1, 1) = "[$&]": fmts(1, 2) = "<$&>"
     Grid "format cross broadcast", RxMatch(a, "\d", fmts), 2, 2, Array("[1]", "<1>", "[2]", "<2>")
     Grid "replacement cross broadcast", RxReplace(a, "\d", fmts), 2, 2, Array("a[1]", "a<1>", "b[2]", "b<2>")
@@ -377,14 +396,14 @@ Private Sub TestBroadcast()
     Grid "local error", RxMatch(a, "\d"), 2, 1, Array(CVErr(xlErrRef), "2")
     p(1, 1) = "[": p(1, 2) = "\d"
     Grid "compile failure local", RxMatch("a1", p), 1, 2, Array(CVErr(xlErrValue), "1")
-    opts(1, 1) = "x": opts(2, 1) = ""
-    Grid "option failure local", RxTest("a", ".", opts), 2, 1, Array(CVErr(xlErrValue), True)
+    opts(1, 1) = "(?x).": opts(2, 1) = "."
+    Grid "option failure local", RxTest("a", opts), 2, 1, Array(CVErr(xlErrValue), True)
 
 End Sub
 
 Private Sub TestArrayShapes()
     Dim zero(0 To 1, 0 To 0) As Variant, cube(1 To 1, 1 To 1, 1 To 1) As Variant
-    Dim uninitialized() As Variant, flags(1 To 2, 1 To 1) As Variant
+    Dim uninitialized() As Variant, starts(1 To 2, 1 To 1) As Variant
     Dim short(1 To 2, 1 To 1) As Variant, tall(1 To 3, 1 To 1) As Variant
     Dim wide(1 To 1, 1 To 3) As Variant, patternRow(1 To 1, 1 To 2) As Variant
     Dim surrogate As String
@@ -398,50 +417,50 @@ Private Sub TestArrayShapes()
     tall(1, 1) = "a": tall(2, 1) = "a": tall(3, 1) = "a"
     Check "incompatible rows descending", RxTest(tall, short), CVErr(xlErrValue)
     Check "incompatible rows ascending", RxTest(short, tall), CVErr(xlErrValue)
-    flags(1, 1) = "": flags(2, 1) = "i"
-    Check "incompatible option rows", RxReplace(tall, "a", "x", , flags), CVErr(xlErrValue)
+    starts(1, 1) = 1: starts(2, 1) = 1
+    Check "incompatible option rows", RxReplace(tall, "a", "x", , starts), CVErr(xlErrValue)
     wide(1, 1) = "a": wide(1, 2) = "a": wide(1, 3) = "a"
     patternRow(1, 1) = "a": patternRow(1, 2) = "a"
     Check "incompatible columns", RxMatch(wide, patternRow), CVErr(xlErrValue)
     surrogate = ChrW$(&HD83D) & ChrW$(&HDE00) & "a"
-    Check "UTF16 startAt", RxMatch(surrogate, "a", , , , 3), "a"
+    Check "UTF16 startAt", RxMatch(surrogate, "a", , , 3), "a"
 End Sub
 
 Private Sub TestWorksheetFormulas()
     Dim ws As Worksheet
     Set ws = ThisWorkbook.Worksheets(1)
     ws.Range("J1:Z20").ClearContents
-    ws.Range("J1").Formula2 = "=RxTest(""ABC"",""abc"",""i"")"
+    ws.Range("J1").Formula2 = "=RxTest(""ABC"",""(?i)abc"")"
     ws.Range("J2").Formula2 = "=RxMatch(""a1b2"",""\d"",,2)"
     ws.Range("J3").Formula2 = "=RxReplace(""a1b2"",""\d"",""X"",1)"
     ws.Range("L1").Formula2 = "=RxMatches(""AB-12 CD-34"",""([A-Z]+)-(\d+)"",{""$1"",""$2""})"
     ws.Range("P1").Formula2 = "=RxSplit(""red, green;blue"",""[,;]\s*"")"
     ws.Range("J5").Formula2 = "=IFNA(RxMatch(""a"",""\d""),""missing"")"
-    ws.Range("J6").Formula2 = "=RxMatch(""1a2b3"",""\d"",,2,,3)"
+    ws.Range("J6").Formula2 = "=RxMatch(""1a2b3"",""\d"",,2,3)"
     ws.Range("L5").Formula2 = "=RxMatch({""a1"";""b2""},""\d"")"
     ws.Range("P5").Formula2 = "=RxMatch({""a1"",""b2""},""\d"")"
-    ws.Range("L9").Formula2 = "=RxTest(""A"",""a"",{"""",""i""})"
+    ws.Range("L9").Formula2 = "=RxTest(""A"",{""a"",""(?i)a""})"
     ws.Range("P9").Formula2 = "=RxMatch(""1a2b3"",""\d"",,{1,2})"
-    ws.Range("L13").Formula2 = "=RxMatch(""1a2b3"",""\d"",,,,3)"
+    ws.Range("L13").Formula2 = "=RxMatch(""1a2b3"",""\d"",,,3)"
     ws.Range("AA1:AJ10").ClearContents
     ws.Range("AA1").Formula2 = "=RxSplit(A70:A72,"","")"
     ws.Range("AE1").Formula2 = "=RxSplit({""a,b,c"";""d"";""e,f""},"","")"
-    ws.Range("AI1").Formula2 = "=RxSplit(""aXbxc"",""x"",,{"""";""i""})"
+    ws.Range("AI1").Formula2 = "=RxSplit(""aXbxc"",{""x"";""(?i)x""})"
     ws.Range("J15").Formula2 = "=RxFind(""ab12cd345"",""\d+"",2)"
     ws.Range("K15").Formula2 = "=RxLength(""ab12cd345"",""\d+"",2)"
     ws.Range("L15").Formula2 = "=RxCount(""ab12cd345"",""\d+"")"
     ws.Range("N15").Formula2 = "=MID(""ab12cd345"",RxFind(""ab12cd345"",""\d+"",2),RxLength(""ab12cd345"",""\d+"",2))"
     ws.Range("P15").Formula2 = "=RxCount({""a1b2"",""c33""},""\d+"")"
-    ws.Range("J17").Formula2 = "=RxFind(""1a22b333"",""\d+"",2,,3)"
-    ws.Range("K17").Formula2 = "=RxLength(""1a22b333"",""\d+"",2,,3)"
-    ws.Range("L17").Formula2 = "=RxCount(""1a22b333"",""\d+"",,3)"
+    ws.Range("J17").Formula2 = "=RxFind(""1a22b333"",""\d+"",2,3)"
+    ws.Range("K17").Formula2 = "=RxLength(""1a22b333"",""\d+"",2,3)"
+    ws.Range("L17").Formula2 = "=RxCount(""1a22b333"",""\d+"",3)"
     ws.Range("N17").Formula2 = "=RxCount(""abc"",""\d+"")"
     ws.Range("P17").Formula2 = "=IFNA(RxFind(""abc"",""\d+""),""missing"")"
     ws.Range("R17").Formula2 = "=RxLength(""ab"",""$"")"
     ws.Calculate
     currentCase = "literal column": AssertValue ws.Range("L5").Value2, "1": AssertValue ws.Range("L6").Value2, "2"
     currentCase = "literal row": AssertValue ws.Range("P5").Value2, "1": AssertValue ws.Range("Q5").Value2, "2"
-    currentCase = "literal flags": AssertValue ws.Range("L9").Value2, False: AssertValue ws.Range("M9").Value2, True
+    currentCase = "literal modifiers": AssertValue ws.Range("L9").Value2, False: AssertValue ws.Range("M9").Value2, True
     currentCase = "literal occurrences": AssertValue ws.Range("P9").Value2, "1": AssertValue ws.Range("Q9").Value2, "2"
     currentCase = "startAt omitted options": AssertValue ws.Range("L13").Value2, "2"
     currentCase = "worksheet numeric functions"
@@ -461,7 +480,7 @@ Private Sub TestWorksheetFormulas()
     AssertValue ws.Range("AE1").Value2, "a": AssertValue ws.Range("AG1").Value2, "c"
     AssertValue ws.Range("AE2").Value2, "d": AssertValue ws.Range("AF2").Value2, CVErr(xlErrNA)
     AssertValue ws.Range("AE3").Value2, "e": AssertValue ws.Range("AF3").Value2, "f"
-    currentCase = "worksheet split column flags"
+    currentCase = "worksheet split column modifiers"
     AssertValue ws.Range("AI1").Value2, "aXb": AssertValue ws.Range("AK1").Value2, CVErr(xlErrNA)
     AssertValue ws.Range("AI2").Value2, "a": AssertValue ws.Range("AK2").Value2, "c"
     currentCase = "worksheet test": AssertValue ws.Range("J1").Value2, True
@@ -473,7 +492,7 @@ Private Sub TestWorksheetFormulas()
     currentCase = "worksheet split spill"
     AssertValue ws.Range("P1").Value2, "red": AssertValue ws.Range("Q1").Value2, "green": AssertValue ws.Range("R1").Value2, "blue"
     currentCase = "worksheet missing": AssertValue ws.Range("J5").Value2, "missing"
-    currentCase = "worksheet omitted flags": AssertValue ws.Range("J6").Value2, "3"
+    currentCase = "worksheet startAt": AssertValue ws.Range("J6").Value2, "3"
     ws.Range("U2").Value2 = "block"
     ws.Range("U1").Formula2 = "=RxMatches(""ab"",""."")"
     ws.Calculate

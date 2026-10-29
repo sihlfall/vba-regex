@@ -38,7 +38,7 @@ Private Sub RangeConstants0001()
     ' range with \d, matching
     On Error GoTo TestFail
     
-    Dim captures As RegexDfsMatcher.CapturesTy, bytecode() As Long
+    Dim captures As RegexMatcherCommon.CapturesTy, bytecode() As Long
     Dim result As Long
     RegexCompiler.Compile bytecode, "a[\d]b"
     Dim s As String: s = "a0b"
@@ -57,7 +57,7 @@ Private Sub RangeConstants0002()
     ' range with \d, failing
     On Error GoTo TestFail
 
-    Dim captures As RegexDfsMatcher.CapturesTy, bytecode() As Long
+    Dim captures As RegexMatcherCommon.CapturesTy, bytecode() As Long
     Dim result As Long
     RegexCompiler.Compile bytecode, "a[\d]b"
     Dim s As String: s = "acb"
@@ -76,7 +76,7 @@ Private Sub RangeConstants0011()
     ' range with \D, matching
     On Error GoTo TestFail
     
-    Dim captures As RegexDfsMatcher.CapturesTy, bytecode() As Long
+    Dim captures As RegexMatcherCommon.CapturesTy, bytecode() As Long
     Dim result As Long
     RegexCompiler.Compile bytecode, "a[\D]b"
     Dim s As String: s = "acb"
@@ -95,7 +95,7 @@ Private Sub RangeConstants0012()
     ' range with \D, matching
     On Error GoTo TestFail
     
-    Dim captures As RegexDfsMatcher.CapturesTy, bytecode() As Long
+    Dim captures As RegexMatcherCommon.CapturesTy, bytecode() As Long
     Dim result As Long
     RegexCompiler.Compile bytecode, "a[\D]b"
     Dim s As String: s = "a7b"
@@ -114,7 +114,7 @@ Private Sub RangeConstants0021()
     ' range with \s, matching
     On Error GoTo TestFail
     
-    Dim captures As RegexDfsMatcher.CapturesTy, bytecode() As Long
+    Dim captures As RegexMatcherCommon.CapturesTy, bytecode() As Long
     Dim result As Long
     RegexCompiler.Compile bytecode, "a[\s]b"
     Dim s As String: s = "a b"
@@ -133,7 +133,7 @@ Private Sub RangeConstants0022()
     ' range with \s, failing
     On Error GoTo TestFail
     
-    Dim captures As RegexDfsMatcher.CapturesTy, bytecode() As Long
+    Dim captures As RegexMatcherCommon.CapturesTy, bytecode() As Long
     Dim result As Long
     RegexCompiler.Compile bytecode, "a[\s]b"
     Dim s As String: s = "acb"
@@ -152,7 +152,7 @@ Private Sub RangeConstants0031()
     ' range with \S, matching
     On Error GoTo TestFail
     
-    Dim captures As RegexDfsMatcher.CapturesTy, bytecode() As Long
+    Dim captures As RegexMatcherCommon.CapturesTy, bytecode() As Long
     Dim result As Long
     RegexCompiler.Compile bytecode, "a[\S]b"
     Dim s As String: s = "a_b"
@@ -171,7 +171,7 @@ Private Sub RangeConstants0032()
     ' range with \S, failing
     On Error GoTo TestFail
     
-    Dim captures As RegexDfsMatcher.CapturesTy, bytecode() As Long
+    Dim captures As RegexMatcherCommon.CapturesTy, bytecode() As Long
     Dim result As Long
     RegexCompiler.Compile bytecode, "a[\S]b"
     Dim s As String: s = "a b"
@@ -190,7 +190,7 @@ Private Sub RangeConstants0041()
     ' range with \w, matching
     On Error GoTo TestFail
     
-    Dim captures As RegexDfsMatcher.CapturesTy, bytecode() As Long
+    Dim captures As RegexMatcherCommon.CapturesTy, bytecode() As Long
     Dim result As Long
     RegexCompiler.Compile bytecode, "a[\w]+b"
     Dim s As String: s = "a_abyzABYZb"
@@ -209,7 +209,7 @@ Private Sub RangeConstants0042()
     ' range with \w, failing
     On Error GoTo TestFail
     
-    Dim captures As RegexDfsMatcher.CapturesTy, bytecode() As Long
+    Dim captures As RegexMatcherCommon.CapturesTy, bytecode() As Long
     Dim result As Long
     RegexCompiler.Compile bytecode, "a[\w]b"
     Dim s As String: s = "a,b"
@@ -228,7 +228,7 @@ Private Sub RangeConstants0051()
     ' range with \W, matching
     On Error GoTo TestFail
     
-    Dim captures As RegexDfsMatcher.CapturesTy, bytecode() As Long
+    Dim captures As RegexMatcherCommon.CapturesTy, bytecode() As Long
     Dim result As Long
     RegexCompiler.Compile bytecode, "a[\W]+b"
     Dim s As String: s = "a,.+ ;$b"
@@ -247,7 +247,7 @@ Private Sub RangeConstants0052()
     ' range with \W, failing
     On Error GoTo TestFail
     
-    Dim captures As RegexDfsMatcher.CapturesTy, bytecode() As Long
+    Dim captures As RegexMatcherCommon.CapturesTy, bytecode() As Long
     Dim result As Long
     RegexCompiler.Compile bytecode, "a[\W]b"
     Dim s As String: s = "aCb"

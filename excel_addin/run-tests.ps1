@@ -1,6 +1,9 @@
 param(
     [switch]$TestPackage,
-    [string]$AddinFileName = 'VbaRegexAddIn.xlam'
+    [string]$AddinFileName = 'VbaRegexAddIn.xlam',
+    [ValidateSet('Python', 'Excel')]
+    [string]$BuildMethod = 'Python',
+    [string]$PythonExecutable = ''
 )
 
 # Requires Windows Excel and "Trust access to the VBA project object model".
@@ -28,8 +31,29 @@ try {
     if ($rxChecks -is [string] -or $rxChecks -le 0) { throw "Rx tests failed: $rxChecks" }
     Write-Host "Passed $rxChecks Rx API checks."
     $rxDimensions = $excel.Run("'" + $workbook.Name + "'!TestRxDimensions.RunRxDimensionTests")
-    if ($rxDimensions -ne 2448) { throw "Rx dimension tests failed: $rxDimensions" }
+    if ($rxDimensions -ne 1476) { throw "Rx dimension tests failed: $rxDimensions" }
     Write-Host "Passed $rxDimensions Rx dimension checks."
+
+    # Set an explicit budget only in this unsaved workbook. Production builds
+    # and the normal suites above retain the engine's default execution limit.
+    $engine = $workbook.VBProject.VBComponents.Item('StaticRegexSingle').CodeModule
+    $limitLine = 0
+    for ($line = 1; $line -le $engine.CountOfLines; $line++) {
+        if ($engine.Lines($line, 1).Trim() -eq 'regex.stepsLimit = DEFAULT_STEPS_LIMIT') {
+            if ($limitLine -ne 0) { throw 'Multiple regex step-limit initializers found.' }
+            $limitLine = $line
+        }
+    }
+    if ($limitLine -eq 0) { throw 'Regex step-limit initializer not found.' }
+    $originalLine = $engine.Lines($limitLine, 1)
+    try {
+        $engine.ReplaceLine($limitLine, '    regex.stepsLimit = 10000')
+        $limitChecks = $excel.Run("'" + $workbook.Name + "'!TestRxFunctions.RunRxExecutionLimitTests")
+        if ($limitChecks -is [string] -or $limitChecks -le 0) { throw "Rx execution-limit tests failed: $limitChecks" }
+        Write-Host "Passed $limitChecks Rx execution-limit checks with a 10,000-step budget."
+    } finally {
+        $engine.ReplaceLine($limitLine, $originalLine)
+    }
 } finally {
     try {
         if ($null -ne $workbook) { $workbook.Close($false) }
@@ -42,6 +66,6 @@ try {
     }
 }
 if ($TestPackage) {
-    & (Join-Path $PSScriptRoot 'make_addin.ps1') -outFileName $AddinFileName
+    & (Join-Path $PSScriptRoot 'make_addin.ps1') -outFileName $AddinFileName -BuildMethod $BuildMethod -PythonExecutable $PythonExecutable
     & (Join-Path $PSScriptRoot 'test-built-addin.ps1') -AddinFileName $AddinFileName
 }

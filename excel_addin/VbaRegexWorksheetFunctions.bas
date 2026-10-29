@@ -52,17 +52,10 @@ Private Const RX_MAX_TEXT As Long = 32767
 Private Const RX_MAX_ROWS As Long = 1048576
 Private Const RX_MAX_COLUMNS As Long = 16384
 
-Private Type RxFlags
-    ignoreCase As Boolean
-    multiline As Boolean
-    dotAll As Boolean
-End Type
-
 Private Type RxCache
     regex As StaticRegexSingle.RegexTy
     format As StaticRegexSingle.FormatTy
     pattern As String
-    ignoreCase As Boolean
     regexReady As Boolean
     formatReady As Boolean
 End Type
@@ -714,61 +707,61 @@ End Function
 
 ' One result per broadcast position.
 Public Function RxTest(ByRef text As Variant, ByRef pattern As Variant, _
-    Optional ByRef flags As Variant = "", Optional ByRef startAt As Variant = 1) As Variant
-    RxTest = RxBroadcast(RX_TEST, text, pattern, "", 1, flags, startAt)
+    Optional ByRef startAt As Variant = 1) As Variant
+    RxTest = RxBroadcast(RX_TEST, text, pattern, "", 1, startAt)
 End Function
 
 Public Function RxMatch(ByRef text As Variant, ByRef pattern As Variant, _
     Optional ByRef format As Variant = "$&", Optional ByRef occurrence As Variant = 1, _
-    Optional ByRef flags As Variant = "", Optional ByRef startAt As Variant = 1) As Variant
-    RxMatch = RxBroadcast(RX_MATCH, text, pattern, format, occurrence, flags, startAt)
+    Optional ByRef startAt As Variant = 1) As Variant
+    RxMatch = RxBroadcast(RX_MATCH, text, pattern, format, occurrence, startAt)
 End Function
 
 Public Function RxReplace(ByRef text As Variant, ByRef pattern As Variant, ByRef replacement As Variant, _
-    Optional ByRef occurrence As Variant = 0, Optional ByRef flags As Variant = "", _
+    Optional ByRef occurrence As Variant = 0, _
     Optional ByRef startAt As Variant = 1) As Variant
-    RxReplace = RxBroadcast(RX_REPLACE, text, pattern, replacement, occurrence, flags, startAt)
+    RxReplace = RxBroadcast(RX_REPLACE, text, pattern, replacement, occurrence, startAt)
 End Function
 
 Public Function RxFind(ByRef text As Variant, ByRef pattern As Variant, _
-    Optional ByRef occurrence As Variant = 1, Optional ByRef flags As Variant = "", _
+    Optional ByRef occurrence As Variant = 1, _
     Optional ByRef startAt As Variant = 1) As Variant
-    RxFind = RxBroadcast(RX_FIND, text, pattern, "", occurrence, flags, startAt)
+    RxFind = RxBroadcast(RX_FIND, text, pattern, "", occurrence, startAt)
 End Function
 
 Public Function RxLength(ByRef text As Variant, ByRef pattern As Variant, _
-    Optional ByRef occurrence As Variant = 1, Optional ByRef flags As Variant = "", _
+    Optional ByRef occurrence As Variant = 1, _
     Optional ByRef startAt As Variant = 1) As Variant
-    RxLength = RxBroadcast(RX_LENGTH, text, pattern, "", occurrence, flags, startAt)
+    RxLength = RxBroadcast(RX_LENGTH, text, pattern, "", occurrence, startAt)
 End Function
 
 Public Function RxCount(ByRef text As Variant, ByRef pattern As Variant, _
-    Optional ByRef flags As Variant = "", Optional ByRef startAt As Variant = 1) As Variant
-    RxCount = RxBroadcast(RX_COUNT, text, pattern, "", 1, flags, startAt)
+    Optional ByRef startAt As Variant = 1) As Variant
+    RxCount = RxBroadcast(RX_COUNT, text, pattern, "", 1, startAt)
 End Function
 
 Private Function RxBroadcast(ByVal operation As Long, ByRef text As Variant, ByRef pattern As Variant, _
-    ByRef format As Variant, ByRef occurrence As Variant, ByRef flags As Variant, ByRef startAt As Variant) As Variant
+    ByRef format As Variant, ByRef occurrence As Variant, ByRef startAt As Variant) As Variant
     On Error GoTo Failed
-    Dim ai(0 To 5) As ArgumentInfo, args(0 To 5) As Variant, values(0 To 5) As Variant
+    Dim ai(0 To 4) As ArgumentInfo, args(0 To 4) As Variant, values(0 To 4) As Variant
     Dim output() As Variant, cache As RxCache, nr As Long, nc As Long, r As Long, c As Long, k As Long
     Dim outer As Long, inner As Long, columnsFirst As Boolean
     ' Preserve Range objects instead of coercing them through their default property.
     RxAssign args(0), text: RxAssign args(1), pattern: RxAssign args(2), format
-    RxAssign args(3), occurrence: RxAssign args(4), flags: RxAssign args(5), startAt
-    For k = 0 To 5
+    RxAssign args(3), occurrence: RxAssign args(4), startAt
+    For k = 0 To 4
         If Not TryGetArgumentInfo(ai(k), args(k)) Then GoTo Failed
         If ai(k).t = ARG_RANGE Then If args(k).Areas.Count <> 1 Then GoTo Failed
     Next
     If Not TryDetermineCommonDimensions(nr, nc, ai) Then GoTo Failed
     If nr > RX_MAX_ROWS Or nc > RX_MAX_COLUMNS Then RxBroadcast = CVErr(xlErrNum): Exit Function
     ReDim output(0 To nr - 1, 0 To nc - 1)
-    ' Reuse compilation when patterns/flags vary only across columns.
-    columnsFirst = (ai(1).rows = 1 And ai(4).rows = 1)
+    ' Reuse compilation when patterns vary only across columns.
+    columnsFirst = (ai(1).rows = 1)
     For outer = 0 To IIf(columnsFirst, nc, nr) - 1
         For inner = 0 To IIf(columnsFirst, nr, nc) - 1
             If columnsFirst Then c = outer: r = inner Else r = outer: c = inner
-            For k = 0 To 5
+            For k = 0 To 4
                 values(k) = RxArgumentValue(ai(k), args(k), r, c)
             Next
             output(r, c) = RxEvaluate(operation, values, cache)
@@ -829,28 +822,14 @@ Private Function RxInteger(ByRef arg As Variant, ByVal default As Long, ByVal mi
     RxInteger = CLng(number)
 End Function
 
-Private Function RxParseFlags(ByRef arg As Variant) As RxFlags
-    Dim flags As String, i As Long
-    flags = RxString(arg)
-    For i = 1 To Len(flags)
-        Select Case Mid$(flags, i, 1)
-        Case "i": RxParseFlags.ignoreCase = True
-        Case "m": RxParseFlags.multiline = True
-        Case "s": RxParseFlags.dotAll = True
-        Case Else: Err.Raise 5
-        End Select
-    Next
-End Function
-
-Private Sub RxCompile(ByRef cache As RxCache, ByRef pattern As String, ByRef flags As RxFlags)
+Private Sub RxCompile(ByRef cache As RxCache, ByRef pattern As String)
     If cache.regexReady Then
-        If cache.pattern = pattern And cache.ignoreCase = flags.ignoreCase Then Exit Sub
+        If cache.pattern = pattern Then Exit Sub
     End If
     cache.regexReady = False
     cache.formatReady = False
-    StaticRegexSingle.InitializeRegex cache.regex, pattern, flags.ignoreCase
+    StaticRegexSingle.InitializeRegex cache.regex, pattern
     cache.pattern = pattern
-    cache.ignoreCase = flags.ignoreCase
     cache.regexReady = True
 End Sub
 
@@ -877,18 +856,16 @@ End Function
 Private Function RxEvaluate(ByVal operation As Long, ByRef values() As Variant, ByRef cache As RxCache) As Variant
     On Error GoTo Failed
     Dim text As String, pattern As String, format As String, result As String
-    Dim flags As RxFlags, state As StaticRegexSingle.MatcherStateTy
+    Dim state As StaticRegexSingle.MatcherStateTy
     Dim occurrence As Long, position As Long, n As Long, lastEnd As Long, k As Long
-    For k = 0 To 5
+    For k = 0 To 4
         If IsError(values(k)) Then RxEvaluate = values(k): Exit Function
     Next
     text = RxString(values(0)): pattern = RxString(values(1))
-    flags = RxParseFlags(values(4))
-    position = RxInteger(values(5), 1, 1, Len(text) + 1)
+    position = RxInteger(values(4), 1, 1, Len(text) + 1)
     occurrence = RxInteger(values(3), IIf(operation = RX_REPLACE, 0, 1), IIf(operation = RX_REPLACE, 0, 1), &H7FFFFFFF)
-    RxCompile cache, pattern, flags
+    RxCompile cache, pattern
     state.current = position - 1
-    state.multiline = flags.multiline: state.dotAll = flags.dotAll
     If operation = RX_MATCH Or operation = RX_REPLACE Then
         format = RxString(values(2))
         RxCompileFormat cache, format
@@ -938,28 +915,27 @@ End Function
 
 ' Variable-size results: one input text, one pattern, scalar options.
 Public Function RxMatches(ByRef text As Variant, ByRef pattern As Variant, _
-    Optional ByRef format As Variant = "$&", Optional ByRef flags As Variant = "", _
+    Optional ByRef format As Variant = "$&", _
     Optional ByRef startAt As Variant = 1) As Variant
     On Error GoTo Failed
-    Dim values(0 To 3) As Variant, ai As ArgumentInfo, k As Long, j As Long
-    Dim s As String, p As String, f As String, opts As RxFlags, position As Long
+    Dim values(0 To 2) As Variant, ai As ArgumentInfo, k As Long, j As Long
+    Dim s As String, p As String, f As String, position As Long
     Dim regex As StaticRegexSingle.RegexTy, state As StaticRegexSingle.MatcherStateTy
     Dim formats() As StaticRegexSingle.FormatTy, v As Variant, rows As Collection
     Dim row() As Variant, output() As Variant, nr As Long, nc As Long
     values(0) = RxScalar(text): values(1) = RxScalar(pattern)
-    values(2) = RxScalar(flags): values(3) = RxScalar(startAt)
-    For k = 0 To 3
+    values(2) = RxScalar(startAt)
+    For k = 0 To 2
         If IsError(values(k)) Then RxMatches = values(k): Exit Function
     Next
     s = RxString(values(0)): p = RxString(values(1))
-    opts = RxParseFlags(values(2))
-    position = RxInteger(values(3), 1, 1, Len(s) + 1)
+    position = RxInteger(values(2), 1, 1, Len(s) + 1)
     If Not TryGetArgumentInfo(ai, format) Then Err.Raise 5
     If ai.rows <> 1 Or ai.columns < 1 Then Err.Raise 5
     If ai.t = ARG_RANGE Then If format.Areas.Count <> 1 Then Err.Raise 5
     nc = ai.columns
     If nc > RX_MAX_COLUMNS Then Err.Raise RX_ERR_NUM
-    StaticRegexSingle.InitializeRegex regex, p, opts.ignoreCase
+    StaticRegexSingle.InitializeRegex regex, p
     ReDim formats(0 To nc - 1)
     For j = 0 To nc - 1
         v = RxArgumentValue(ai, format, 0, j)
@@ -968,7 +944,6 @@ Public Function RxMatches(ByRef text As Variant, ByRef pattern As Variant, _
         StaticRegexSingle.InitializeFormat formats(j), regex, f
     Next
     state.current = position - 1
-    state.multiline = opts.multiline: state.dotAll = opts.dotAll
     Set rows = New Collection
     Do While StaticRegexSingle.MatchNext(state, regex, s, raiseOnLimit:=True)
         If rows.Count >= RX_MAX_ROWS Then Err.Raise RX_ERR_NUM
@@ -995,14 +970,14 @@ Failed:
 End Function
 
 Public Function RxSplit(ByRef text As Variant, ByRef pattern As Variant, _
-    Optional ByRef ignoreEmpty As Variant = False, Optional ByRef flags As Variant = "") As Variant
+    Optional ByRef ignoreEmpty As Variant = False) As Variant
     On Error GoTo Failed
-    Dim ai(0 To 3) As ArgumentInfo, args(0 To 3) As Variant, values(0 To 3) As Variant
+    Dim ai(0 To 2) As ArgumentInfo, args(0 To 2) As Variant, values(0 To 2) As Variant
     Dim rows() As Variant, fields As Variant, output() As Variant, cache As RxCache
     Dim nr As Long, nc As Long, width As Long, r As Long, c As Long, k As Long
     RxAssign args(0), text: RxAssign args(1), pattern
-    RxAssign args(2), ignoreEmpty: RxAssign args(3), flags
-    For k = 0 To 3
+    RxAssign args(2), ignoreEmpty
+    For k = 0 To 2
         If Not TryGetArgumentInfo(ai(k), args(k)) Then Err.Raise 5
         ' Split fields expand horizontally, so source arguments must be columns.
         If ai(k).columns <> 1 Then Err.Raise 5
@@ -1013,7 +988,7 @@ Public Function RxSplit(ByRef text As Variant, ByRef pattern As Variant, _
     ReDim rows(0 To nr - 1)
     width = 1
     For r = 0 To nr - 1
-        For k = 0 To 3
+        For k = 0 To 2
             values(k) = RxArgumentValue(ai(k), args(k), r, 0)
         Next
         rows(r) = RxSplitRow(values, cache)
@@ -1048,17 +1023,15 @@ End Function
 Private Function RxSplitRow(ByRef values() As Variant, ByRef cache As RxCache) As Variant
     On Error GoTo Failed
     Dim k As Long, s As String, p As String, piece As String
-    Dim opts As RxFlags, ignore As ExpectedBoolean, lastEnd As Long, pieces As Collection
+    Dim ignore As ExpectedBoolean, lastEnd As Long, pieces As Collection
     Dim state As StaticRegexSingle.MatcherStateTy, fields() As Variant
-    For k = 0 To 3
+    For k = 0 To 2
         If IsError(values(k)) Then RxSplitRow = values(k): Exit Function
     Next
     s = RxString(values(0)): p = RxString(values(1))
-    opts = RxParseFlags(values(3))
     ignore = ExpectBoolean(values(2))
     If Not ignore.isFine Then Err.Raise 5
-    RxCompile cache, p, opts
-    state.multiline = opts.multiline: state.dotAll = opts.dotAll
+    RxCompile cache, p
     lastEnd = 1: Set pieces = New Collection
     Do While StaticRegexSingle.MatchNext(state, cache.regex, s, raiseOnLimit:=True)
         piece = Mid$(s, lastEnd, state.captures.entireMatch.start - lastEnd)
@@ -1093,28 +1066,28 @@ Public Sub RegisterRxFunctions()
     prefix = "'" & ThisWorkbook.Name & "'!"
     Application.MacroOptions Macro:=prefix & "RxTest", Category:="VbaRegex", _
         Description:="Tests whether text contains a regex match. Broadcasts arrays and ranges.", _
-        ArgumentDescriptions:=Array("Text or range of text.", "Regex pattern.", "Optional flags: i, m, s. Default empty.", "1-based UTF-16 start position. Default 1.")
+        ArgumentDescriptions:=Array("Text or range of text.", "Regex pattern.", "1-based UTF-16 start position. Default 1.")
     Application.MacroOptions Macro:=prefix & "RxMatch", Category:="VbaRegex", _
         Description:="Returns a formatted match, or #N/A. Broadcasts arrays and ranges.", _
-        ArgumentDescriptions:=Array("Text or range of text.", "Regex pattern.", "Capture format. Default $&.", "Positive match number. Default 1.", "Optional flags: i, m, s.", "1-based UTF-16 start position. Default 1.")
+        ArgumentDescriptions:=Array("Text or range of text.", "Regex pattern.", "Capture format. Default $&.", "Positive match number. Default 1.", "1-based UTF-16 start position. Default 1.")
     Application.MacroOptions Macro:=prefix & "RxFind", Category:="VbaRegex", _
         Description:="Returns the 1-based position of a regex match, or #N/A. Broadcasts arrays and ranges.", _
-        ArgumentDescriptions:=Array("Text or range of text.", "Regex pattern.", "Positive match number. Default 1.", "Optional flags: i, m, s.", "1-based UTF-16 start position. Default 1.")
+        ArgumentDescriptions:=Array("Text or range of text.", "Regex pattern.", "Positive match number. Default 1.", "1-based UTF-16 start position. Default 1.")
     Application.MacroOptions Macro:=prefix & "RxLength", Category:="VbaRegex", _
         Description:="Returns a regex match's length in UTF-16 code units, or #N/A. Broadcasts arrays and ranges.", _
-        ArgumentDescriptions:=Array("Text or range of text.", "Regex pattern.", "Positive match number. Default 1.", "Optional flags: i, m, s.", "1-based UTF-16 start position. Default 1.")
+        ArgumentDescriptions:=Array("Text or range of text.", "Regex pattern.", "Positive match number. Default 1.", "1-based UTF-16 start position. Default 1.")
     Application.MacroOptions Macro:=prefix & "RxCount", Category:="VbaRegex", _
         Description:="Counts nonoverlapping regex matches. Returns zero for no matches. Broadcasts arrays and ranges.", _
-        ArgumentDescriptions:=Array("Text or range of text.", "Regex pattern.", "Optional flags: i, m, s.", "1-based UTF-16 start position. Default 1.")
+        ArgumentDescriptions:=Array("Text or range of text.", "Regex pattern.", "1-based UTF-16 start position. Default 1.")
     Application.MacroOptions Macro:=prefix & "RxMatches", Category:="VbaRegex", _
         Description:="Returns all matches down rows; a row of formats produces columns.", _
-        ArgumentDescriptions:=Array("One text or single cell.", "One regex pattern.", "Capture format or one row of formats. Default $&.", "Optional flags: i, m, s.", "1-based UTF-16 start position. Default 1.")
+        ArgumentDescriptions:=Array("One text or single cell.", "One regex pattern.", "Capture format or one row of formats. Default $&.", "1-based UTF-16 start position. Default 1.")
     Application.MacroOptions Macro:=prefix & "RxReplace", Category:="VbaRegex", _
         Description:="Replaces regex matches. Broadcasts arrays and ranges.", _
-        ArgumentDescriptions:=Array("Text or range of text.", "Regex pattern.", "Replacement capture format.", "0 for all; positive match number for one. Default 0.", "Optional flags: i, m, s.", "1-based UTF-16 start position. Default 1.")
+        ArgumentDescriptions:=Array("Text or range of text.", "Regex pattern.", "Replacement capture format.", "0 for all; positive match number for one. Default 0.", "1-based UTF-16 start position. Default 1.")
     Application.MacroOptions Macro:=prefix & "RxSplit", Category:="VbaRegex", _
         Description:="Splits each input row across columns. Broadcasts columns; pads shorter rows with #N/A.", _
-        ArgumentDescriptions:=Array("Text or a single column of texts.", "Regex delimiter or compatible column of patterns.", "TRUE discards empty fields. Default FALSE. May be a column.", "Optional flags: i, m, s. May be a compatible column.")
+        ArgumentDescriptions:=Array("Text or a single column of texts.", "Regex delimiter or compatible column of patterns.", "TRUE discards empty fields. Default FALSE. May be a column.")
     ThisWorkbook.IsAddin = wasAddin
     Exit Sub
 Failed:
