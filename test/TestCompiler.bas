@@ -43,21 +43,20 @@ End Sub
 '@TestMethod("Compiler")
 Private Sub Compiler_Compile0001()
     ' simple two-character pattern
-    On Error GoTo TestFail
+    'On Error GoTo TestFail
     
     Dim actual() As Long
     RegexCompiler.Compile actual, "ab"
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=9), _
         REOP_SAVE, 0, _
-        REOP_CHAR, AscW("a"), _
-        REOP_CHAR, AscW("b"), _
+        REOP_STRING, 2, AscW("a"), AscW("b"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_STRING, 2, AscW("b"), AscW("a"), _
         REOP_MATCH
-    
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -77,16 +76,14 @@ Private Sub Compiler_Compile0002()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=11), _
         REOP_SAVE, 0, _
-        REOP_CHAR, AscW("a"), _
-        REOP_CHAR, AscW("b"), _
-        REOP_CHAR, AscW("c"), _
-        REOP_CHAR, AscW("d"), _
+        REOP_STRING, 4, AscW("a"), AscW("b"), AscW("c"), AscW("d"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_STRING, 4, AscW("d"), AscW("c"), AscW("b"), AscW("a"), _
         REOP_MATCH
-    
+        
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -105,11 +102,12 @@ Private Sub Compiler_Compile0003()
     
     Dim expected() As Long
     Dim actual() As Long
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=5), _
         REOP_SAVE, 0, _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
         REOP_MATCH
+        
     Assert.SequenceEquals expected, bytecode
 TestExit:
     Exit Sub
@@ -128,12 +126,14 @@ Private Sub Compiler_Compile0004()
     
     Dim expected() As Long
     Dim actual() As Long
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=7), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
+
     Assert.SequenceEquals expected, bytecode
 TestExit:
     Exit Sub
@@ -153,13 +153,12 @@ Private Sub Compiler_Compile0005()
     
     Dim expected() As Long
     Dim actual() As Long
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=10), _
         REOP_SAVE, 0, _
-        REOP_CHAR, AscW("a"), _
-        REOP_CHAR, AscW("b"), _
-        REOP_CHAR, AscW("c"), _
+        REOP_STRING, 3, AscW("a"), AscW("b"), AscW("c"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_STRING, 3, AscW("c"), AscW("b"), AscW("a"), _
         REOP_MATCH
     Assert.SequenceEquals expected, bytecode
 TestExit:
@@ -180,8 +179,7 @@ Private Sub Compiler_Compile0010()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=15), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_SPLIT1, 4, _
@@ -189,6 +187,12 @@ Private Sub Compiler_Compile0010()
         REOP_JUMP, -6, _
         REOP_CHAR, AscW("c"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("c"), _
+        REOP_SPLIT1, 4, _
+        REOP_CHAR, AscW("b"), _
+        REOP_JUMP, -6, _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
     
     Assert.SequenceEquals expected, actual
@@ -210,15 +214,18 @@ Private Sub Compiler_Compile0011()
 
     Dim expected() As Long
     
-    MakeArray expected, _
-        3, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(maxProperCaptureSlot:=3, startDfaBwRunOffset:=15), _
         REOP_SAVE, 0, _
         REOP_SPLIT1, 6, _
         REOP_SAVE, 2, _
         REOP_SAVE, 3, _
-        REOP_JUMP, -8, _
+        REOP_LOOP_GREEDY, -6, _
         REOP_CHAR, AscW("x"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("x"), _
+        REOP_SPLIT1, 2, _
+        REOP_LOOP_GREEDY, -2, _
         REOP_MATCH
     
     Assert.SequenceEquals expected, actual
@@ -240,19 +247,22 @@ Private Sub Compiler_Compile0012()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        3, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(maxProperCaptureSlot:=3, startDfaBwRunOffset:=19), _
         REOP_SAVE, 0, _
         REOP_SPLIT1, 10, _
         REOP_SAVE, 2, _
-        REOP_CHAR, AscW("a"), _
-        REOP_CHAR, AscW("b"), _
+        REOP_STRING, 2, AscW("a"), AscW("b"), _
         REOP_SAVE, 3, _
         REOP_JUMP, -12, _
         REOP_CHAR, AscW("x"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("x"), _
+        REOP_SPLIT1, 6, _
+        REOP_STRING, 2, AscW("b"), AscW("a"), _
+        REOP_JUMP, -8, _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -272,15 +282,18 @@ Private Sub Compiler_Compile0013()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=11), _
         REOP_SAVE, 0, _
         REOP_SPLIT1, 2, _
-        REOP_JUMP, -4, _
+        REOP_LOOP_GREEDY, -2, _
         REOP_CHAR, AscW("x"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("x"), _
+        REOP_SPLIT1, 2, _
+        REOP_LOOP_GREEDY, -2, _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -300,8 +313,7 @@ Private Sub Compiler_Compile0014()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=15), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_SPLIT2, 4, _
@@ -309,6 +321,12 @@ Private Sub Compiler_Compile0014()
         REOP_JUMP, -6, _
         REOP_CHAR, AscW("c"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("c"), _
+        REOP_SPLIT2, 4, _
+        REOP_CHAR, AscW("b"), _
+        REOP_JUMP, -6, _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
     
     Assert.SequenceEquals expected, actual
@@ -329,19 +347,24 @@ Private Sub Compiler_Compile0015()
     
     Dim expected() As Long
     Dim actual() As Long
-    MakeArray expected, _
-        3, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(maxProperCaptureSlot:=3, startDfaBwRunOffset:=21), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_SPLIT1, 10, _
         REOP_SAVE, 2, _
-        REOP_CHAR, AscW("b"), _
-        REOP_CHAR, AscW("c"), _
+        REOP_STRING, 2, AscW("b"), AscW("c"), _
         REOP_SAVE, 3, _
         REOP_JUMP, -12, _
         REOP_CHAR, AscW("d"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("d"), _
+        REOP_SPLIT1, 6, _
+        REOP_STRING, 2, AscW("c"), AscW("b"), _
+        REOP_JUMP, -8, _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
+        
     Assert.SequenceEquals expected, bytecode
 TestExit:
     Exit Sub
@@ -361,16 +384,20 @@ Private Sub Compiler_Compile0020()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=14), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
+        REOP_LOOP_INIT, _
         REOP_CHAR, AscW("b"), _
-        REOP_SPLIT1, 4, _
-        REOP_CHAR, AscW("b"), _
-        REOP_JUMP, -6, _
+        REOP_LOOP_GREEDY, -4, _
         REOP_CHAR, AscW("c"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("c"), _
+        REOP_LOOP_INIT, _
+        REOP_CHAR, AscW("b"), _
+        REOP_LOOP_GREEDY, -4, _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
     
     Assert.SequenceEquals expected, actual
@@ -392,21 +419,20 @@ Private Sub Compiler_Compile0021()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        3, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(maxProperCaptureSlot:=3, startDfaBwRunOffset:=18), _
         REOP_SAVE, 0, _
+        REOP_LOOP_INIT, _
         REOP_SAVE, 2, _
-        REOP_CHAR, AscW("a"), _
-        REOP_CHAR, AscW("b"), _
+        REOP_STRING, 2, AscW("a"), AscW("b"), _
         REOP_SAVE, 3, _
-        REOP_SPLIT1, 10, _
-        REOP_SAVE, 2, _
-        REOP_CHAR, AscW("a"), _
-        REOP_CHAR, AscW("b"), _
-        REOP_SAVE, 3, _
-        REOP_JUMP, -12, _
+        REOP_LOOP_GREEDY, -10, _
         REOP_CHAR, AscW("x"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("x"), _
+        REOP_LOOP_INIT, _
+        REOP_STRING, 2, AscW("b"), AscW("a"), _
+        REOP_LOOP_GREEDY, -6, _
         REOP_MATCH
     
     Assert.SequenceEquals expected, actual
@@ -428,12 +454,45 @@ Private Sub Compiler_Compile0030()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=13), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_SPLIT1, 2, _
         REOP_CHAR, AscW("b"), _
+        REOP_CHAR, AscW("c"), _
+        REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("c"), _
+        REOP_SPLIT1, 2, _
+        REOP_CHAR, AscW("b"), _
+        REOP_CHAR, AscW("a"), _
+        REOP_MATCH
+    
+    Assert.SequenceEquals expected, actual
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("Compiler")
+Private Sub Compiler_Compile0031()
+    ' Question mark, possessive
+    On Error GoTo TestFail
+    
+    Dim actual() As Long
+    RegexCompiler.Compile actual, "ab?+c"
+    
+    
+    Dim expected() As Long
+    
+    MakeBytecode expected, MakeBytecodeParameters(properties:=RegexBytecode.BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING), _
+        REOP_SAVE, 0, _
+        REOP_CHAR, AscW("a"), _
+        REOP_SPLIT1 Or REOP_FLAG_POSSESSIVE, 3, _
+        REOP_CHAR, AscW("b"), _
+        REOP_COMMIT_POSSESSIVE, _
         REOP_CHAR, AscW("c"), _
         REOP_SAVE, 1, _
         REOP_MATCH
@@ -447,28 +506,57 @@ TestFail:
 End Sub
 
 '@TestMethod("Compiler")
-Private Sub Compiler_Compile0040()
-    ' Quantifier, two numbers
+Private Sub Compiler_Compile0032()
+    ' Kleene star, complex pattern, possessive
     On Error GoTo TestFail
     
     Dim actual() As Long
-    RegexCompiler.Compile actual, "ab{2,5}c"
+    RegexCompiler.Compile actual, "(ab)*+x"
+        
+    Dim expected() As Long
+    
+    MakeBytecode expected, MakeBytecodeParameters(maxProperCaptureSlot:=3, properties:=RegexBytecode.BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING), _
+        REOP_SAVE, 0, _
+        REOP_SPLIT1 Or REOP_FLAG_POSSESSIVE, 11, _
+        REOP_SAVE, 2, _
+        REOP_STRING, 2, AscW("a"), AscW("b"), _
+        REOP_SAVE, 3, _
+        REOP_COMMIT_POSSESSIVE, _
+        REOP_JUMP, -13, _
+        REOP_CHAR, AscW("x"), _
+        REOP_SAVE, 1, _
+        REOP_MATCH
+    
+    Assert.SequenceEquals expected, actual
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("Compiler")
+Private Sub Compiler_Compile0040()
+    ' Large bounds retain compact counters. Quantifier, two numbers
+    On Error GoTo TestFail
+    
+    Dim actual() As Long
+    RegexCompiler.Compile actual, "ab{5000,10000}c"
     
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(properties:=BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_REPEAT_EXACTLY_INIT, _
-        REOP_REPEAT_EXACTLY_START, 2, 5, _
+        REOP_REPEAT_EXACTLY_START, 5000, 5, _
         REOP_CHAR, AscW("b"), _
-        REOP_REPEAT_EXACTLY_END, 2, 5, _
-        REOP_REPEAT_GREEDY_MAX_INIT, _
-        REOP_REPEAT_GREEDY_MAX_START, 3, 5, _
+        REOP_REPEAT_EXACTLY_END, 5000, 5, _
+        REOP_REPEAT_MAX_GREEDY_INIT, _
+        REOP_REPEAT_MAX_GREEDY_START, 5000, 5, _
         REOP_CHAR, AscW("b"), _
-        REOP_REPEAT_GREEDY_MAX_END, 3, 5, _
+        REOP_REPEAT_MAX_GREEDY_END, 5000, 5, _
         REOP_CHAR, AscW("c"), _
         REOP_SAVE, 1, _
         REOP_MATCH
@@ -483,26 +571,25 @@ End Sub
 
 '@TestMethod("Compiler")
 Private Sub Compiler_Compile0041()
-    ' Quantifier, only first number
+    ' Large bounds retain compact counters. Quantifier, only first number
     On Error GoTo TestFail
     
     Dim actual() As Long
-    RegexCompiler.Compile actual, "ab{12,}c"
+    RegexCompiler.Compile actual, "ab{5000,}c"
     
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(properties:=BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_REPEAT_EXACTLY_INIT, _
-        REOP_REPEAT_EXACTLY_START, 12, 5, _
+        REOP_REPEAT_EXACTLY_START, 4999, 5, _
         REOP_CHAR, AscW("b"), _
-        REOP_REPEAT_EXACTLY_END, 12, 5, _
-        REOP_SPLIT1, 4, _
+        REOP_REPEAT_EXACTLY_END, 4999, 5, _
+        REOP_LOOP_INIT, _
         REOP_CHAR, AscW("b"), _
-        REOP_JUMP, -6, _
+        REOP_LOOP_GREEDY, -4, _
         REOP_CHAR, AscW("c"), _
         REOP_SAVE, 1, _
         REOP_MATCH
@@ -517,23 +604,22 @@ End Sub
 
 '@TestMethod("Compiler")
 Private Sub Compiler_Compile0042()
-    ' Quantifier, only second number
+    ' Large bounds retain compact counters. Quantifier, only second number
     On Error GoTo TestFail
     
     Dim actual() As Long
-    RegexCompiler.Compile actual, "ab{,20}c"
+    RegexCompiler.Compile actual, "ab{,5000}c"
     
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(properties:=BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
-        REOP_REPEAT_GREEDY_MAX_INIT, _
-        REOP_REPEAT_GREEDY_MAX_START, 20, 5, _
+        REOP_REPEAT_MAX_GREEDY_INIT, _
+        REOP_REPEAT_MAX_GREEDY_START, 5000, 5, _
         REOP_CHAR, AscW("b"), _
-        REOP_REPEAT_GREEDY_MAX_END, 20, 5, _
+        REOP_REPEAT_MAX_GREEDY_END, 5000, 5, _
         REOP_CHAR, AscW("c"), _
         REOP_SAVE, 1, _
         REOP_MATCH
@@ -548,23 +634,22 @@ End Sub
 
 '@TestMethod("Compiler")
 Private Sub Compiler_Compile0043()
-    ' Quantifier, no comma
+    ' Large bounds retain compact counters. Quantifier, no comma
     On Error GoTo TestFail
     
     Dim actual() As Long
-    RegexCompiler.Compile actual, "ab{20}c"
+    RegexCompiler.Compile actual, "ab{5000}c"
     
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(properties:=BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_REPEAT_EXACTLY_INIT, _
-        REOP_REPEAT_EXACTLY_START, 20, 5, _
+        REOP_REPEAT_EXACTLY_START, 5000, 5, _
         REOP_CHAR, AscW("b"), _
-        REOP_REPEAT_EXACTLY_END, 20, 5, _
+        REOP_REPEAT_EXACTLY_END, 5000, 5, _
         REOP_CHAR, AscW("c"), _
         REOP_SAVE, 1, _
         REOP_MATCH
@@ -588,12 +673,14 @@ Private Sub Compiler_Compile0044()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=9), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_CHAR, AscW("c"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("c"), _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
     
     Assert.SequenceEquals expected, actual
@@ -615,10 +702,10 @@ Private Sub Compiler_Compile0045()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=5), _
         REOP_SAVE, 0, _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
         REOP_MATCH
     
     Assert.SequenceEquals expected, actual
@@ -629,6 +716,42 @@ TestFail:
     Resume TestExit
 End Sub
 
+'@TestMethod("Compiler")
+Private Sub Compiler_Compile0046()
+    ' Quantifier, two numbers, possessive
+    On Error GoTo TestFail
+    
+    Dim actual() As Long
+    RegexCompiler.Compile actual, "ab{2,5}+c"
+    
+    
+    Dim expected() As Long
+    
+    MakeBytecode expected, MakeBytecodeParameters(properties:=BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING), _
+        REOP_SAVE, 0, _
+        REOP_CHAR, AscW("a"), _
+        REOP_REPEAT_EXACTLY_INIT, _
+        REOP_REPEAT_EXACTLY_START Or REOP_FLAG_POSSESSIVE, 2, 7, _
+        REOP_FAIL, _
+        REOP_CHAR, AscW("b"), _
+        REOP_COMMIT_POSSESSIVE, _
+        REOP_REPEAT_EXACTLY_END, 2, 7, _
+        REOP_REPEAT_MAX_GREEDY_INIT, _
+        REOP_REPEAT_MAX_GREEDY_START Or REOP_FLAG_POSSESSIVE, 3, 6, _
+        REOP_CHAR, AscW("b"), _
+        REOP_COMMIT_POSSESSIVE, _
+        REOP_REPEAT_MAX_GREEDY_END, 3, 6, _
+        REOP_CHAR, AscW("c"), _
+        REOP_SAVE, 1, _
+        REOP_MATCH
+    
+    Assert.SequenceEquals expected, actual
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
 
 '@TestMethod("Compiler")
 Private Sub Compiler_Compile0050()
@@ -641,15 +764,20 @@ Private Sub Compiler_Compile0050()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=13), _
         REOP_SAVE, 0, _
         REOP_SPLIT1, 4, _
         REOP_CHAR, AscW("a"), _
         REOP_JUMP, 2, _
         REOP_CHAR, AscW("b"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_SPLIT1, 4, _
+        REOP_CHAR, AscW("a"), _
+        REOP_JUMP, 2, _
+        REOP_CHAR, AscW("b"), _
         REOP_MATCH
+
     
     Assert.SequenceEquals expected, actual
 TestExit:
@@ -670,8 +798,7 @@ Private Sub Compiler_Compile0051()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=19), _
         REOP_SAVE, 0, _
         REOP_SPLIT1, 4, _
         REOP_CHAR, AscW("a"), _
@@ -681,8 +808,16 @@ Private Sub Compiler_Compile0051()
         REOP_JUMP, 2, _
         REOP_CHAR, AscW("c"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_SPLIT1, 4, _
+        REOP_CHAR, AscW("a"), _
+        REOP_JUMP, 8, _
+        REOP_SPLIT1, 4, _
+        REOP_CHAR, AscW("b"), _
+        REOP_JUMP, 2, _
+        REOP_CHAR, AscW("c"), _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -701,17 +836,20 @@ Private Sub Compiler_Compile0052()
     
     Dim expected() As Long
     Dim actual() As Long
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=17), _
         REOP_SAVE, 0, _
         REOP_SPLIT1, 6, _
-        REOP_CHAR, AscW("a"), _
-        REOP_CHAR, AscW("b"), _
+        REOP_STRING, 2, AscW("a"), AscW("b"), _
         REOP_JUMP, 4, _
-        REOP_CHAR, AscW("c"), _
-        REOP_CHAR, AscW("d"), _
+        REOP_STRING, 2, AscW("c"), AscW("d"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_SPLIT1, 6, _
+        REOP_STRING, 2, AscW("b"), AscW("a"), _
+        REOP_JUMP, 4, _
+        REOP_STRING, 2, AscW("d"), AscW("c"), _
         REOP_MATCH
+        
     Assert.SequenceEquals expected, bytecode
 TestExit:
     Exit Sub
@@ -730,21 +868,26 @@ Private Sub Compiler_Compile0053()
     
     Dim expected() As Long
     Dim actual() As Long
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=25), _
         REOP_SAVE, 0, _
         REOP_SPLIT1, 6, _
-        REOP_CHAR, AscW("a"), _
-        REOP_CHAR, AscW("b"), _
+        REOP_STRING, 2, AscW("a"), AscW("b"), _
         REOP_JUMP, 12, _
         REOP_SPLIT1, 6, _
-        REOP_CHAR, AscW("c"), _
-        REOP_CHAR, AscW("d"), _
+        REOP_STRING, 2, AscW("c"), AscW("d"), _
         REOP_JUMP, 4, _
-        REOP_CHAR, AscW("e"), _
-        REOP_CHAR, AscW("f"), _
+        REOP_STRING, 2, AscW("e"), AscW("f"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_SPLIT1, 6, _
+        REOP_STRING, 2, AscW("b"), AscW("a"), _
+        REOP_JUMP, 12, _
+        REOP_SPLIT1, 6, _
+        REOP_STRING, 2, AscW("d"), AscW("c"), _
+        REOP_JUMP, 4, _
+        REOP_STRING, 2, AscW("f"), AscW("e"), _
         REOP_MATCH
+    
     Assert.SequenceEquals expected, bytecode
 TestExit:
     Exit Sub
@@ -765,16 +908,18 @@ Private Sub Compiler_Compile0100()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        3, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(maxProperCaptureSlot:=3, startDfaBwRunOffset:=17), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_SAVE, 2, _
-        REOP_CHAR, AscW("b"), _
-        REOP_CHAR, AscW("c"), _
+        REOP_STRING, 2, AscW("b"), AscW("c"), _
         REOP_SAVE, 3, _
         REOP_CHAR, AscW("d"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("d"), _
+        REOP_STRING, 2, AscW("c"), AscW("b"), _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
     
     Assert.SequenceEquals expected, actual
@@ -796,22 +941,26 @@ Private Sub Compiler_Compile0101()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        5, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(maxProperCaptureSlot:=5, startDfaBwRunOffset:=25), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_SAVE, 2, _
         REOP_CHAR, AscW("b"), _
         REOP_SAVE, 4, _
-        REOP_CHAR, AscW("c"), _
-        REOP_CHAR, AscW("d"), _
+        REOP_STRING, 2, AscW("c"), AscW("d"), _
         REOP_SAVE, 5, _
         REOP_CHAR, AscW("e"), _
         REOP_SAVE, 3, _
         REOP_CHAR, AscW("f"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("f"), _
+        REOP_CHAR, AscW("e"), _
+        REOP_STRING, 2, AscW("d"), AscW("c"), _
+        REOP_CHAR, AscW("b"), _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -831,8 +980,7 @@ Private Sub Compiler_Compile0102()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        3, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(maxProperCaptureSlot:=3, startDfaBwRunOffset:=27), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_SAVE, 2, _
@@ -846,8 +994,14 @@ Private Sub Compiler_Compile0102()
         REOP_SAVE, 3, _
         REOP_CHAR, AscW("e"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("e"), _
+        REOP_SPLIT1, 4, REOP_CHAR, AscW("b"), REOP_JUMP, 8, _
+        REOP_SPLIT1, 4, REOP_CHAR, AscW("c"), REOP_JUMP, 2, _
+        REOP_CHAR, AscW("d"), _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -868,13 +1022,14 @@ Private Sub Compiler_Compile0200()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=10), _
         REOP_SAVE, 0, _
         REOP_ASSERT_START, _
-        REOP_CHAR, AscW("a"), _
-        REOP_CHAR, AscW("b"), _
+        REOP_STRING, 2, AscW("a"), AscW("b"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_STRING, 2, AscW("b"), AscW("a"), _
+        REOP_ASSERT_START, _
         REOP_MATCH
     
     Assert.SequenceEquals expected, actual
@@ -896,15 +1051,16 @@ Private Sub Compiler_Compile0202()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=10), _
         REOP_SAVE, 0, _
-        REOP_CHAR, AscW("a"), _
-        REOP_CHAR, AscW("b"), _
+        REOP_STRING, 2, AscW("a"), AscW("b"), _
         REOP_ASSERT_END, _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_ASSERT_END, _
+        REOP_STRING, 2, AscW("b"), AscW("a"), _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -924,13 +1080,16 @@ Private Sub Compiler_Compile0204()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=10), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_DOT, _
         REOP_CHAR, AscW("b"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("b"), _
+        REOP_DOT, _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
     
     Assert.SequenceEquals expected, actual
@@ -952,11 +1111,12 @@ Private Sub Compiler_Compile0210()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=6), _
         REOP_SAVE, 0, _
         REOP_ASSERT_WORD_BOUNDARY, _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_ASSERT_WORD_BOUNDARY, _
         REOP_MATCH
     
     Assert.SequenceEquals expected, actual
@@ -978,11 +1138,12 @@ Private Sub Compiler_Compile0211()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=6), _
         REOP_SAVE, 0, _
         REOP_ASSERT_NOT_WORD_BOUNDARY, _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_ASSERT_NOT_WORD_BOUNDARY, _
         REOP_MATCH
     
     Assert.SequenceEquals expected, actual
@@ -1004,13 +1165,14 @@ Private Sub Compiler_Compile0300()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=9), _
         REOP_SAVE, 0, _
         REOP_RANGES, 1, AscW("A"), AscW("Z"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_RANGES, 1, AscW("A"), AscW("Z"), _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -1030,13 +1192,14 @@ Private Sub Compiler_Compile0301()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=11), _
         REOP_SAVE, 0, _
         REOP_RANGES, 2, AscW("A"), AscW("Z"), AscW("a"), AscW("z"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_RANGES, 2, AscW("A"), AscW("Z"), AscW("a"), AscW("z"), _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -1056,14 +1219,16 @@ Private Sub Compiler_Compile0302()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=13), _
         REOP_SAVE, 0, _
         REOP_RANGES, 2, AscW("A"), AscW("Z"), AscW("a"), AscW("z"), _
         REOP_CHAR, AscW("0"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("0"), _
+        REOP_RANGES, 2, AscW("A"), AscW("Z"), AscW("a"), AscW("z"), _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -1083,8 +1248,7 @@ Private Sub Compiler_Compile0303()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=17), _
         REOP_SAVE, 0, _
         REOP_SPLIT1, 3, _
         REOP_DOT, _
@@ -1092,8 +1256,14 @@ Private Sub Compiler_Compile0303()
         REOP_RANGES, 2, AscW("]"), AscW("]"), AscW("a"), AscW("a"), _
         REOP_ASSERT_END, _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_ASSERT_END, _
+        REOP_SPLIT1, 3, _
+        REOP_DOT, _
+        REOP_JUMP, 6, _
+        REOP_RANGES, 2, AscW("]"), AscW("]"), AscW("a"), AscW("a"), _
         REOP_MATCH
-    
+        
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -1114,16 +1284,20 @@ Private Sub Compiler_Compile0304()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=16), _
         REOP_SAVE, 0, _
         REOP_SPLIT1, 8, _
         REOP_RANGES, 2, AscW("]"), AscW("]"), AscW("a"), AscW("a"), _
         REOP_JUMP, -10, _
         REOP_ASSERT_END, _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_ASSERT_END, _
+        REOP_SPLIT1, 8, _
+        REOP_RANGES, 2, AscW("]"), AscW("]"), AscW("a"), AscW("a"), _
+        REOP_JUMP, -10, _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -1143,14 +1317,16 @@ Private Sub Compiler_Compile0305()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=13), _
         REOP_SAVE, 0, _
         REOP_RANGES, 2, AscW("A"), AscW("Z"), AscW("a"), AscW("z"), _
         REOP_CHAR, AscW("0"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("0"), _
+        REOP_RANGES, 2, AscW("A"), AscW("Z"), AscW("a"), AscW("z"), _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -1171,14 +1347,16 @@ Private Sub Compiler_Compile0306()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=13), _
         REOP_SAVE, 0, _
         REOP_RANGES, 2, AscW("a"), AscW("m"), AscW("u"), AscW("z"), _
         REOP_CHAR, AscW("0"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("0"), _
+        REOP_RANGES, 2, AscW("a"), AscW("m"), AscW("u"), AscW("z"), _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -1198,14 +1376,16 @@ Private Sub Compiler_Compile0307()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=11), _
         REOP_SAVE, 0, _
         REOP_RANGES, 1, AscW("4"), AscW("9"), _
         REOP_CHAR, AscW("0"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("0"), _
+        REOP_RANGES, 1, AscW("4"), AscW("9"), _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -1224,14 +1404,18 @@ Private Sub Compiler_Compile0308()
     
     Dim expected() As Long
     Dim actual() As Long
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=15), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_RANGES, 2, AscW("U"), AscW("Z"), AscW("a"), AscW("c"), _
         REOP_CHAR, AscW("b"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("b"), _
+        REOP_RANGES, 2, AscW("U"), AscW("Z"), AscW("a"), AscW("c"), _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
+        
     Assert.SequenceEquals expected, bytecode
 TestExit:
     Exit Sub
@@ -1251,13 +1435,14 @@ Private Sub Compiler_Compile0310()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=9), _
         REOP_SAVE, 0, _
         REOP_INVRANGES, 1, AscW("A"), AscW("Z"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_INVRANGES, 1, AscW("A"), AscW("Z"), _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -1277,15 +1462,18 @@ Private Sub Compiler_Compile0320()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=13), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_RANGES, 1, AscW("0"), AscW("9"), _
         REOP_CHAR, AscW("b"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("b"), _
+        REOP_RANGES, 1, AscW("0"), AscW("9"), _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -1305,15 +1493,18 @@ Private Sub Compiler_Compile0321()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=13), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_RANGES, 1, &HAB&, &HAB&, _
         REOP_CHAR, AscW("b"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("b"), _
+        REOP_RANGES, 1, &HAB&, &HAB&, _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -1333,15 +1524,18 @@ Private Sub Compiler_Compile0322()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=13), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_RANGES, 1, &H90&, &HA0&, _
         REOP_CHAR, AscW("b"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("b"), _
+        REOP_RANGES, 1, &H90&, &HA0&, _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -1361,15 +1555,18 @@ Private Sub Compiler_Compile0323()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=13), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_RANGES, 1, &H500&, &H7000&, _
         REOP_CHAR, AscW("b"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("b"), _
+        REOP_RANGES, 1, &H500&, &H7000&, _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -1389,15 +1586,18 @@ Private Sub Compiler_Compile0324()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=13), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_RANGES, 1, &H50&, &H700&, _
         REOP_CHAR, AscW("b"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("b"), _
+        REOP_RANGES, 1, &H50&, &H700&, _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -1417,15 +1617,18 @@ Private Sub Compiler_Compile0325()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=19), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_RANGES, 4, 0&, 0&, 13&, 13&, AscW("8"), AscW("9"), 210, 210, _
         REOP_CHAR, AscW("b"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("b"), _
+        REOP_RANGES, 4, 0&, 0&, 13&, 13&, AscW("8"), AscW("9"), 210, 210, _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -1445,19 +1648,19 @@ Private Sub Compiler_Compile0330()
     
     
     Dim expected() As Long
-    Const REOP_CHAR_I As Long = REOP_CHAR Or MODIFIER_I_ACTIVE
+    Const REOP_STRING_I As Long = REOP_STRING Or MODIFIER_I_ACTIVE
     
-    MakeArray expected, _
-        1, 0, 1, _
+    MakeBytecode expected, _
+        MakeBytecodeParameters( _
+            maxProperCaptureSlot:=1, properties:=1, startDfaBwRunOffset:=14 _
+        ), _
         REOP_SAVE, 0, _
-        REOP_CHAR_I, AscW("A"), _
-        REOP_CHAR_I, AscW("B"), _
-        REOP_CHAR_I, AscW("U"), _
-        REOP_CHAR_I, AscW("Z"), _
-        REOP_CHAR_I, AscW("Ä"), _
-        REOP_CHAR_I, AscW("Ö"), _
-        REOP_CHAR_I, AscW("Ü"), _
+        REOP_STRING_I, 7, AscW("A"), AscW("B"), AscW("U"), AscW("Z"), AscW("Ä"), _
+            AscW("Ö"), AscW("Ü"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_STRING_I, 7, AscW("Ü"), AscW("Ö"), AscW("Ä"), AscW("Z"), AscW("U"), _
+            AscW("B"), AscW("A"), _
         REOP_MATCH
     
     Assert.SequenceEquals expected, actual
@@ -1482,13 +1685,19 @@ Private Sub Compiler_Compile0331()
     Const REOP_CHAR_I As Long = REOP_CHAR Or MODIFIER_I_ACTIVE
     Const REOP_RANGES_I As Long = REOP_RANGES Or MODIFIER_I_ACTIVE
 
-    MakeArray expected, _
-        1, 0, 1, _
+    MakeBytecode expected, _
+        MakeBytecodeParameters( _
+            maxProperCaptureSlot:=1, properties:=1, startDfaBwRunOffset:=13 _
+        ), _
         REOP_SAVE, 0, _
         REOP_CHAR_I, AscW("A"), _
         REOP_RANGES_I, 1, AscW("A"), AscW("Z"), _
         REOP_CHAR_I, AscW("B"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR_I, AscW("B"), _
+        REOP_RANGES_I, 1, AscW("A"), AscW("Z"), _
+        REOP_CHAR_I, AscW("A"), _
         REOP_MATCH
     
     Assert.SequenceEquals expected, actual
@@ -1513,15 +1722,21 @@ Private Sub Compiler_Compile0332()
     Const REOP_CHAR_I As Long = REOP_CHAR Or MODIFIER_I_ACTIVE
     Const REOP_RANGES_I As Long = REOP_RANGES Or MODIFIER_I_ACTIVE
     
-    MakeArray expected, _
-        1, 0, 1, _
+    MakeBytecode expected, _
+        MakeBytecodeParameters( _
+            maxProperCaptureSlot:=1, properties:=1, startDfaBwRunOffset:=15 _
+        ), _
         REOP_SAVE, 0, _
         REOP_CHAR_I, AscW("A"), _
         REOP_RANGES_I, 2, AscW("X"), AscW("Z"), AscW("{"), AscW("{"), _
         REOP_CHAR_I, AscW("B"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR_I, AscW("B"), _
+        REOP_RANGES_I, 2, AscW("X"), AscW("Z"), AscW("{"), AscW("{"), _
+        REOP_CHAR_I, AscW("A"), _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -1546,15 +1761,18 @@ Private Sub Compiler_Compile0350()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=13), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_RANGES, 1, AscW("0"), AscW("9"), _
         REOP_CHAR, AscW("b"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("b"), _
+        REOP_RANGES, 1, AscW("0"), AscW("9"), _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
-    
+
     Assert.SequenceEquals expected, actual
 TestExit:
     Exit Sub
@@ -1573,14 +1791,18 @@ Private Sub Compiler_Compile0351()
     
     Dim expected() As Long
     Dim actual() As Long
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=15), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_RANGES, 2, &H80000000, AscW("0") - 1, AscW("9") + 1, &H7FFFFFFF, _
         REOP_CHAR, AscW("b"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("b"), _
+        REOP_RANGES, 2, &H80000000, AscW("0") - 1, AscW("9") + 1, &H7FFFFFFF, _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
+
     Assert.SequenceEquals expected, bytecode
 TestExit:
     Exit Sub
@@ -1601,15 +1823,12 @@ Private Sub Compiler_Compile0400()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(properties:=BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING), _
         REOP_SAVE, 0, _
-        REOP_CHAR, AscW("a"), _
-        REOP_CHAR, AscW("b"), _
+        REOP_STRING, 2, AscW("a"), AscW("b"), _
         REOP_CHECK_LOOKAHEAD, _
         REOP_LOOKPOS, 5, _
-        REOP_CHAR, AscW("c"), _
-        REOP_CHAR, AscW("d"), _
+        REOP_STRING, 2, AscW("c"), AscW("d"), _
         REOP_END_LOOKPOS, _
         REOP_SAVE, 1, _
         REOP_MATCH
@@ -1633,15 +1852,12 @@ Private Sub Compiler_Compile0401()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(properties:=BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING), _
         REOP_SAVE, 0, _
-        REOP_CHAR, AscW("a"), _
-        REOP_CHAR, AscW("b"), _
+        REOP_STRING, 2, AscW("a"), AscW("b"), _
         REOP_CHECK_LOOKAHEAD, _
         REOP_LOOKNEG, 5, _
-        REOP_CHAR, AscW("c"), _
-        REOP_CHAR, AscW("d"), _
+        REOP_STRING, 2, AscW("c"), AscW("d"), _
         REOP_END_LOOKNEG, _
         REOP_CHAR, AscW("e"), _
         REOP_SAVE, 1, _
@@ -1665,14 +1881,12 @@ Private Sub Compiler_Compile0402()
     
     Dim expected() As Long
     Dim actual() As Long
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(properties:=BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_CHECK_LOOKAHEAD, _
         REOP_LOOKPOS, 5, _
-        REOP_CHAR, AscW("b"), _
-        REOP_CHAR, AscW("c"), _
+        REOP_STRING, 2, AscW("b"), AscW("c"), _
         REOP_END_LOOKPOS, _
         REOP_CHAR, AscW("d"), _
         REOP_SAVE, 1, _
@@ -1695,15 +1909,12 @@ Private Sub Compiler_Compile0403()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        3, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(maxProperCaptureSlot:=3, properties:=BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING), _
         REOP_SAVE, 0, _
-        REOP_CHAR, AscW("a"), _
-        REOP_CHAR, AscW("b"), _
+        REOP_STRING, 2, AscW("a"), AscW("b"), _
         REOP_CHECK_LOOKAHEAD, _
         REOP_LOOKNEG, 5, _
-        REOP_CHAR, AscW("c"), _
-        REOP_CHAR, AscW("d"), _
+        REOP_STRING, 2, AscW("c"), AscW("d"), _
         REOP_END_LOOKNEG, _
         REOP_SAVE, 2, _
         REOP_CHAR, AscW("e"), _
@@ -1729,17 +1940,22 @@ Private Sub Compiler_Compile0410()
     
     Dim expected() As Long
     Dim actual() As Long
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=17), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_SPLIT1, 6, _
-        REOP_CHAR, AscW("b"), _
-        REOP_CHAR, AscW("c"), _
+        REOP_STRING, 2, AscW("b"), AscW("c"), _
         REOP_JUMP, -8, _
         REOP_CHAR, AscW("d"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_CHAR, AscW("d"), _
+        REOP_SPLIT1, 6, _
+        REOP_STRING, 2, AscW("c"), AscW("b"), _
+        REOP_JUMP, -8, _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
+    
     Assert.SequenceEquals expected, bytecode
 TestExit:
     Exit Sub
@@ -1758,18 +1974,24 @@ Private Sub Compiler_Compile0411()
     
     Dim expected() As Long
     Dim actual() As Long
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=17), _
         REOP_SAVE, 0, _
         REOP_ASSERT_START, _
         REOP_SPLIT1, 4, _
         REOP_CHAR, 65, _
         REOP_JUMP, 4, _
-        REOP_CHAR, 65, _
-        REOP_CHAR, 65, _
+        REOP_STRING, 2, 65, 65, _
         REOP_ASSERT_END, _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_ASSERT_END, _
+        REOP_SPLIT1, 4, _
+        REOP_CHAR, 65, _
+        REOP_JUMP, 4, _
+        REOP_STRING, 2, 65, 65, _
+        REOP_ASSERT_START, _
         REOP_MATCH
+        
     Assert.SequenceEquals expected, bytecode
 TestExit:
     Exit Sub
@@ -1790,14 +2012,12 @@ Private Sub Compiler_Compile0420()
     
     Dim expected() As Long
     Dim actual() As Long
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(properties:=BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_CHECK_LOOKBEHIND, _
         REOP_LOOKPOS, 5, _
-        REOP_CHAR, AscW("c"), _
-        REOP_CHAR, AscW("b"), _
+        REOP_STRING, 2, AscW("c"), AscW("b"), _
         REOP_END_LOOKPOS, _
         REOP_CHAR, AscW("d"), _
         REOP_SAVE, 1, _
@@ -1820,8 +2040,7 @@ Private Sub Compiler_Compile0421()
     
     Dim expected() As Long
     Dim actual() As Long
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(properties:=BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_CHECK_LOOKBEHIND, _
@@ -1853,8 +2072,7 @@ Private Sub Compiler_Compile0422()
     
     Dim expected() As Long
     Dim actual() As Long
-    MakeArray expected, _
-        3, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(maxProperCaptureSlot:=3, properties:=BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_CHECK_LOOKBEHIND, _
@@ -1889,8 +2107,7 @@ Private Sub Compiler_Compile0423()
     
     Dim expected() As Long
     Dim actual() As Long
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(properties:=BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_CHECK_LOOKBEHIND, _
@@ -1898,8 +2115,7 @@ Private Sub Compiler_Compile0423()
         REOP_CHAR, AscW("z"), _
         REOP_CHECK_LOOKAHEAD, _
         REOP_LOOKPOS, 5, _
-        REOP_CHAR, AscW("i"), _
-        REOP_CHAR, AscW("j"), _
+        REOP_STRING, 2, AscW("i"), AscW("j"), _
         REOP_END_LOOKPOS, _
         REOP_CHAR, AscW("x"), _
         REOP_END_LOOKPOS, _
@@ -1924,15 +2140,12 @@ Private Sub Compiler_Compile0424()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        3, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(maxProperCaptureSlot:=3, properties:=BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING), _
         REOP_SAVE, 0, _
-        REOP_CHAR, AscW("a"), _
-        REOP_CHAR, AscW("b"), _
+        REOP_STRING, 2, AscW("a"), AscW("b"), _
         REOP_CHECK_LOOKBEHIND, _
         REOP_LOOKNEG, 5, _
-        REOP_CHAR, AscW("d"), _
-        REOP_CHAR, AscW("c"), _
+        REOP_STRING, 2, AscW("d"), AscW("c"), _
         REOP_END_LOOKNEG, _
         REOP_SAVE, 2, _
         REOP_CHAR, AscW("e"), _
@@ -1960,8 +2173,7 @@ Private Sub Compiler_Compile0450()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        5, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(maxProperCaptureSlot:=5, properties:=BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_SAVE, 2, _
@@ -1996,8 +2208,7 @@ Private Sub Compiler_Compile0451()
     
     Dim expected() As Long
     
-    MakeArray expected, _
-        21, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(maxProperCaptureSlot:=21, properties:=BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING), _
         REOP_SAVE, 0, _
         REOP_SAVE, 2, REOP_SAVE, 3, _
         REOP_SAVE, 4, REOP_SAVE, 5, _
@@ -2031,8 +2242,7 @@ Private Sub Compiler_Compile0452()
     
     Dim expected() As Long
     Dim actual() As Long
-    MakeArray expected, _
-        3, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(maxProperCaptureSlot:=3, properties:=BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_SAVE, 2, _
@@ -2061,20 +2271,20 @@ Private Sub Compiler_Compile0500()
     
     Dim expected() As Long
     Const REOP_CHAR_I As Long = REOP_CHAR Or MODIFIER_I_ACTIVE
+    Const REOP_STRING_I As Long = REOP_STRING Or MODIFIER_I_ACTIVE
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=18), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
-        REOP_CHAR_I, AscW("B"), _
-        REOP_CHAR_I, AscW("C"), _
-        REOP_CHAR_I, AscW("D"), _
-        REOP_CHAR_I, AscW("E"), _
-        REOP_CHAR_I, AscW("F"), _
-        REOP_CHAR, AscW("g"), _
-        REOP_CHAR, AscW("h"), _
+        REOP_STRING_I, 5, AscW("B"), AscW("C"), AscW("D"), AscW("E"), AscW("F"), _
+        REOP_STRING, 2, AscW("g"), AscW("h"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_STRING, 2, AscW("h"), AscW("g"), _
+        REOP_STRING_I, 5, AscW("F"), AscW("E"), AscW("D"), AscW("C"), AscW("B"), _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
+        
     Assert.SequenceEquals expected, bytecode
 TestExit:
     Exit Sub
@@ -2093,20 +2303,24 @@ Private Sub Compiler_Compile0501()
     
     Dim expected() As Long
     Const REOP_CHAR_I As Long = REOP_CHAR Or MODIFIER_I_ACTIVE
+    Const REOP_STRING_I As Long = REOP_STRING Or MODIFIER_I_ACTIVE
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=21), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
         REOP_CHAR_I, AscW("B"), _
-        REOP_CHAR, AscW("c"), _
-        REOP_CHAR, AscW("d"), _
-        REOP_CHAR_I, AscW("E"), _
-        REOP_CHAR_I, AscW("F"), _
-        REOP_CHAR, AscW("g"), _
-        REOP_CHAR, AscW("h"), _
+        REOP_STRING, 2, AscW("c"), AscW("d"), _
+        REOP_STRING_I, 2, AscW("E"), AscW("F"), _
+        REOP_STRING, 2, AscW("g"), AscW("h"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_STRING, 2, AscW("h"), AscW("g"), _
+        REOP_STRING_I, 2, AscW("F"), AscW("E"), _
+        REOP_STRING, 2, AscW("d"), AscW("c"), _
+        REOP_CHAR_I, AscW("B"), _
+        REOP_CHAR, AscW("a"), _
         REOP_MATCH
+        
     Assert.SequenceEquals expected, bytecode
 TestExit:
     Exit Sub
@@ -2125,19 +2339,24 @@ Private Sub Compiler_Compile0510()
     
     Dim expected() As Long
     Const REOP_CHAR_I As Long = REOP_CHAR Or MODIFIER_I_ACTIVE
+    Const REOP_STRING_I As Long = REOP_STRING Or MODIFIER_I_ACTIVE
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=19), _
         REOP_SAVE, 0, _
         REOP_SPLIT1, 8, _
         REOP_CHAR, AscW("a"), _
-        REOP_CHAR_I, AscW("B"), _
-        REOP_CHAR_I, AscW("C"), _
+        REOP_STRING_I, 2, AscW("B"), AscW("C"), _
         REOP_JUMP, 4, _
-        REOP_CHAR_I, AscW("E"), _
-        REOP_CHAR_I, AscW("F"), _
+        REOP_STRING_I, 2, AscW("E"), AscW("F"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_SPLIT1, 8, _
+        REOP_STRING_I, 2, AscW("C"), AscW("B"), _
+        REOP_CHAR, AscW("a"), _
+        REOP_JUMP, 4, _
+        REOP_STRING_I, 2, AscW("F"), AscW("E"), _
         REOP_MATCH
+
     Assert.SequenceEquals expected, bytecode
 TestExit:
     Exit Sub
@@ -2156,23 +2375,32 @@ Private Sub Compiler_Compile0511()
     
     Dim expected() As Long
     Const REOP_CHAR_I As Long = REOP_CHAR Or MODIFIER_I_ACTIVE
+    Const REOP_STRING_I As Long = REOP_STRING Or MODIFIER_I_ACTIVE
     
-    MakeArray expected, _
-        1, 0, 0, _
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=27), _
         REOP_SAVE, 0, _
         REOP_SPLIT1, 8, _
         REOP_CHAR, AscW("a"), _
-        REOP_CHAR_I, AscW("B"), _
-        REOP_CHAR_I, AscW("C"), _
+        REOP_STRING_I, 2, AscW("B"), AscW("C"), _
         REOP_JUMP, 12, _
         REOP_SPLIT1, 6, _
         REOP_CHAR_I, AscW("E"), _
         REOP_CHAR_I, AscW("F"), _
         REOP_JUMP, 4, _
-        REOP_CHAR_I, AscW("G"), _
-        REOP_CHAR_I, AscW("H"), _
+        REOP_STRING_I, 2, AscW("G"), AscW("H"), _
         REOP_SAVE, 1, _
+        REOP_MATCH, _
+        REOP_SPLIT1, 8, _
+        REOP_STRING_I, 2, AscW("C"), AscW("B"), _
+        REOP_CHAR, AscW("a"), _
+        REOP_JUMP, 12, _
+        REOP_SPLIT1, 6, _
+        REOP_CHAR_I, AscW("F"), _
+        REOP_CHAR_I, AscW("E"), _
+        REOP_JUMP, 4, _
+        REOP_STRING_I, 2, AscW("H"), AscW("G"), _
         REOP_MATCH
+        
     Assert.SequenceEquals expected, bytecode
 TestExit:
     Exit Sub
@@ -2182,3 +2410,95 @@ TestFail:
 End Sub
 
 
+
+
+'@TestMethod("Compiler")
+Private Sub Compiler_ExpandsSmallQuantifiers()
+    Dim actual() As Long, expected() As Long, op As Long, pattern As String
+    RegexCompiler.Compile actual, "b{2}"
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=9), _
+        REOP_SAVE, 0, REOP_STRING, 2, 98, 98, REOP_SAVE, 1, REOP_MATCH, _
+        REOP_STRING, 2, 98, 98, REOP_MATCH
+    Assert.SequenceEquals expected, actual
+
+    For op = REOP_SPLIT1 To REOP_SPLIT2
+        pattern = "b{,2}"
+        If op = REOP_SPLIT2 Then pattern = pattern & "?"
+        RegexCompiler.Compile actual, pattern
+        MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=13), _
+            REOP_SAVE, 0, op, 6, REOP_CHAR, 98, op, 2, REOP_CHAR, 98, _
+            REOP_SAVE, 1, REOP_MATCH, _
+            op, 6, REOP_CHAR, 98, op, 2, REOP_CHAR, 98, REOP_MATCH
+        Assert.SequenceEquals expected, actual
+    Next
+End Sub
+
+'@TestMethod("Compiler")
+Private Sub Compiler_ExpansionPreservesDirectionAndCaptures()
+    Dim regex As StaticRegex.RegexTy, state As StaticRegex.MatcherStateTy
+    StaticRegex.InitializeRegex regex, "(?<=((?:ab|b|ca){0,2}))x"
+    Assert.IsTrue StaticRegex.Match(state, regex, "cabx")
+    Assert.AreEqual "ab", StaticRegex.GetCapture(state, "cabx", 1)
+    StaticRegex.InitializeRegex regex, "(?<=((?:ab|b|ca){2}))x"
+    Assert.IsTrue StaticRegex.Match(state, regex, "cabx")
+    Assert.AreEqual "cab", StaticRegex.GetCapture(state, "cabx", 1)
+    StaticRegex.InitializeRegex regex, "(?<=((?:ab|b|ca){0,2}?))x"
+    Assert.IsTrue StaticRegex.Match(state, regex, "cabx")
+    Assert.AreEqual vbNullString, StaticRegex.GetCapture(state, "cabx", 1)
+    StaticRegex.InitializeRegex regex, "(?i:(ab){2,4})c"
+    Assert.IsTrue StaticRegex.Match(state, regex, "xABaBc")
+    Assert.AreEqual "ABaBc", StaticRegex.GetCapture(state, "xABaBc")
+    Assert.AreEqual "aB", StaticRegex.GetCapture(state, "xABaBc", 1)
+    Assert.IsFalse StaticRegex.Match(state, regex, "xABaBC")
+    StaticRegex.InitializeRegex regex, "a{1000}"
+    Assert.AreEqual 0&, regex.bytecode(BYTECODE_IDX_PROPERTIES) And BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING
+    Assert.IsTrue StaticRegex.Match(state, regex, "x" & String$(1000, "a"))
+    Assert.AreEqual 2&, state.captures.entireMatch.start
+    Assert.AreEqual 1000&, state.captures.entireMatch.Length
+    StaticRegex.InitializeRegex regex, "^([ab]){2}\1$"
+    Assert.IsTrue StaticRegex.Match(state, regex, "abb")
+    Assert.AreEqual "b", StaticRegex.GetCapture(state, "abb", 1)
+    Assert.IsFalse StaticRegex.Match(state, regex, "aba")
+End Sub
+
+'@TestMethod("Compiler")
+Private Sub Compiler_CombinesLiteralRepeatsInBothDirections()
+    Dim bytecode() As Long, expected() As Long, literal As RegexMatcherCommon.LiteralMatcherTy
+    Dim state As StaticRegex.MatcherStateTy, regex As StaticRegex.RegexTy, text As String
+    RegexCompiler.Compile bytecode, "(?:ab){3}"
+    MakeBytecode expected, MakeBytecodeParameters(startDfaBwRunOffset:=13), _
+        REOP_SAVE, 0, REOP_STRING, 6, 97, 98, 97, 98, 97, 98, REOP_SAVE, 1, REOP_MATCH, _
+        REOP_STRING, 6, 98, 97, 98, 97, 98, 97, REOP_MATCH
+    Assert.SequenceEquals expected, bytecode
+    RegexCompiler.Compile bytecode, "(?:(?:ab){2}){2}"
+    RegexMatcherCommon.InitializeLiteralMatcher literal, bytecode
+    Assert.IsTrue literal.isLiteral
+    Assert.AreEqual "abababab", literal.text
+    StaticRegex.InitializeRegex regex, "(?<=((?:ab){3}))x"
+    Assert.IsTrue StaticRegex.Match(state, regex, "abababx")
+    Assert.AreEqual "ababab", StaticRegex.GetCapture(state, "abababx", 1)
+    StaticRegex.InitializeRegex regex, "(?<part>ab){2}"
+    Assert.IsTrue StaticRegex.Match(state, regex, "abab")
+    Assert.AreEqual "ab", StaticRegex.GetCaptureByName(state, regex, "abab", "part")
+    StaticRegex.InitializeRegex regex, "(?i:ab){2}(?-i:c){2}"
+    Assert.IsTrue StaticRegex.Match(state, regex, "aBAbcc")
+    Assert.IsFalse StaticRegex.Match(state, regex, "aBAbCC")
+    text = ChrW(0) & ChrW(&HD800&) & ChrW(0) & ChrW(&HD800&)
+    StaticRegex.InitializeRegex regex, "(?:\u0000\uD800){2}"
+    Assert.IsTrue StaticRegex.Match(state, regex, text)
+    Assert.AreEqual text, StaticRegex.GetCapture(state, text)
+End Sub
+
+'@TestMethod("Compiler")
+Private Sub Compiler_LoopEntryPreservesNestedPlusProgress()
+    Dim bytecode() As Long, captures As RegexMatcherCommon.CapturesTy
+    Dim span As RegexMatcherCommon.StartLengthPair, state As RegexDfaMatcher.StateStructure
+    RegexCompiler.Compile bytecode, "(?:(?:a+?)+)"
+    ' The inner lazy plus consumes one a on each outer iteration. Distinct
+    ' entry markers prevent DFS from mistaking that progress for an empty body.
+    Assert.AreEqual 3&, RegexDfsMatcher.DfsMatch(captures, bytecode, "aaa")
+    Assert.AreEqual 3&, RegexNfaMatcher.NfaMatch(captures, bytecode, "aaa")
+    RegexDfaMatcher.DfaStateStructureInitialize state
+    Assert.IsTrue RegexDfaMatcher.DfaFindMatch(span, state, bytecode, "aaa", 1, False)
+    Assert.AreEqual 3&, span.Length
+End Sub

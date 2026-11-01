@@ -1,0 +1,493 @@
+{
+  "date": "2026-10-28",
+  "host": "Linux x86_64; Wine 6.0.3; 32-bit VB6",
+  "corpus_revision": "0ab3381ad388eaa44576fe33fa66aa3458c61c43",
+  "corpus_mode": "VB6 native, speed optimization",
+  "corpus_suites": 20,
+  "corpus_results": {
+    "dfs": {
+      "passed": 4651912,
+      "failed": 0,
+      "skipped": 0
+    },
+    "nfa": {
+      "passed": 4405672,
+      "failed": 0,
+      "skipped": 246240
+    },
+    "dfa": {
+      "passed": 4405672,
+      "failed": 0,
+      "skipped": 246240
+    }
+  },
+  "corpus_suite_results": [
+    {
+      "engine": "dfs",
+      "suite": "000_EgrepLiterals_Lowercase",
+      "passed": 161920,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "nfa",
+      "suite": "000_EgrepLiterals_Lowercase",
+      "passed": 161920,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfa",
+      "suite": "000_EgrepLiterals_Lowercase",
+      "passed": 161920,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfs",
+      "suite": "001_EgrepLiterals_Lowercase",
+      "passed": 161920,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "nfa",
+      "suite": "001_EgrepLiterals_Lowercase",
+      "passed": 161920,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfa",
+      "suite": "001_EgrepLiterals_Lowercase",
+      "passed": 161920,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfs",
+      "suite": "002_EgrepLiterals_Lowercase",
+      "passed": 161920,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "nfa",
+      "suite": "002_EgrepLiterals_Lowercase",
+      "passed": 161920,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfa",
+      "suite": "002_EgrepLiterals_Lowercase",
+      "passed": 161920,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfs",
+      "suite": "003_EgrepLiterals_Lowercase",
+      "passed": 161920,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "nfa",
+      "suite": "003_EgrepLiterals_Lowercase",
+      "passed": 161920,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfa",
+      "suite": "003_EgrepLiterals_Lowercase",
+      "passed": 161920,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfs",
+      "suite": "004_EgrepLiterals_MixedCase",
+      "passed": 147420,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "nfa",
+      "suite": "004_EgrepLiterals_MixedCase",
+      "passed": 147420,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfa",
+      "suite": "004_EgrepLiterals_MixedCase",
+      "passed": 147420,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfs",
+      "suite": "005_EgrepLiterals_MixedCase",
+      "passed": 147420,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "nfa",
+      "suite": "005_EgrepLiterals_MixedCase",
+      "passed": 147420,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfa",
+      "suite": "005_EgrepLiterals_MixedCase",
+      "passed": 147420,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfs",
+      "suite": "006_EgrepLiterals_MixedCase",
+      "passed": 147420,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "nfa",
+      "suite": "006_EgrepLiterals_MixedCase",
+      "passed": 147420,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfa",
+      "suite": "006_EgrepLiterals_MixedCase",
+      "passed": 147420,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfs",
+      "suite": "007_EgrepLiterals_MixedCase",
+      "passed": 147420,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "nfa",
+      "suite": "007_EgrepLiterals_MixedCase",
+      "passed": 147420,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfa",
+      "suite": "007_EgrepLiterals_MixedCase",
+      "passed": 147420,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfs",
+      "suite": "008_EgrepLiterals_FoldCase",
+      "passed": 301860,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "nfa",
+      "suite": "008_EgrepLiterals_FoldCase",
+      "passed": 301860,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfa",
+      "suite": "008_EgrepLiterals_FoldCase",
+      "passed": 301860,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfs",
+      "suite": "009_EgrepLiterals_FoldCase",
+      "passed": 301860,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "nfa",
+      "suite": "009_EgrepLiterals_FoldCase",
+      "passed": 301860,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfa",
+      "suite": "009_EgrepLiterals_FoldCase",
+      "passed": 301860,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfs",
+      "suite": "010_EgrepLiterals_FoldCase",
+      "passed": 301860,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "nfa",
+      "suite": "010_EgrepLiterals_FoldCase",
+      "passed": 301860,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfa",
+      "suite": "010_EgrepLiterals_FoldCase",
+      "passed": 301860,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfs",
+      "suite": "011_EgrepLiterals_FoldCase",
+      "passed": 301860,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "nfa",
+      "suite": "011_EgrepLiterals_FoldCase",
+      "passed": 301860,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfa",
+      "suite": "011_EgrepLiterals_FoldCase",
+      "passed": 301860,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfs",
+      "suite": "016_Repetition_Simple",
+      "passed": 623824,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "nfa",
+      "suite": "016_Repetition_Simple",
+      "passed": 542544,
+      "failed": 0,
+      "skipped": 81280
+    },
+    {
+      "engine": "dfa",
+      "suite": "016_Repetition_Simple",
+      "passed": 542544,
+      "failed": 0,
+      "skipped": 81280
+    },
+    {
+      "engine": "dfs",
+      "suite": "017_Repetition_Simple",
+      "passed": 201392,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "nfa",
+      "suite": "017_Repetition_Simple",
+      "passed": 175152,
+      "failed": 0,
+      "skipped": 26240
+    },
+    {
+      "engine": "dfa",
+      "suite": "017_Repetition_Simple",
+      "passed": 175152,
+      "failed": 0,
+      "skipped": 26240
+    },
+    {
+      "engine": "dfs",
+      "suite": "018_Repetition_Capturing",
+      "passed": 939420,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "nfa",
+      "suite": "018_Repetition_Capturing",
+      "passed": 817020,
+      "failed": 0,
+      "skipped": 122400
+    },
+    {
+      "engine": "dfa",
+      "suite": "018_Repetition_Capturing",
+      "passed": 817020,
+      "failed": 0,
+      "skipped": 122400
+    },
+    {
+      "engine": "dfs",
+      "suite": "019_Repetition_Capturing",
+      "passed": 125256,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "nfa",
+      "suite": "019_Repetition_Capturing",
+      "passed": 108936,
+      "failed": 0,
+      "skipped": 16320
+    },
+    {
+      "engine": "dfa",
+      "suite": "019_Repetition_Capturing",
+      "passed": 108936,
+      "failed": 0,
+      "skipped": 16320
+    },
+    {
+      "engine": "dfs",
+      "suite": "020_EmptyString_Exhaustive",
+      "passed": 36792,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "nfa",
+      "suite": "020_EmptyString_Exhaustive",
+      "passed": 36792,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfa",
+      "suite": "020_EmptyString_Exhaustive",
+      "passed": 36792,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfs",
+      "suite": "021_Punctuation_Literals",
+      "passed": 47580,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "nfa",
+      "suite": "021_Punctuation_Literals",
+      "passed": 47580,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfa",
+      "suite": "021_Punctuation_Literals",
+      "passed": 47580,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfs",
+      "suite": "023_CharacterClasses_Exhaustive",
+      "passed": 116424,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "nfa",
+      "suite": "023_CharacterClasses_Exhaustive",
+      "passed": 116424,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfa",
+      "suite": "023_CharacterClasses_Exhaustive",
+      "passed": 116424,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfs",
+      "suite": "024_CharacterClasses_ExhaustiveAB",
+      "passed": 116424,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "nfa",
+      "suite": "024_CharacterClasses_ExhaustiveAB",
+      "passed": 116424,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "engine": "dfa",
+      "suite": "024_CharacterClasses_ExhaustiveAB",
+      "passed": 116424,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "generated_reference": "google-re2 1.1.20251105, unanchored leftmost-first",
+  "generated_patterns": 1464,
+  "generated_strings": 344,
+  "generated_results": {
+    "native-nfa": {
+      "passed": 403512,
+      "failed": 0,
+      "skipped": 100104
+    },
+    "native-dfa": {
+      "passed": 403512,
+      "failed": 0,
+      "skipped": 100104
+    },
+    "pcode-nfa": {
+      "passed": 403512,
+      "failed": 0,
+      "skipped": 100104
+    },
+    "pcode-dfa": {
+      "passed": 403512,
+      "failed": 0,
+      "skipped": 100104
+    }
+  },
+  "unit_tests": {
+    "tests": 312,
+    "VB6": [
+      "native",
+      "pcode"
+    ],
+    "VB6_assertions_per_mode": 656041,
+    "failures": 0
+  },
+  "source_sha256": {
+    "src/RegexAst.bas": "1cdf92dc543d2bfb53a51f4d7e301ccedfac809ee5eef671a975a8ff2fbbbc96",
+    "src/RegexBytecode.bas": "cfbf2031aa944ec122252c367a58cdd69a306201f9f8079cf01ab703348c651b",
+    "src/RegexDfaMatcher.bas": "d9ab0c3ca3683740488d77e6037ca6c26be83f5b43b0e0773e08500fe57c34a8",
+    "src/RegexDfsMatcher.bas": "4c0d30d1ca4a2d107094ac9cae206d202fc70f41885542ea259c1946fc48f194",
+    "src/RegexNfaMatcher.bas": "79873563bf2655ebf018ea4e7bc623abccdd6134522e1ded0b240a0e0e2db187",
+    "src/RegexNfaThreadPool.bas": "564eb6c357cd8f1432fe5c0bfe55996941a5aaa15fd15cf43a204d68e47d1761"
+  },
+  "limitations": [
+    "Original corpus exclusions and unsupported-pattern policy retained.",
+    "DFS retains existing behavior; a separate 248712-case generated check found 1375 pre-existing RE2 differences and no DFS changes.",
+    "Generated differential results compare NFA numbered captures and DFA complete spans; named captures are covered by unit tests."
+  ]
+}

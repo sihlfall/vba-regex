@@ -8,6 +8,13 @@ Public Type RegexTy
     stepsLimit As Long
 End Type
 
+Private Enum DfaStateStructInitConstants
+    DFA_IS_INITIALIZED = 1
+    DFA_MULTILINE = 2
+    DFA_DOTALL = 4
+    DFA_CASE_INSENSITIVE = 8
+End Enum
+
 ' A format is compiled for the regex used to resolve its capture references.
 Public Type FormatTy
     text As String
@@ -18,9 +25,12 @@ Public Type MatcherStateTy
     localMatch As Boolean
     multiline As Boolean
     dotAll As Boolean
+    dfaStateStructInitState As Integer
+    dfaPattern As String
     current As Long
-    captures As RegexDfsMatcher.CapturesTy
+    captures As RegexMatcherCommon.CapturesTy
     context As RegexDfsMatcher.DfsMatcherContext
+    dfaStateStruct As RegexDfaMatcher.StateStructure
 End Type
 
 Public Function TryInitializeRegex( _
@@ -28,18 +38,25 @@ Public Function TryInitializeRegex( _
     ByRef pattern As String, _
     Optional ByVal caseInsensitive As Boolean = False _
 ) As Boolean
-    ' Todo:
-    '   Actually, this is not what we want to have.
-    '   We should change the compiler so that it reports syntax errors in the regex via a channel
-    '     different to throwing.
-    '   Then InitializeRegex should make use of TryInitializeRegex, not the other way round.
+    ' Only invalid pattern syntax is converted to False; other failures propagate.
     On Error GoTo Fail
     InitializeRegex regex, pattern, caseInsensitive
     TryInitializeRegex = True
     Exit Function
 
 Fail:
-    TryInitializeRegex = False
+    Select Case Err.Number
+    Case RegexErrors.REGEX_ERR_INVALID_REGEXP_ESCAPE, RegexErrors.REGEX_ERR_INVALID_ESCAPE, _
+        RegexErrors.REGEX_ERR_INVALID_RANGE, RegexErrors.REGEX_ERR_UNTERMINATED_CHARCLASS, _
+        RegexErrors.REGEX_ERR_INVALID_REGEXP_GROUP, RegexErrors.REGEX_ERR_INVALID_REGEXP_CHARACTER, _
+        RegexErrors.REGEX_ERR_INVALID_QUANTIFIER, RegexErrors.REGEX_ERR_UNEXPECTED_END_OF_PATTERN, _
+        RegexErrors.REGEX_ERR_UNEXPECTED_REGEXP_TOKEN, RegexErrors.REGEX_ERR_UNEXPECTED_CLOSING_PAREN, _
+        RegexErrors.REGEX_ERR_INVALID_QUANTIFIER_NO_ATOM, RegexErrors.REGEX_ERR_INVALID_IDENTIFIER, _
+        RegexErrors.REGEX_ERR_INVALID_MODIFIER
+        TryInitializeRegex = False
+    Case Else
+        Err.Raise Err.Number, Err.Source, Err.Description, Err.HelpFile, Err.HelpContext
+    End Select
 End Function
 
 Public Sub InitializeRegex( _
@@ -47,11 +64,25 @@ Public Sub InitializeRegex( _
     ByRef pattern As String, _
     Optional ByVal caseInsensitive As Boolean = False _
 )
+    Dim compiledBytecode() As Long
+    ' Compile in isolation, then replace bytecode before changing its metadata.
+    RegexCompiler.Compile compiledBytecode, pattern, caseInsensitive:=caseInsensitive
+    regex.bytecode = compiledBytecode
     regex.pattern = pattern
     regex.isCaseInsensitive = caseInsensitive
     regex.stepsLimit = RegexDfsMatcher.DEFAULT_STEPS_LIMIT
-    RegexCompiler.Compile regex.bytecode, pattern, caseInsensitive:=caseInsensitive
 End Sub
+
+Private Function UseDfs(ByRef regex As RegexTy, ByVal multiline As Boolean) As Boolean
+    Dim anchorOp As Long
+    If (regex.bytecode(RegexBytecode.BYTECODE_IDX_PROPERTIES) And BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING) <> 0 Or _
+        regex.stepsLimit <> RegexDfsMatcher.DEFAULT_STEPS_LIMIT Then
+        UseDfs = True
+    ElseIf (regex.bytecode(RegexBytecode.BYTECODE_IDX_PROPERTIES) And BYTECODE_PROPERTY_PREFER_DFS) <> 0 Then
+        anchorOp = RegexMatcherCommon.LeadingStartAnchor(regex.bytecode)
+        UseDfs = (anchorOp - (multiline And MODIFIER_M_WRITE) And MODIFIER_M_ACTIVE) = 0
+    End If
+End Function
 
 'Test whether a string matches the regex
 '@return - `True` if the string matches the regex, `False` otherwise
@@ -60,28 +91,94 @@ Public Function Test( _
     Optional ByVal multiline As Boolean = False, _
     Optional ByVal dotAll As Boolean = False _
 ) As Boolean
-    Dim captures As RegexDfsMatcher.CapturesTy
+    Dim captures As RegexMatcherCommon.CapturesTy
     
-    Test = RegexDfsMatcher.DfsMatch( _
-        captures, regex.bytecode, str, stepsLimit:=regex.stepsLimit, _
-        multiline:=multiline, _
-        dotAll:=dotAll _
-    ) <> -1
+    If UseDfs(regex, multiline) Then
+        Test = RegexDfsMatcher.DfsMatch( _
+            captures, regex.bytecode, str, stepsLimit:=regex.stepsLimit, _
+            multiline:=multiline, _
+            dotAll:=dotAll _
+        ) <> -1
+    Else
+        Test = RegexDfaMatcher.DfaMatch( _
+            regex.bytecode, str, True, multiline:=multiline, dotAll:=dotAll _
+        ) <> -1
+    End If
+End Function
+
+' Invalidate the result without releasing the capture buffers.
+Private Sub ClearCaptures(ByRef captures As RegexMatcherCommon.CapturesTy)
+    With captures
+        .entireMatch.start = 0
+        .entireMatch.Length = 0
+        .nNumberedCaptures = 0
+        .nNamedCaptures = 0
+    End With
+End Sub
+
+Private Function ExtractCapturesAt( _
+    ByRef matcherState As MatcherStateTy, ByRef regex As RegexTy, ByRef haystack As String, _
+    ByRef slp As RegexMatcherCommon.StartLengthPair, ByVal multiline As Boolean, ByVal dotAll As Boolean _
+) As Long
+    Dim r As Long
+    r = RegexNfaMatcher.NfaMatchFrom( _
+        matcherState.captures, regex.bytecode, haystack, slp.start - 1, _
+        multiline:=multiline, dotAll:=dotAll, matchAt:=True _
+    )
+    If r = -1 Or matcherState.captures.entireMatch.start <> slp.start Or _
+        matcherState.captures.entireMatch.Length <> slp.Length Then
+        ClearCaptures matcherState.captures
+        matcherState.current = -1
+        Err.Raise RegexErrors.REGEX_ERR_INTERNAL_LOGIC_ERR, "StaticRegex", "DFA and NFA match spans disagree."
+    End If
+    ExtractCapturesAt = r
 End Function
 
 ' Execute the regex against a string
+' A failed match clears the result; capture getters then return empty strings.
 Public Function Match( _
     ByRef matcherState As MatcherStateTy, ByRef regex As RegexTy, ByRef haystack As String, _
     Optional ByVal multiline As Boolean = False, _
     Optional ByVal dotAll As Boolean = False, _
     Optional ByVal matchFrom As Long = 1 _
 ) As Boolean
-    Match = RegexDfsMatcher.DfsMatchFrom( _
-        matcherState.context, matcherState.captures, regex.bytecode, haystack, matchFrom - 1, _
-        stepsLimit:=regex.stepsLimit, _
-        multiline:=multiline, _
-        dotAll:=dotAll _
-    ) <> -1
+    Dim expectedInitState As Long, dfaIsPreliminary As Boolean, _
+        slp As RegexMatcherCommon.StartLengthPair
+    If UseDfs(regex, multiline) Then
+        Match = RegexDfsMatcher.DfsMatchFrom( _
+            matcherState.context, matcherState.captures, regex.bytecode, haystack, _
+            matchFrom - 1, stepsLimit:=regex.stepsLimit, multiline:=multiline, _
+            dotAll:=dotAll _
+        ) <> -1
+    Else
+        dfaIsPreliminary = _
+            regex.bytecode(RegexBytecode.BYTECODE_IDX_MAX_PROPER_CAPTURE_SLOT) > 1 Or _
+            regex.bytecode(RegexBytecode.BYTECODE_IDX_N_IDENTIFIERS) > 0
+        expectedInitState = DFA_IS_INITIALIZED Or DFA_MULTILINE And multiline Or _
+            DFA_DOTALL And dotAll Or DFA_CASE_INSENSITIVE And regex.isCaseInsensitive
+        If matcherState.dfaStateStructInitState <> expectedInitState Or _
+            matcherState.dfaPattern <> regex.pattern Then
+            DfaStateStructureInitialize matcherState.dfaStateStruct, multiline, dotAll
+            matcherState.dfaStateStructInitState = expectedInitState
+            matcherState.dfaPattern = regex.pattern
+        End If
+        ' Captures also require the leftmost start. An eager DFA acceptance may
+        ' belong to a later start while a higher-priority branch is still running.
+        If Not RegexDfaMatcher.DfaFindMatch( _
+            slp, matcherState.dfaStateStruct, regex.bytecode, haystack, matchFrom, _
+            False _
+        ) Then
+            Match = False
+        ElseIf dfaIsPreliminary Then
+            ExtractCapturesAt matcherState, regex, haystack, slp, multiline, dotAll
+            Match = True
+        Else
+            ClearCaptures matcherState.captures
+            matcherState.captures.entireMatch = slp
+            Match = True
+        End If
+    End If
+    If Not Match Then ClearCaptures matcherState.captures
     matcherState.current = -1
 End Function
 
@@ -94,6 +191,7 @@ End Sub
 
 Public Function FormatMatch(ByRef matcherState As MatcherStateTy, ByRef haystack As String, ByRef format As FormatTy) As String
     Dim builder As StaticStringBuilder.Ty
+    If matcherState.captures.entireMatch.start = 0 Then Exit Function
     RegexReplace.AppendFormatted builder, haystack, matcherState.captures, format.text, format.parsed
     FormatMatch = StaticStringBuilder.GetStr(builder)
 End Function
@@ -103,7 +201,7 @@ Public Function GetCapture(ByRef matcherState As MatcherStateTy, ByRef haystack 
         With matcherState.captures.entireMatch
             If .Length > 0 Then GetCapture = Mid$(haystack, .start, .Length) Else GetCapture = vbNullString
         End With
-    ElseIf num <= matcherState.captures.nNumberedCaptures Then
+    ElseIf num > 0 And num <= matcherState.captures.nNumberedCaptures Then
         With matcherState.captures.numberedCaptures(num - 1)
             If .Length > 0 Then GetCapture = Mid$(haystack, .start, .Length) Else GetCapture = vbNullString
         End With
@@ -121,7 +219,7 @@ Public Function GetCaptureByName( _
     Dim identifierId As Long, captureNum As Long
     
     identifierId = RegexBytecode.GetIdentifierId(regex.bytecode, regex.pattern, name)
-    If identifierId < 0 Then GetCaptureByName = vbNullString: Exit Function
+    If identifierId < 0 Or identifierId >= matcherState.captures.nNamedCaptures Then Exit Function
     captureNum = matcherState.captures.namedCaptures(identifierId)
     If captureNum >= 0 Then
         GetCaptureByName = GetCapture(matcherState, haystack, captureNum)
@@ -134,26 +232,55 @@ Public Function MatchNext( _
     ByRef matcherState As MatcherStateTy, ByRef regex As RegexTy, ByRef haystack As String, _
     Optional ByVal raiseOnLimit As Boolean = False _
 ) As Boolean
-    Dim r As Long
+    Dim expectedInitState As Long, dfaIsPreliminary As Boolean, _
+        slp As RegexMatcherCommon.StartLengthPair, r As Long
     
-    If matcherState.current = -1 Then Exit Function ' end of string reached, return False
+    If matcherState.current > Len(haystack) Then GoTo NoMatch
+    If matcherState.current < 0 Then GoTo NoMatch
     
-    r = RegexDfsMatcher.DfsMatchFrom( _
-        matcherState.context, matcherState.captures, regex.bytecode, haystack, matcherState.current, _
-        stepsLimit:=regex.stepsLimit, _
-        multiline:=matcherState.multiline, _
-        dotAll:=matcherState.dotAll, raiseOnLimit:=raiseOnLimit _
-    )
-    
-    If r = -1 Then
-        matcherState.current = -1
+    If UseDfs(regex, matcherState.multiline) Or raiseOnLimit Then
+        r = RegexDfsMatcher.DfsMatchFrom( _
+            matcherState.context, matcherState.captures, regex.bytecode, haystack, _
+            matcherState.current, stepsLimit:=regex.stepsLimit, _
+            multiline:=matcherState.multiline, dotAll:=matcherState.dotAll, raiseOnLimit:=raiseOnLimit _
+        )
     Else
-        matcherState.current = _
-            (r - (matcherState.captures.entireMatch.Length = 0)) _
-            Or matcherState.localMatch
+        dfaIsPreliminary = _
+            regex.bytecode(RegexBytecode.BYTECODE_IDX_MAX_PROPER_CAPTURE_SLOT) > 1 Or _
+            regex.bytecode(RegexBytecode.BYTECODE_IDX_N_IDENTIFIERS) > 0
+        expectedInitState = DFA_IS_INITIALIZED Or _
+            DFA_MULTILINE And matcherState.multiline Or _
+            DFA_DOTALL And matcherState.dotAll Or DFA_CASE_INSENSITIVE And regex.isCaseInsensitive
+        If matcherState.dfaStateStructInitState <> expectedInitState Or _
+            matcherState.dfaPattern <> regex.pattern Then
+            DfaStateStructureInitialize matcherState.dfaStateStruct, _
+                matcherState.multiline, matcherState.dotAll
+            matcherState.dfaStateStructInitState = expectedInitState
+            matcherState.dfaPattern = regex.pattern
+        End If
+        ' Preserve the leftmost start even when the NFA will collect captures.
+        If Not RegexDfaMatcher.DfaFindMatch( _
+            slp, matcherState.dfaStateStruct, regex.bytecode, haystack, _
+            matcherState.current + 1, False _
+        ) Then
+            r = -1
+        ElseIf dfaIsPreliminary Then
+            r = ExtractCapturesAt(matcherState, regex, haystack, slp, matcherState.multiline, matcherState.dotAll)
+        Else
+            ClearCaptures matcherState.captures
+            matcherState.captures.entireMatch = slp
+            r = slp.start + slp.Length - 1
+        End If
     End If
+    If r = -1 Then GoTo NoMatch
+    matcherState.current = (r - (matcherState.captures.entireMatch.Length = 0)) Or matcherState.localMatch
+    MatchNext = True
+    Exit Function
     
-    MatchNext = r <> -1
+NoMatch:
+    ClearCaptures matcherState.captures
+    matcherState.current = -1
+    MatchNext = False
 End Function
 
 Public Function Replace( _
@@ -281,7 +408,8 @@ Public Sub MatchThenList( _
         For j = cola To colb
             m = resultBuilder.Length
             AppendFormatted resultBuilder, haystack, matcherState.captures, formatStrings(j), parsedFormats.Buffer, k + 1
-            StaticStringBuilder.AppendStr resultBuilder, ChrW$(m)
+            ' Store the nonnegative Long offset as two UTF-16 characters, low word first.
+            StaticStringBuilder.AppendStr resultBuilder, ChrW$(m And &HFFFF&) & ChrW$(m \ &H10000&)
             k = k + parsedFormats.Buffer(k)
         Next
         
@@ -289,15 +417,16 @@ Public Sub MatchThenList( _
     Loop
     
     If nMatches = 0 Then
-        ' hack to create a zero-length array
+        ' Create an initialized, zero-length String array.
         results = Split(vbNullString)
     Else
         ReDim results(0 To nMatches - 1, cola To colb) As String
         m = resultBuilder.Length
         For j = nMatches - 1 To 0 Step -1
             For k = colb To cola Step -1
-                mm = AscW(StaticStringBuilder.GetSubstr(resultBuilder, m, 1))
-                results(j, k) = StaticStringBuilder.GetSubstr(resultBuilder, mm + 1, m - mm - 1)
+                mm = (AscW(StaticStringBuilder.GetSubstr(resultBuilder, m - 1, 1)) And &HFFFF&) + _
+                    (AscW(StaticStringBuilder.GetSubstr(resultBuilder, m, 1)) And &HFFFF&) * &H10000&
+                results(j, k) = StaticStringBuilder.GetSubstr(resultBuilder, mm + 1, m - mm - 2)
                 m = mm
             Next
         Next

@@ -13,8 +13,9 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
 
-Public Sub Compile(ByRef pattern As String)
-End Sub
+' False means the compiled pattern is unsupported by this matcher.
+Public Function Compile(ByRef pattern As String) As Boolean
+End Function
 
 Public Sub Match(ByRef outResult() As Long, ByRef strs() As String)
 End Sub

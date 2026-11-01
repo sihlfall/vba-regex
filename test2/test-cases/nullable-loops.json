@@ -1,0 +1,5 @@
+{
+  "name": "Nullable loop priority",
+  "strs": ["a", "aa"],
+  "regexs": ["(?:|a)*", "(?:a*?)*"]
+}

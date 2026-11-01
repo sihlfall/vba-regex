@@ -107,7 +107,7 @@ End Sub
 Public Sub AppendFormatted( _
     ByRef sb As StaticStringBuilder.Ty, _
     ByRef sHaystack As String, _
-    ByRef captures As RegexDfsMatcher.CapturesTy, _
+    ByRef captures As RegexMatcherCommon.CapturesTy, _
     ByRef formatString As String, _
     ByRef parsed() As Long, _
     Optional ByVal parsedStartPos As Long = 0 _

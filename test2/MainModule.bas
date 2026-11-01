@@ -1,34 +1,39 @@
 Attribute VB_Name = "MainModule"
 Option Explicit
 
-' see https://classicvb.net/samples/Console/
-
+Private Declare Sub ExitProcess Lib "kernel32" (ByVal exitCode As Long)
 
 Sub Main()
-    Dim sName As String
-    Dim fColor As Long, bColor As Long
-    Dim sCaption As String
-    Dim inFilePath As String, outFilePath As String
+    Dim inFilePath As String, outFilePath As String, engineName As String
     Dim testName As String, testStrs() As String, testRegexs() As String
     Dim resultSb As StaticStringBuilder.Ty
+    Dim errorMessage As String
+    On Error GoTo Failed
     
-    ParseCommandLineArguments inFilePath, outFilePath
-    'inFilePath = "C:\Users\Johannes\Documents\git\regex-test-cases\test-cases\EgrepLiterals_FoldCase.json"
-    'outFilePath = "C:\Users\Johannes\Documents\git\vba-regex-dev\test2\testout.json"
+    ParseCommandLineArguments inFilePath, outFilePath, engineName
     
     ReadTestDataFromFile testName, testStrs, testRegexs, inFilePath
     
-    RunTests resultSb, testStrs, testRegexs
+    RunTests resultSb, testStrs, testRegexs, engineName
     
     WriteResultsToFile outFilePath, StaticStringBuilder.GetStr(resultSb)
+    Exit Sub
+Failed:
+    errorMessage = CStr(Err.Number) & ": " & Err.Description
+    On Error Resume Next
+    If Len(outFilePath) > 0 Then WriteTextFile outFilePath & ".error.txt", errorMessage
+    ExitProcess 1
 End Sub
 
-Sub ParseCommandLineArguments(ByRef inFileName As String, ByRef outFileName As String)
+Sub ParseCommandLineArguments(ByRef inFileName As String, ByRef outFileName As String, ByRef engineName As String)
     Dim col As Collection
     Set col = CommandLineParser.ParseCommandLine(Command$)
-    If col.Count <> 2 Then Err.Raise 5000
+    If col Is Nothing Then Err.Raise 5
+    If col.Count < 2 Or col.Count > 3 Then Err.Raise 5
     inFileName = col(1)
     outFileName = col(2)
+    engineName = "dfs"
+    If col.Count = 3 Then engineName = LCase$(col(3))
 End Sub
 
 Function ReadTextFile(ByRef filePath As String)
@@ -91,24 +96,32 @@ Sub WriteResultsToFile(ByRef outFilePath As String, ByRef resultString As String
     WriteTextFile outFilePath, resultString
 End Sub
 
-Private Sub RunTests(ByRef resultSb As StaticStringBuilder.Ty, ByRef testStrs() As String, ByRef testRegexs() As String)
-    Dim lStrs As Long, uStrs As Long, lRegexs As Long, uRegexs As Long
-    Dim i As Long, j As Long
+Private Sub RunTests( _
+    ByRef resultSb As StaticStringBuilder.Ty, ByRef testStrs() As String, _
+    ByRef testRegexs() As String, ByRef engineName As String _
+)
+    Dim lRegexs As Long, uRegexs As Long, i As Long
     Dim res() As Long
     
     Dim re As IRegexEngine
-    Set re = New DfsRegexEngine
+    Dim matcher As MatcherRegexEngine
     
-    lStrs = LBound(testStrs): uStrs = UBound(testStrs)
     lRegexs = LBound(testRegexs): uRegexs = UBound(testRegexs)
     
     StaticStringBuilder.AppendStr resultSb, "["
     
     i = lRegexs
     Do
-        re.Compile (testRegexs(i))
-        re.Match res, testStrs
-        MatrixToJson resultSb, res
+        ' Keep each pattern's matcher state independent; reuse only across its strings.
+        Set matcher = New MatcherRegexEngine
+        matcher.EngineName = engineName
+        Set re = matcher
+        If re.Compile(testRegexs(i)) Then
+            re.Match res, testStrs
+            MatrixToJson resultSb, res
+        Else
+            StaticStringBuilder.AppendStr resultSb, "null" ' Unsupported by this engine.
+        End If
                 
         If i = uRegexs Then Exit Do
         
