@@ -84,6 +84,10 @@ Public Function DfsMatchFrom( _
 ) As Long
     Dim nNamedCaptures As Long, nProperCapturePoints As Long, res As Long
     
+    Dim prefix As String, ranges As Long, absoluteStart As Boolean, filterSteps As Long, useFilter As Boolean
+    PrepareSearchFilter bytecode, multiline, prefix, ranges, absoluteStart, filterSteps
+    'Do not bypass an attempt that would have exhausted the processing budget.
+    useFilter = stepsLimit > filterSteps And (Len(prefix) > 0 Or ranges > 0 Or absoluteStart)
     nProperCapturePoints = bytecode(0) + 1
     nNamedCaptures = bytecode(1)
     ' Todo: can we postpone this until we know that we will definitely need to fill outCaptures?
@@ -95,6 +99,12 @@ Public Function DfsMatchFrom( _
     End With
     
     Do While sp <= Len(inputStr)
+        If useFilter Then
+            If absoluteStart And sp <> 0 Then Exit Do
+            sp = NextSearchCandidate(bytecode, inputStr, sp, prefix, ranges)
+            If sp < 0 Then Exit Do
+            If absoluteStart And sp <> 0 Then Exit Do
+        End If
         InitializeMatcherContext context, nProperCapturePoints, nProperCapturePoints + nNamedCaptures
         res = DfsRunThreads(outCaptures, context, bytecode, inputStr, sp, stepsLimit, multiline, dotAll, raiseOnLimit)
         If res <> -1 Then
@@ -746,3 +756,69 @@ InternalError:
         ' DUK_WO_NORETURN(return -1;);
 End Function
 
+
+'Inspect only initial metadata and the first required character; control flow falls back.
+'Keep preparation cheap because MatchNext repeats it for every match.
+Private Sub PrepareSearchFilter(ByRef bytecode() As Long, ByVal multiline As Boolean, _
+    ByRef prefix As String, ByRef ranges As Long, ByRef absoluteStart As Boolean, ByRef steps As Long)
+    Dim pc As Long, op As Long, bound As Long
+    pc = 3 + 3 * bytecode(RegexBytecode.BYTECODE_IDX_N_IDENTIFIERS)
+    bound = UBound(bytecode)
+    Do While pc <= bound
+        op = bytecode(pc)
+        Select Case op And RegexBytecode.REOP_OPCODE_MASK
+            Case REOP_SAVE
+                pc = pc + 2
+            Case REOP_SET_NAMED
+                pc = pc + 3
+            Case REOP_ASSERT_START
+                If 0 = (op - (multiline And RegexBytecode.MODIFIER_M_WRITE) And RegexBytecode.MODIFIER_M_ACTIVE) Then absoluteStart = True
+                pc = pc + 1
+            Case REOP_CHAR
+                If op And RegexBytecode.MODIFIER_I_ACTIVE Then Exit Do
+                If pc + 1 > bound Then Exit Do
+                prefix = ChrW$(bytecode(pc + 1))
+                steps = steps + 1
+                Exit Do
+            Case REOP_RANGES, REOP_INVRANGES
+                If Len(prefix) = 0 Then ranges = pc
+                steps = steps + 1
+                Exit Do
+            Case Else
+                Exit Do
+        End Select
+        steps = steps + 1
+    Loop
+End Sub
+
+Private Function NextSearchCandidate(ByRef bytecode() As Long, ByRef text As String, ByVal sp As Long, _
+    ByRef prefix As String, ByVal ranges As Long) As Long
+    Dim c As Long, n As Long, lo As Long, hi As Long, rangeMid As Long, found As Boolean, op As Long
+    If Len(prefix) > 0 Then
+        NextSearchCandidate = InStr(sp + 1, text, prefix, vbBinaryCompare) - 1
+        Exit Function
+    End If
+    If ranges > 0 Then
+        op = bytecode(ranges): n = bytecode(ranges + 1)
+        Do While sp < Len(text)
+            c = AscW(Mid$(text, sp + 1, 1)) And &HFFFF&
+            If op And RegexBytecode.MODIFIER_I_ACTIVE Then c = RegexUnicodeSupport.ReCanonicalizeChar(c)
+            lo = 0: hi = n - 1: found = False
+            Do While lo <= hi
+                rangeMid = (lo + hi) \ 2
+                If c < bytecode(ranges + 2 + 2 * rangeMid) Then
+                    hi = rangeMid - 1
+                ElseIf c > bytecode(ranges + 3 + 2 * rangeMid) Then
+                    lo = rangeMid + 1
+                Else
+                    found = True: Exit Do
+                End If
+            Loop
+            If found = ((op And RegexBytecode.REOP_OPCODE_MASK) = REOP_RANGES) Then NextSearchCandidate = sp: Exit Function
+            sp = sp + 1
+        Loop
+        NextSearchCandidate = -1
+    Else
+        NextSearchCandidate = sp
+    End If
+End Function
