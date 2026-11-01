@@ -44,7 +44,7 @@ try {
     Write-Output ('Passed stdVBA ' + $result + ', differential ' + $edge + '; native suites recorded.')
     if (-not $TestsOnly) {
         for ($id = 0; $id -lt 14; $id++) {
-            $values = $office.Run('EngineBench.RunCase', $id, $Samples, $TargetSeconds)
+            $values = $office.Run('EngineBench.RunCase', [ref]$id, [ref]$Samples, [ref]$TargetSeconds)
             if ($values -is [string]) { throw $values }
             for ($i = 1; $i -le $values.GetLength(0); $i++) {
                 $rows.Add([pscustomobject]@{
