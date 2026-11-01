@@ -391,7 +391,7 @@ Private Function DfsRunThreads( _
     ByVal dotAll As Boolean, _
     Optional ByVal raiseOnLimit As Boolean = False _
 ) As Long
-    Dim pc As Long
+    Dim pc As Long, bytecodeEnd As Long, inputLength As Long
     
     ' To avoid infinite loops
     Dim pcLandmark As Long
@@ -410,6 +410,7 @@ Private Function DfsRunThreads( _
     Dim stepsCount As Long
     Dim spDelta As Long ' 1 when we walk forwards and -1 when we walk backwards
     
+        bytecodeEnd = UBound(bytecode): inputLength = Len(inputStr)
         pc = 3 + 3 * bytecode(RegexBytecode.BYTECODE_IDX_N_IDENTIFIERS)
         pcLandmark = -1
         stepsCount = 0
@@ -435,7 +436,7 @@ ContinueLoopSuccess:
                 Exit Function
             End If
             
-            op = GetBc(bytecode, pc)
+            If pc > bytecodeEnd Then op = REOP_INVALID_OPCODE Else op = bytecode(pc): pc = pc + 1
     
             ' #if defined(DUK_USE_DEBUG_LEVEL) && (DUK_USE_DEBUG_LEVEL >= 2)
             ' duk__regexp_dump_state(re_ctx);
@@ -455,7 +456,7 @@ ContinueLoopSuccess:
                 ReturnToMasterPreserveCaptures context, pc, sp, pcLandmark, spDelta, q
                 ' Now we are at the REOP_LOOKPOS opcode.
                 pc = pc + 1
-                n = GetBc(bytecode, pc)
+                If pc > bytecodeEnd Then n = REOP_INVALID_OPCODE Else n = bytecode(pc): pc = pc + 1
                 pc = pc + n
                 GoTo ContinueLoopSuccess
             Case REOP_END_LOOKNEG
@@ -477,8 +478,13 @@ ContinueLoopSuccess:
                 '  during compilation.  See doc/regexp.rst for more discussion.
     
                 pcLandmark = pc - 1
-                c1 = GetBc(bytecode, pc)
-                c2 = GetInputCharCode(inputStr, sp, spDelta)
+                If pc > bytecodeEnd Then c1 = REOP_INVALID_OPCODE Else c1 = bytecode(pc): pc = pc + 1
+                If sp >= inputLength Or sp < 0 Then
+                    c2 = DFS_ENDOFINPUT
+                Else
+                    c2 = AscW(Mid$(inputStr, sp + 1, 1)) And &HFFFF&
+                    sp = sp + spDelta
+                End If
                 If op And RegexBytecode.MODIFIER_I_ACTIVE Then
                     c2 = RegexUnicodeSupport.ReCanonicalizeChar(c2)
                 End If
@@ -490,15 +496,25 @@ ContinueLoopSuccess:
                 GoTo ContinueLoopSuccess
             Case REOP_DOT
                 pcLandmark = pc - 1
-                c1 = GetInputCharCode(inputStr, sp, spDelta)
+                If sp >= inputLength Or sp < 0 Then
+                    c1 = DFS_ENDOFINPUT
+                Else
+                    c1 = AscW(Mid$(inputStr, sp + 1, 1)) And &HFFFF&
+                    sp = sp + spDelta
+                End If
                 If c1 < 0 Then GoTo ContinueLoopFail
                 If op - (dotAll And RegexBytecode.MODIFIER_S_WRITE) And RegexBytecode.MODIFIER_S_ACTIVE Then GoTo ContinueLoopSuccess
                 If RegexUnicodeSupport.UnicodeIsLineTerminator(c1) Then GoTo ContinueLoopFail
                 GoTo ContinueLoopSuccess
             Case REOP_RANGES, REOP_INVRANGES
                 pcLandmark = pc - 1
-                n = GetBc(bytecode, pc) ' assert: >= 1
-                c1 = GetInputCharCode(inputStr, sp, spDelta)
+                If pc > bytecodeEnd Then n = REOP_INVALID_OPCODE Else n = bytecode(pc): pc = pc + 1 ' assert: >= 1
+                If sp >= inputLength Or sp < 0 Then
+                    c1 = DFS_ENDOFINPUT
+                Else
+                    c1 = AscW(Mid$(inputStr, sp + 1, 1)) And &HFFFF&
+                    sp = sp + spDelta
+                End If
                 If c1 < 0 Then GoTo ContinueLoopFail
                 If op And RegexBytecode.MODIFIER_I_ACTIVE Then
                     c1 = RegexUnicodeSupport.ReCanonicalizeChar(c1)
@@ -559,7 +575,7 @@ ContinueLoopSuccess:
 
                 GoTo ContinueLoopSuccess
             Case REOP_JUMP
-                n = GetBc(bytecode, pc)
+                If pc > bytecodeEnd Then n = REOP_INVALID_OPCODE Else n = bytecode(pc): pc = pc + 1
                 If n > 0 Then
                     ' forward jump (disjunction)
                     pc = pc + n
@@ -574,13 +590,13 @@ ContinueLoopSuccess:
                 End If
             Case REOP_SPLIT1
                 ' split1: prefer direct execution (no jump)
-                n = GetBc(bytecode, pc)
+                If pc > bytecodeEnd Then n = REOP_INVALID_OPCODE Else n = bytecode(pc): pc = pc + 1
                 PushMatcherStackFrame context, pc + n, sp, pcLandmark, spDelta, q
                 '.tsStack(.tsLastIndex - 1).pc = pc + n
                 GoTo ContinueLoopSuccess
             Case REOP_SPLIT2
                 ' split2: prefer jump execution (not direct)
-                n = GetBc(bytecode, pc)
+                If pc > bytecodeEnd Then n = REOP_INVALID_OPCODE Else n = bytecode(pc): pc = pc + 1
                 PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
                 pc = pc + n
                 GoTo ContinueLoopSuccess
@@ -592,8 +608,8 @@ ContinueLoopSuccess:
                 pc = pc + 2 ' skip arguments
                 GoTo ContinueLoopSuccess
             Case REOP_REPEAT_EXACTLY_END
-                qexact = GetBc(bytecode, pc) ' quantity
-                n = GetBc(bytecode, pc) ' offset
+                If pc > bytecodeEnd Then qexact = REOP_INVALID_OPCODE Else qexact = bytecode(pc): pc = pc + 1 ' quantity
+                If pc > bytecodeEnd Then n = REOP_INVALID_OPCODE Else n = bytecode(pc): pc = pc + 1 ' offset
                 q = q + 1
                 If q < qexact Then
                     t = pc - n - 3
@@ -608,8 +624,8 @@ ContinueLoopSuccess:
                 q = -1
                 GoTo ContinueLoopSuccess
             Case REOP_REPEAT_MAX_HUMBLE_START
-                qmax = GetBc(bytecode, pc)
-                n = GetBc(bytecode, pc)
+                If pc > bytecodeEnd Then qmax = REOP_INVALID_OPCODE Else qmax = bytecode(pc): pc = pc + 1
+                If pc > bytecodeEnd Then n = REOP_INVALID_OPCODE Else n = bytecode(pc): pc = pc + 1
                 
                 q = q + 1
                 If q < qmax Then PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
@@ -619,15 +635,15 @@ ContinueLoopSuccess:
                 GoTo ContinueLoopSuccess
             Case REOP_REPEAT_MAX_HUMBLE_END
                 pc = pc + 1  ' skip first argument: quantity
-                n = GetBc(bytecode, pc) ' offset
+                If pc > bytecodeEnd Then n = REOP_INVALID_OPCODE Else n = bytecode(pc): pc = pc + 1 ' offset
                 t = pc - n - 3
                 If pcLandmark <= t Then GoTo ContinueLoopFail ' empty match
                 
                 pc = t: pcLandmark = t
                 GoTo ContinueLoopSuccess
             Case REOP_REPEAT_GREEDY_MAX_START
-                qmax = GetBc(bytecode, pc)
-                n = GetBc(bytecode, pc)
+                If pc > bytecodeEnd Then qmax = REOP_INVALID_OPCODE Else qmax = bytecode(pc): pc = pc + 1
+                If pc > bytecodeEnd Then n = REOP_INVALID_OPCODE Else n = bytecode(pc): pc = pc + 1
                 
                 q = q + 1
                 If q < qmax Then
@@ -642,22 +658,22 @@ ContinueLoopSuccess:
                 GoTo ContinueLoopSuccess
             Case REOP_REPEAT_GREEDY_MAX_END
                 pc = pc + 1 ' Skip first argument: quantity
-                n = GetBc(bytecode, pc) ' offset
+                If pc > bytecodeEnd Then n = REOP_INVALID_OPCODE Else n = bytecode(pc): pc = pc + 1 ' offset
                 t = pc - n - 3
                 If pcLandmark <= t Then GoTo ContinueLoopSuccess ' empty match
                 
                 pc = t: pcLandmark = t
                 GoTo ContinueLoopSuccess
             Case REOP_SAVE
-                idx = GetBc(bytecode, pc)
+                If pc > bytecodeEnd Then idx = REOP_INVALID_OPCODE Else idx = bytecode(pc): pc = pc + 1
                 If idx >= context.nCapturePoints Then GoTo InternalError
                     ' idx is unsigned, < 0 check is not necessary
                 SetCapturePoint context, idx, sp
                 GoTo ContinueLoopSuccess
             Case REOP_SET_NAMED
-                r1 = GetBc(bytecode, pc)
+                If pc > bytecodeEnd Then r1 = REOP_INVALID_OPCODE Else r1 = bytecode(pc): pc = pc + 1
                 If r1 >= context.nCapturePoints Then GoTo InternalError
-                r2 = GetBc(bytecode, pc)
+                If pc > bytecodeEnd Then r2 = REOP_INVALID_OPCODE Else r2 = bytecode(pc): pc = pc + 1
                 SetCapturePoint context, context.nProperCapturePoints + r1, r2
                 GoTo ContinueLoopSuccess
             Case REOP_CHECK_LOOKAHEAD
@@ -680,12 +696,12 @@ ContinueLoopSuccess:
                 GoTo ContinueLoopSuccess
             Case REOP_LOOKPOS
                 ' This point will only be reached if the pattern inside a negative lookahead/back did not match.
-                n = GetBc(bytecode, pc)
+                If pc > bytecodeEnd Then n = REOP_INVALID_OPCODE Else n = bytecode(pc): pc = pc + 1
                 pc = pc + n
                 GoTo ContinueLoopFail
             Case REOP_LOOKNEG
                 ' This point will only be reached if the pattern inside a negative lookahead/back did not match.
-                n = GetBc(bytecode, pc)
+                If pc > bytecodeEnd Then n = REOP_INVALID_OPCODE Else n = bytecode(pc): pc = pc + 1
                 pc = pc + n
                 GoTo ContinueLoopSuccess
             Case REOP_BACKREFERENCE
