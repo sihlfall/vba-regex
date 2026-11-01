@@ -56,6 +56,13 @@ End Sub
         source += extra
         source = re.sub(r'\bstdRegex\b', name, source)
         write_vba(args.output / (name + '.cls'), source)
+    # Test the requested commit even when the runner is on the report branch.
+    native = args.output / 'native-src'
+    native.mkdir()
+    candidate = builder.resolve_revision(ROOT, args.candidate)
+    for path in sorted((ROOT / 'src').glob('*.bas')):
+        text = subprocess.check_output(['git', '-C', str(ROOT), 'show', candidate + ':src/' + path.name]).decode('utf-8')
+        write_vba(native / path.name, text)
     modules = []
     for path in sorted((ROOT / 'test').glob('Test*.bas')):
         # Historical test targets removed LongArrayBuffer/RegexRedBlackTree modules

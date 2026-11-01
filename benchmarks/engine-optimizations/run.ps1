@@ -24,7 +24,7 @@ try {
     $office.DisplayAlerts = 0
     $document = $office.Documents.Add()
     $project = $document.GetType().InvokeMember('VBProject', [System.Reflection.BindingFlags]::GetProperty, $null, $document, $null)
-    foreach ($path in (Get-ChildItem (Join-Path $repoRoot 'src') -Filter '*.bas').FullName) { $null = $project.VBComponents.Import($path) }
+    foreach ($path in (Get-ChildItem (Join-Path $workDir 'native-src') -Filter '*.bas').FullName) { $null = $project.VBComponents.Import($path) }
     foreach ($path in (Get-ChildItem $workDir -File | Where-Object Extension -In '.bas','.cls').FullName) { $null = $project.VBComponents.Import($path) }
     $modules = Get-Content (Join-Path $workDir 'test-modules.json') -Raw | ConvertFrom-Json
     foreach ($module in $modules) {
