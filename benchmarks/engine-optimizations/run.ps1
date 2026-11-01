@@ -48,8 +48,8 @@ try {
             if ($values -is [string]) { throw $values }
             for ($i = 1; $i -le $values.GetLength(0); $i++) {
                 $rows.Add([pscustomobject]@{
-                    case=$values[$i,1]; case_id=[int]$values[$i,2]; operation=$values[$i,3]; variant=$values[$i,4]
-                    sample=[int]$values[$i,5]; iterations=[int]$values[$i,6]; ms=[double]$values[$i,7]; characters=[int]$values[$i,8]
+                    case=($values.GetValue($i, 1)); case_id=[int]($values.GetValue($i, 2)); operation=($values.GetValue($i, 3)); variant=($values.GetValue($i, 4))
+                    sample=[int]($values.GetValue($i, 5)); iterations=[int]($values.GetValue($i, 6)); ms=[double]($values.GetValue($i, 7)); characters=[int]($values.GetValue($i, 8))
                 })
             }
             Write-Output ('Measured ' + $Candidate + ': ' + $values[1,1])
