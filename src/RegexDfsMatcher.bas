@@ -328,7 +328,7 @@ Private Function DfsRunThreads( _
     Dim stepsCount As Long
     Dim spDelta As Long ' 1 when we walk forwards and -1 when we walk backwards
     Dim searchDotPc As Long, searchChar As String, literalPc As Long
-    Dim searchAnchor As Boolean, searchMultiline As Boolean
+    Dim searchAnchor As Boolean, searchMultiline As Boolean, searchRanges As Long
     Dim lineSearch As RegexMatcherCommon.LineStartSearchTy
     Dim inputLength As Long, byteOffset As Long, chunk As Long
     Dim inputBuffer As RegexMatcherCommon.InputBufferTy
@@ -347,13 +347,24 @@ Private Function DfsRunThreads( _
     If stepsLimit = DEFAULT_STEPS_LIMIT Then
         If RegexMatcherCommon.HasSearchPrefix(bytecode) Then
             literalPc = bytecode(RegexBytecode.BYTECODE_IDX_START_ACTUAL)
-            Do While bytecode(literalPc) = RegexBytecode.REOP_SAVE
-                literalPc = literalPc + 2
+            Do
+                Select Case bytecode(literalPc) And RegexBytecode.REOP_OPCODE_MASK
+                Case RegexBytecode.REOP_SAVE
+                    literalPc = literalPc + 2
+                Case RegexBytecode.REOP_SET_NAMED
+                    literalPc = literalPc + 3
+                Case Else
+                    Exit Do
+                End Select
             Loop
             op = bytecode(literalPc)
             If (op And RegexBytecode.REOP_OPCODE_MASK) = RegexBytecode.REOP_ASSERT_START Then
                 searchAnchor = True
                 searchMultiline = (op - (multiline And RegexBytecode.MODIFIER_M_WRITE) And RegexBytecode.MODIFIER_M_ACTIVE) <> 0
+                searchDotPc = pc + 2
+            ElseIf (op And RegexBytecode.REOP_OPCODE_MASK) = RegexBytecode.REOP_RANGES Or _
+                (op And RegexBytecode.REOP_OPCODE_MASK) = RegexBytecode.REOP_INVRANGES Then
+                searchRanges = literalPc
                 searchDotPc = pc + 2
             ElseIf (op And RegexBytecode.MODIFIER_I_ACTIVE) = 0 Then
                 Select Case op And RegexBytecode.REOP_OPCODE_MASK
@@ -485,6 +496,10 @@ L_DOT:
             If searchAnchor Then
                 If Not searchMultiline Then GoTo ContinueLoopFail
                 idx = RegexMatcherCommon.NextLineStart(lineSearch, inputStr, sp)
+                If idx < 0 Then GoTo ContinueLoopFail
+                sp = idx
+            ElseIf searchRanges > 0 Then
+                idx = NextSearchCandidate(bytecode, inputStr, sp + 1, searchChar, searchRanges)
                 If idx < 0 Then GoTo ContinueLoopFail
                 sp = idx
             Else
@@ -852,3 +867,35 @@ InternalError:
     Err.Raise 3000
 End Function
 
+
+Private Function NextSearchCandidate(ByRef bytecode() As Long, ByRef text As String, ByVal sp As Long, _
+    ByRef prefix As String, ByVal ranges As Long) As Long
+    Dim c As Long, n As Long, lo As Long, hi As Long, rangeMid As Long, found As Boolean, op As Long
+    If Len(prefix) > 0 Then
+        NextSearchCandidate = InStr(sp + 1, text, prefix, vbBinaryCompare) - 1
+        Exit Function
+    End If
+    If ranges > 0 Then
+        op = bytecode(ranges): n = bytecode(ranges + 1)
+        Do While sp < Len(text)
+            c = AscW(Mid$(text, sp + 1, 1)) And &HFFFF&
+            If op And RegexBytecode.MODIFIER_I_ACTIVE Then c = RegexUnicodeSupport.ReCanonicalizeChar(c)
+            lo = 0: hi = n - 1: found = False
+            Do While lo <= hi
+                rangeMid = (lo + hi) \ 2
+                If c < bytecode(ranges + 2 + 2 * rangeMid) Then
+                    hi = rangeMid - 1
+                ElseIf c > bytecode(ranges + 3 + 2 * rangeMid) Then
+                    lo = rangeMid + 1
+                Else
+                    found = True: Exit Do
+                End If
+            Loop
+            If found = ((op And RegexBytecode.REOP_OPCODE_MASK) = REOP_RANGES) Then NextSearchCandidate = sp: Exit Function
+            sp = sp + 1
+        Loop
+        NextSearchCandidate = -1
+    Else
+        NextSearchCandidate = sp
+    End If
+End Function
