@@ -32,14 +32,6 @@ Private Sub TestCleanup()
     'this method runs after every test in the module.
 End Sub
 
-Private Sub MakeArray(ByRef outAry() As Long, ParamArray p() As Variant)
-    ReDim outAry(0 To UBound(p)) As Long
-    Dim i As Long
-    For i = 0 To UBound(p)
-        outAry(i) = p(i)
-    Next
-End Sub
-
 '@TestMethod("Compiler")
 Private Sub Compiler_Compile0001()
     ' simple two-character pattern
@@ -2501,4 +2493,49 @@ Private Sub Compiler_LoopEntryPreservesNestedPlusProgress()
     RegexDfaMatcher.DfaStateStructureInitialize state
     Assert.IsTrue RegexDfaMatcher.DfaFindMatch(span, state, bytecode, "aaa", 1, False)
     Assert.AreEqual 3&, span.Length
+End Sub
+
+'@TestMethod("Compiler")
+Private Sub Compiler_NamedCapturesPrecedeSearchPrefix()
+    Dim actual() As Long, expected() As Long
+    RegexCompiler.Compile actual, "(?<z>a)(?<a>b)"
+    MakeBytecode expected, MakeBytecodeParameters( _
+        maxProperCaptureSlot:=5, nIdentifiers:=2, startDfaBwRunOffset:=23), _
+        11, 1, 1, _
+        4, 1, 0, _
+        REOP_SAVE, 0, _
+        REOP_SAVE, 2, REOP_SET_NAMED, 0, 1, REOP_CHAR, AscW("a"), REOP_SAVE, 3, _
+        REOP_SAVE, 4, REOP_SET_NAMED, 1, 2, REOP_CHAR, AscW("b"), REOP_SAVE, 5, _
+        REOP_SAVE, 1, REOP_MATCH, _
+        REOP_CHAR, AscW("b"), REOP_CHAR, AscW("a"), REOP_MATCH
+    Assert.SequenceEquals expected, actual
+End Sub
+
+Private Sub CheckStartAfterCaptures(ByVal pattern As String, ByVal offset As Long, ByVal expectedOp As Long)
+    Dim code() As Long, p As Long
+    RegexCompiler.Compile code, pattern
+    p = code(BYTECODE_IDX_START_AFTER_CAPTURES)
+    Assert.AreEqual code(BYTECODE_IDX_START_ACTUAL) + offset, p, pattern
+    Assert.AreEqual expectedOp, code(p) And REOP_OPCODE_MASK, pattern
+    If code(BYTECODE_IDX_START_DFA_BW_RUN) >= 0 Then _
+        Assert.IsTrue p < code(BYTECODE_IDX_START_DFA_BW_RUN), pattern
+    If expectedOp <> REOP_ASSERT_START Then _
+        Assert.AreEqual 0&, RegexMatcherCommon.LeadingStartAnchor(code), pattern
+End Sub
+
+'@TestMethod("Compiler")
+Private Sub Compiler_StartAfterCapturesSkipsOnlyLeadingBookkeeping()
+    CheckStartAfterCaptures "", 4, REOP_MATCH
+    CheckStartAfterCaptures "()", 8, REOP_MATCH
+    CheckStartAfterCaptures "()a", 6, REOP_CHAR
+    CheckStartAfterCaptures "((a))", 6, REOP_CHAR
+    CheckStartAfterCaptures "(?<x>(?<y>a))", 12, REOP_CHAR
+    CheckStartAfterCaptures "(?<x>^a)", 7, REOP_ASSERT_START
+    CheckStartAfterCaptures "(?<x>)(?<y>^a)", 14, REOP_ASSERT_START
+    CheckStartAfterCaptures "(?i:(?<x>[a-z]))", 7, REOP_RANGES
+    CheckStartAfterCaptures "(?<x>a)|^b", 2, REOP_SPLIT1
+    CheckStartAfterCaptures "(?<x>a)?b", 2, REOP_SPLIT1
+    CheckStartAfterCaptures "(?<x>a)*b", 2, REOP_SPLIT1
+    CheckStartAfterCaptures "(?<x>a)+b", 2, REOP_LOOP_INIT
+    CheckStartAfterCaptures "(?=a)(?<x>a)", 2, REOP_CHECK_LOOKAHEAD
 End Sub

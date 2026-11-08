@@ -32,14 +32,6 @@ Private Sub TestCleanup()
     'this method runs after every test in the module.
 End Sub
 
-Private Sub MakeArray(ByRef outAry() As Long, ParamArray p() As Variant)
-    ReDim outAry(0 To UBound(p)) As Long
-    Dim i As Long
-    For i = 0 To UBound(p)
-        outAry(i) = p(i)
-    Next
-End Sub
-
 
 '@TestMethod("DfsMatcher")
 Private Sub DfsMatcher_MatchRegexp0001()
@@ -182,7 +174,7 @@ Private Sub DfsMatcher_MatchRegexp013()
     MakeBytecode bytecode, MakeBytecodeParameters(), _
         REOP_SAVE, 0, _
         REOP_SPLIT1, 2, _
-        REOP_JUMP, 0, _
+        REOP_LOOP_GREEDY, -2, _
         REOP_CHAR, AscW("x"), _
         REOP_SAVE, 1, _
         REOP_MATCH
@@ -321,10 +313,9 @@ Private Sub DfsMatcher_MatchRegexp020()
     MakeBytecode bytecode, MakeBytecodeParameters(), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
+        REOP_LOOP_INIT, _
         REOP_CHAR, AscW("b"), _
-        REOP_SPLIT1, 4, _
-        REOP_CHAR, AscW("b"), _
-        REOP_JUMP, -6, _
+        REOP_LOOP_GREEDY, -4, _
         REOP_CHAR, AscW("c"), _
         REOP_SAVE, 1, _
         REOP_MATCH
@@ -350,16 +341,12 @@ Private Sub DfsMatcher_MatchRegexp021()
     Dim captures As RegexMatcherCommon.CapturesTy, bytecode() As Long
     MakeBytecode bytecode, MakeBytecodeParameters(maxProperCaptureSlot:=3), _
         REOP_SAVE, 0, _
+        REOP_LOOP_INIT, _
         REOP_SAVE, 2, _
         REOP_CHAR, AscW("a"), _
         REOP_CHAR, AscW("b"), _
         REOP_SAVE, 3, _
-        REOP_SPLIT1, 10, _
-        REOP_SAVE, 2, _
-        REOP_CHAR, AscW("a"), _
-        REOP_CHAR, AscW("b"), _
-        REOP_SAVE, 3, _
-        REOP_JUMP, -12, _
+        REOP_LOOP_GREEDY, -10, _
         REOP_CHAR, AscW("x"), _
         REOP_SAVE, 1, _
         REOP_MATCH
@@ -384,16 +371,12 @@ Private Sub DfsMatcher_MatchRegexp022()
     Dim captures As RegexMatcherCommon.CapturesTy, bytecode() As Long
     MakeBytecode bytecode, MakeBytecodeParameters(maxProperCaptureSlot:=3), _
         REOP_SAVE, 0, _
+        REOP_LOOP_INIT, _
         REOP_SAVE, 2, _
         REOP_CHAR, AscW("a"), _
         REOP_CHAR, AscW("b"), _
         REOP_SAVE, 3, _
-        REOP_SPLIT1, 10, _
-        REOP_SAVE, 2, _
-        REOP_CHAR, AscW("a"), _
-        REOP_CHAR, AscW("b"), _
-        REOP_SAVE, 3, _
-        REOP_JUMP, -12, _
+        REOP_LOOP_GREEDY, -10, _
         REOP_CHAR, AscW("x"), _
         REOP_SAVE, 1, _
         REOP_MATCH
@@ -2026,10 +2009,6 @@ Private Sub DfsMatcher_LiteralSearchBoundsAndBudget()
     Assert.AreEqual -1&, RegexDfsMatcher.DfsMatch(captures, bytecode, "needle", stepsLimit:=1)
     Assert.AreEqual -1&, RegexDfsMatcher.DfsMatchFrom(context, captures, bytecode, "needle", -1)
     Assert.AreEqual -1&, RegexDfsMatcher.DfsMatchFrom(context, captures, bytecode, "needle", 7)
-    ' A custom entry point has no unanchored-search prefix to optimize.
-    bytecode(BYTECODE_IDX_START_WITH_PREFIX) = bytecode(BYTECODE_IDX_START_ACTUAL)
-    Assert.AreEqual -1&, RegexDfsMatcher.DfsMatch(captures, bytecode, "xneedle")
-    Assert.AreEqual 6&, RegexDfsMatcher.DfsMatch(captures, bytecode, "needle")
 End Sub
 
 Private Sub AssertAnchoredSearch(ByVal pattern As String, ByVal text As String, ByVal start As Long, ByVal length As Long, Optional ByVal multiline As Boolean = False)
@@ -2079,8 +2058,6 @@ Private Sub DfsMatcher_LeadingAnchorSearch()
     Assert.AreEqual -1&, RegexDfsMatcher.DfsMatchFrom(context, captures, bytecode, "ab", 1)
     Assert.AreEqual 3&, RegexDfsMatcher.DfsMatchFrom(context, captures, bytecode, vbLf & "ab", 1, multiline:=True)
     Assert.AreEqual -1&, RegexDfsMatcher.DfsMatch(captures, bytecode, "ab", stepsLimit:=1)
-    bytecode(BYTECODE_IDX_START_WITH_PREFIX) = bytecode(BYTECODE_IDX_START_ACTUAL)
-    Assert.AreEqual -1&, RegexDfsMatcher.DfsMatch(captures, bytecode, "x" & vbLf & "ab", multiline:=True)
 End Sub
 
 '@TestMethod("DfsMatcher")

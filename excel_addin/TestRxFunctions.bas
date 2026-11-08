@@ -25,22 +25,23 @@ End Function
 
 Public Function RunRxExecutionLimitTests() As Variant
     ' The runner supplies a 10,000-step budget in the temporary workbook only.
+    ' Lookaheads select DFS independently of the step limit.
     On Error GoTo Failed
     Dim inputs(1 To 3, 1 To 1) As Variant
     checks = 0: failures = vbNullString
-    Check "test execution limit", RxTest(String$(18, "a"), "(a+)+b"), CVErr(xlErrNum)
-    Check "match execution limit", RxMatch(String$(18, "a"), "(a+)+b"), CVErr(xlErrNum)
-    Check "replace execution limit", RxReplace(String$(18, "a"), "(a+)+b", "x"), CVErr(xlErrNum)
-    Check "find execution limit", RxFind(String$(18, "a"), "(a+)+b"), CVErr(xlErrNum)
-    Check "length execution limit", RxLength(String$(18, "a"), "(a+)+b"), CVErr(xlErrNum)
-    Check "count execution limit", RxCount(String$(18, "a"), "(a+)+b"), CVErr(xlErrNum)
-    Check "count fails instead of partial count", RxCount("b" & String$(18, "a"), "b|(a+)+z"), CVErr(xlErrNum)
-    Check "find stops after selected match", RxFind("b" & String$(18, "a"), "b|(a+)+z"), 1&
-    Check "length stops after selected match", RxLength("b" & String$(18, "a"), "b|(a+)+z"), 1&
-    Check "matches execution limit", RxMatches(String$(18, "a"), "(a+)+b"), CVErr(xlErrNum)
-    Check "split execution limit", RxSplit(String$(18, "a"), "(a+)+b"), CVErr(xlErrNum)
+    Check "test execution limit", RxTest(String$(18, "a"), "(a+)+(?=b)b"), CVErr(xlErrNum)
+    Check "match execution limit", RxMatch(String$(18, "a"), "(a+)+(?=b)b"), CVErr(xlErrNum)
+    Check "replace execution limit", RxReplace(String$(18, "a"), "(a+)+(?=b)b", "x"), CVErr(xlErrNum)
+    Check "find execution limit", RxFind(String$(18, "a"), "(a+)+(?=b)b"), CVErr(xlErrNum)
+    Check "length execution limit", RxLength(String$(18, "a"), "(a+)+(?=b)b"), CVErr(xlErrNum)
+    Check "count execution limit", RxCount(String$(18, "a"), "(a+)+(?=b)b"), CVErr(xlErrNum)
+    Check "count fails instead of partial count", RxCount("b" & String$(18, "a"), "b|(a+)+(?=z)z"), CVErr(xlErrNum)
+    Check "find stops after selected match", RxFind("b" & String$(18, "a"), "b|(a+)+(?=z)z"), 1&
+    Check "length stops after selected match", RxLength("b" & String$(18, "a"), "b|(a+)+(?=z)z"), 1&
+    Check "matches execution limit", RxMatches(String$(18, "a"), "(a+)+(?=b)b"), CVErr(xlErrNum)
+    Check "split execution limit", RxSplit(String$(18, "a"), "(a+)+(?=b)b"), CVErr(xlErrNum)
     inputs(1, 1) = String$(18, "a"): inputs(2, 1) = "b": inputs(3, 1) = "c"
-    Grid "split row execution limit", RxSplit(inputs, "(a+)+b"), 3, 1, Array(CVErr(xlErrNum), "b", "c")
+    Grid "split row execution limit", RxSplit(inputs, "(a+)+(?=b)b"), 3, 1, Array(CVErr(xlErrNum), "b", "c")
     If Len(failures) > 0 Then RunRxExecutionLimitTests = failures Else RunRxExecutionLimitTests = checks
     Exit Function
 Failed:
@@ -511,7 +512,7 @@ Private Sub TestFormatAPI()
     AssertValue StaticRegexSingle.MatchNext(state, regex, text), True
     AssertValue StaticRegexSingle.FormatMatch(state, text, format), "[34]"
     text = "a"
-    StaticRegexSingle.InitializeRegex regex, "a"
+    StaticRegexSingle.InitializeRegex regex, "a(?=$)"
     regex.stepsLimit = 1
     StaticRegexSingle.InitializeMatcherState state
     AssertValue StaticRegexSingle.MatchNext(state, regex, text), False

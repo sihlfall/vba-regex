@@ -5,7 +5,7 @@ Public Type RegexTy
     pattern As String
     bytecode() As Long
     isCaseInsensitive As Long
-    stepsLimit As Long
+    stepsLimit As Long ' DFS execution limit; does not affect engine selection
 End Type
 
 Private Enum DfaStateStructInitConstants
@@ -75,8 +75,7 @@ End Sub
 
 Private Function UseDfs(ByRef regex As RegexTy, ByVal multiline As Boolean) As Boolean
     Dim anchorOp As Long
-    If (regex.bytecode(RegexBytecode.BYTECODE_IDX_PROPERTIES) And BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING) <> 0 Or _
-        regex.stepsLimit <> RegexDfsMatcher.DEFAULT_STEPS_LIMIT Then
+    If (regex.bytecode(RegexBytecode.BYTECODE_IDX_PROPERTIES) And BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING) <> 0 Then
         UseDfs = True
     ElseIf (regex.bytecode(RegexBytecode.BYTECODE_IDX_PROPERTIES) And BYTECODE_PROPERTY_PREFER_DFS) <> 0 Then
         anchorOp = RegexMatcherCommon.LeadingStartAnchor(regex.bytecode)
@@ -238,7 +237,7 @@ Public Function MatchNext( _
     If matcherState.current > Len(haystack) Then GoTo NoMatch
     If matcherState.current < 0 Then GoTo NoMatch
     
-    If UseDfs(regex, matcherState.multiline) Or raiseOnLimit Then
+    If UseDfs(regex, matcherState.multiline) Then
         r = RegexDfsMatcher.DfsMatchFrom( _
             matcherState.context, matcherState.captures, regex.bytecode, haystack, _
             matcherState.current, stepsLimit:=regex.stepsLimit, _

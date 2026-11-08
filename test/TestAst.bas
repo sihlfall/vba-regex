@@ -365,3 +365,25 @@ TestFail:
 End Sub
 
 
+
+'@TestMethod("Ast")
+Private Sub Ast_StartAfterCapturesSurvivesRepeatExpansionAndReverseGeneration()
+    Dim ast As ArrayBuffer.Ty, compact() As Long, expanded() As Long
+    Dim captures As RegexMatcherCommon.CapturesTy, p As Long
+    ' Capture 0 around (a){2}; expansion copies the captured body.
+    MakeArrayBuffer ast, 9, AST_CHAR, 97, AST_CAPTURE, 1, 1, _
+        AST_REPEAT_EXACTLY, 3, 2, AST_CAPTURE, 6, 0
+    CompileRepeatPair ast, compact, expanded
+    p = compact(BYTECODE_IDX_START_AFTER_CAPTURES)
+    Assert.AreEqual compact(BYTECODE_IDX_START_ACTUAL) + 2, p
+    Assert.AreEqual REOP_REPEAT_EXACTLY_INIT, compact(p)
+    p = expanded(BYTECODE_IDX_START_AFTER_CAPTURES)
+    Assert.AreEqual expanded(BYTECODE_IDX_START_ACTUAL) + 4, p
+    Assert.AreEqual REOP_CHAR, expanded(p)
+    Assert.IsTrue p < expanded(BYTECODE_IDX_START_DFA_BW_RUN)
+    Assert.AreEqual 3&, RegexDfsMatcher.DfsMatch(captures, expanded, "zaa")
+    Assert.AreEqual 2&, captures.entireMatch.start
+    Assert.AreEqual 2&, captures.entireMatch.Length
+    Assert.AreEqual 3&, captures.numberedCaptures(0).start
+    Assert.AreEqual 1&, captures.numberedCaptures(0).Length
+End Sub

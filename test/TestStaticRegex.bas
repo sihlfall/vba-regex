@@ -1070,6 +1070,7 @@ Private Sub StaticRegex_Match_ClearsCapturesOnFailure()
         Assert.IsFalse StaticRegex.Match(state, regex, "ab")
         AssertNoCaptures state, capturedRegex
     Next
+    StaticRegex.InitializeRegex capturedRegex, "(?<named>a)(?=b)"
     Assert.IsTrue StaticRegex.Match(state, capturedRegex, "ab")
     capturedRegex.stepsLimit = 1
     Assert.IsFalse StaticRegex.Match(state, capturedRegex, "ab")
@@ -1089,6 +1090,7 @@ Private Sub StaticRegex_MatchNext_ClearsCapturesOnFailure()
         Assert.IsFalse StaticRegex.MatchNext(state, regex, "ab")
         AssertNoCaptures state, capturedRegex
     Next
+    StaticRegex.InitializeRegex capturedRegex, "(?<named>a)(?=b)"
     Assert.IsTrue StaticRegex.Match(state, capturedRegex, "ab")
     StaticRegex.InitializeMatcherState state
     capturedRegex.stepsLimit = 1
@@ -1417,7 +1419,7 @@ Private Sub StaticRegex_Readme_Options_StepsLimit()
 
     Dim regex As StaticRegex.RegexTy
 
-    StaticRegex.InitializeRegex regex, "abc"
+    StaticRegex.InitializeRegex regex, "a(?=bc)"
     Assert.AreEqual RegexDfsMatcher.DEFAULT_STEPS_LIMIT, regex.stepsLimit
     regex.stepsLimit = 1
     Assert.IsFalse StaticRegex.Test(regex, "abc")
@@ -1432,10 +1434,10 @@ TestFail:
 End Sub
 
 '@TestMethod("StaticRegex")
-Private Sub StaticRegex_ExplicitStepLimitsUseDfs()
+Private Sub StaticRegex_StepLimitsApplyToDfs()
     Dim regex As StaticRegex.RegexTy, matcherState As StaticRegex.MatcherStateTy
     Dim pattern As Variant, result As Boolean, errorNumber As Long, patterns() As String
-    MakeStringArray patterns, "abc", "(abc)", "a(?=bc)"
+    MakeStringArray patterns, "a(?=bc)", "^(a)bc$", "(?-m:^a[bc]c$)"
     For Each pattern In patterns
         StaticRegex.InitializeRegex regex, CStr(pattern)
         regex.stepsLimit = 1
@@ -1477,6 +1479,11 @@ Private Sub StaticRegex_SinglePathDispatchRespectsAnchorsAndModifiers()
     Dim regex As StaticRegex.RegexTy, state As StaticRegex.MatcherStateTy
     CheckStructuralDispatch "^[ab]{4}c$", False, True
     CheckStructuralDispatch "^([ab]{4})c$", False, True
+    CheckStructuralDispatch "(?<letters>^[ab]{4})c$", False, True
+    CheckStructuralDispatch "(?<letters>^[ab]{4})c$", True, False
+    CheckStructuralDispatch "(?m:(?<letters>^[ab]{4})c$)", False, False
+    CheckStructuralDispatch "(?-m:(?<letters>^[ab]{4})c$)", True, True
+    CheckStructuralDispatch "(?<empty>)(?<letters>^[ab]{4})c$", False, True
     CheckStructuralDispatch "^[ab]{4}c$", True, False
     CheckStructuralDispatch "(?m:^[ab]{4}c$)", False, False
     CheckStructuralDispatch "(?-m:^[ab]{4}c$)", True, True
@@ -1509,8 +1516,10 @@ Private Sub StaticRegex_RepeatedLiteralKeepsLiteralFastPath()
     Assert.IsFalse state.dfaStateStruct.tablesInitialized
     Assert.IsFalse StaticRegex.Test(regex, "x" & text)
     regex.stepsLimit = 1
-    Assert.IsFalse StaticRegex.Test(regex, text)
-    Assert.IsFalse StaticRegex.Match(state, regex, text)
+    Assert.IsTrue StaticRegex.Test(regex, text)
+    Assert.IsTrue StaticRegex.Match(state, regex, text)
+    Assert.IsTrue state.dfaStateStruct.literal.isLiteral
+    Assert.IsFalse state.dfaStateStruct.tablesInitialized
 End Sub
 
 Private Sub AssertCapturesEqual(ByRef expected As RegexMatcherCommon.CapturesTy, ByRef actual As RegexMatcherCommon.CapturesTy)
@@ -1603,4 +1612,38 @@ Private Sub StaticRegex_Replace_LongOffsets()
     expected = prefix & replacement & "a:a:a" & "q" & replacement & "a:a:a" & "end"
     Assert.AreEqual expected, StaticRegex.Replace(regex, replacement & "$<letter>:$1:$&", text)
     Assert.AreEqual prefix & prefix & ":endend", StaticRegex.Replace(regex, "$`:$'", prefix & "aend")
+End Sub
+
+'@TestMethod("StaticRegex")
+Private Sub StaticRegex_StepLimitsLeaveDfaSelectionUnchanged()
+    Dim regex As StaticRegex.RegexTy, state As StaticRegex.MatcherStateTy
+    Dim patterns() As String, pattern As Variant, raiseLimit As Long
+    Dim result As Boolean, errorNumber As Long
+    MakeStringArray patterns, "abc", "(abc)", "(?<word>abc)", "ab[cd]", "^[ab]bc$"
+    For Each pattern In patterns
+        StaticRegex.InitializeRegex regex, CStr(pattern)
+        regex.stepsLimit = 1
+        ' Multiline also keeps the structurally preferred DFS pattern on DFA.
+        Assert.IsTrue StaticRegex.Test(regex, "abc", multiline:=True)
+        Assert.IsTrue StaticRegex.Match(state, regex, "abc", multiline:=True)
+        Assert.IsTrue state.dfaStateStructInitState <> 0
+        Assert.AreEqual "abc", StaticRegex.GetCapture(state, "abc")
+        If CStr(pattern) = "(abc)" Then Assert.AreEqual "abc", StaticRegex.GetCapture(state, "abc", 1)
+        If CStr(pattern) = "(?<word>abc)" Then _
+            Assert.AreEqual "abc", StaticRegex.GetCaptureByName(state, regex, "abc", "word")
+        For raiseLimit = 0 To 1
+            StaticRegex.InitializeMatcherState state, multiline:=True
+            errorNumber = 0
+            On Error Resume Next
+            result = StaticRegex.MatchNext(state, regex, "abc", raiseOnLimit:=CBool(raiseLimit))
+            errorNumber = Err.Number
+            Err.Clear
+            On Error GoTo 0
+            Assert.AreEqual 0&, errorNumber
+            Assert.IsTrue result
+            Assert.IsTrue state.dfaStateStructInitState <> 0
+            Assert.AreEqual "abc", StaticRegex.GetCapture(state, "abc")
+            Assert.IsFalse StaticRegex.MatchNext(state, regex, "abc", raiseOnLimit:=CBool(raiseLimit))
+        Next
+    Next
 End Sub

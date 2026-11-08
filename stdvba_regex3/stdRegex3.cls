@@ -103,7 +103,7 @@ End Function
 'Creates a new regex object
 '@param pattern - The regex pattern
 '@param flags - The regex flags
-'@param stepsLimit - The maximum number of processing steps the engine is allowed to make before giving up.
+'@param stepsLimit - The maximum number of DFS processing steps before giving up; does not affect engine selection.
 '@returns - The regex object
 '@remark - The flags are:
 ' - `i` - Case insensitive

@@ -1194,7 +1194,7 @@ Private Sub NfaMatcher_MatchRegexp013()
         REOP_SPLIT1, 6, _
         REOP_SAVE, 2, _
         REOP_SAVE, 3, _
-        REOP_JUMP, -8, _
+        REOP_LOOP_GREEDY, -6, _
         REOP_CHAR, AscW("x"), _
         REOP_SAVE, 1, _
         REOP_MATCH
@@ -1334,10 +1334,9 @@ Private Sub NfaMatcher_MatchRegexp020()
     MakeBytecode bytecode, MakeBytecodeParameters(), _
         REOP_SAVE, 0, _
         REOP_CHAR, AscW("a"), _
+        REOP_LOOP_INIT, _
         REOP_CHAR, AscW("b"), _
-        REOP_SPLIT1, 4, _
-        REOP_CHAR, AscW("b"), _
-        REOP_JUMP, -6, _
+        REOP_LOOP_GREEDY, -4, _
         REOP_CHAR, AscW("c"), _
         REOP_SAVE, 1, _
         REOP_MATCH
@@ -1363,16 +1362,12 @@ Private Sub NfaMatcher_MatchRegexp021()
     Dim bytecode() As Long, inputStr As String, outCaptures As RegexMatcherCommon.CapturesTy
     MakeBytecode bytecode, MakeBytecodeParameters(maxProperCaptureSlot:=3), _
         REOP_SAVE, 0, _
+        REOP_LOOP_INIT, _
         REOP_SAVE, 2, _
         REOP_CHAR, AscW("a"), _
         REOP_CHAR, AscW("b"), _
         REOP_SAVE, 3, _
-        REOP_SPLIT1, 10, _
-        REOP_SAVE, 2, _
-        REOP_CHAR, AscW("a"), _
-        REOP_CHAR, AscW("b"), _
-        REOP_SAVE, 3, _
-        REOP_JUMP, -12, _
+        REOP_LOOP_GREEDY, -10, _
         REOP_CHAR, AscW("x"), _
         REOP_SAVE, 1, _
         REOP_MATCH
@@ -1397,16 +1392,12 @@ Private Sub NfaMatcher_MatchRegexp022()
     Dim bytecode() As Long, inputStr As String, outCaptures As RegexMatcherCommon.CapturesTy
     MakeBytecode bytecode, MakeBytecodeParameters(maxProperCaptureSlot:=3), _
         REOP_SAVE, 0, _
+        REOP_LOOP_INIT, _
         REOP_SAVE, 2, _
         REOP_CHAR, AscW("a"), _
         REOP_CHAR, AscW("b"), _
         REOP_SAVE, 3, _
-        REOP_SPLIT1, 10, _
-        REOP_SAVE, 2, _
-        REOP_CHAR, AscW("a"), _
-        REOP_CHAR, AscW("b"), _
-        REOP_SAVE, 3, _
-        REOP_JUMP, -12, _
+        REOP_LOOP_GREEDY, -10, _
         REOP_CHAR, AscW("x"), _
         REOP_SAVE, 1, _
         REOP_MATCH

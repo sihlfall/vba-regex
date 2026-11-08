@@ -145,7 +145,7 @@ Public Sub AstToBytecode( _
     ByVal caseInsensitive As Boolean, ByRef bytecode() As Long, _
     Optional ByVal maxExpansion As Long = DEFAULT_QUANTIFIER_EXPANSION_LIMIT _
 )
-    Dim bytecodePtr As Long
+    Dim bytecodePtr As Long, startAfterCaptures As Long
     Dim curNode As Long, prevNode As Long
     Dim stack() As Long, sp As Long, nodePlan() As Long
     Dim direction As Long ' 0 = left before right, -1 = right before left
@@ -326,6 +326,7 @@ L_CONCAT:
 L_CAPTURE:
     If returningFromFirstChild Then
         If dfaBwRun Then GoTo TurnToParent
+        If startAfterCaptures = bytecodePtr Then startAfterCaptures = bytecodePtr + 2
         bytecode(bytecodePtr) = REOP_SAVE: bytecodePtr = bytecodePtr + 1
         tmp = ast.Buffer(curNode + 2) * 2 + 1
         If tmp > maxSave Then maxSave = tmp
@@ -333,6 +334,7 @@ L_CAPTURE:
         GoTo TurnToParent
     Else
         If dfaBwRun Then GoTo TurnToLeftChild
+        If startAfterCaptures = bytecodePtr Then startAfterCaptures = bytecodePtr + 2
         bytecode(bytecodePtr) = REOP_SAVE: bytecodePtr = bytecodePtr + 1
         bytecode(bytecodePtr) = ast.Buffer(curNode + 2) * 2 - direction: bytecodePtr = bytecodePtr + 1
         GoTo TurnToLeftChild
@@ -384,6 +386,7 @@ L_NAMED:
         GoTo TurnToParent
     Else
         If dfaBwRun Then GoTo TurnToLeftChild
+        If startAfterCaptures = bytecodePtr Then startAfterCaptures = bytecodePtr + 3
         bytecode(bytecodePtr) = REOP_SET_NAMED: bytecodePtr = bytecodePtr + 1
         bytecode(bytecodePtr) = ast.Buffer(curNode + 2): bytecodePtr = bytecodePtr + 1
         bytecode(bytecodePtr) = ast.Buffer(curNode + 3): bytecodePtr = bytecodePtr + 1
@@ -408,6 +411,8 @@ L_ACTUAL:
     Else
         singlePath = True ' exclude the implicit unanchored search loop
         bytecode(RegexBytecode.BYTECODE_IDX_START_ACTUAL) = bytecodePtr
+        ' Advance this local past leading captures, until another instruction is emitted.
+        startAfterCaptures = bytecodePtr
         GoTo TurnToLeftChild
     End If
         
@@ -689,12 +694,6 @@ BreakLoop:
             bytecode(RegexBytecode.BYTECODE_IDX_PROPERTIES) Or _
             (RegexBytecode.BYTECODE_PROPERTY_REQUIRES_DFS_MATCHING And _
                 requiresDfsMatching)
-        If Not requiresDfsMatching And singlePath Then
-            If RegexMatcherCommon.LeadingStartAnchor(bytecode) <> 0 Then
-                If Not RegexMatcherCommon.IsLiteralBytecode(bytecode) Then _
-                    bytecode(RegexBytecode.BYTECODE_IDX_PROPERTIES) = bytecode(RegexBytecode.BYTECODE_IDX_PROPERTIES) Or BYTECODE_PROPERTY_PREFER_DFS
-            End If
-        End If
         If Not requiresDfsMatching Then
             dfaBwRun = True
             curNode = actualRoot
@@ -703,6 +702,15 @@ BreakLoop:
             GoTo StartBytecodeGeneration
         End If
         bytecode(RegexBytecode.BYTECODE_IDX_START_DFA_BW_RUN) = -1
+    End If
+
+    bytecode(RegexBytecode.BYTECODE_IDX_START_AFTER_CAPTURES) = startAfterCaptures
+
+    If Not requiresDfsMatching And singlePath Then
+        If RegexMatcherCommon.LeadingStartAnchor(bytecode) <> 0 Then
+            If Not RegexMatcherCommon.IsLiteralBytecode(bytecode) Then _
+                bytecode(RegexBytecode.BYTECODE_IDX_PROPERTIES) = bytecode(RegexBytecode.BYTECODE_IDX_PROPERTIES) Or BYTECODE_PROPERTY_PREFER_DFS
+        End If
     End If
 End Sub
 

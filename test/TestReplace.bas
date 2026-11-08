@@ -213,12 +213,14 @@ Private Sub RegexReplace0020()
     
     replacer = "abc$<z>$<y>$<x>$<w>abc"
     pattern = "xzyw"
-    MakeArray dummyBytecode, _
-        0, 4, 0, 0, 0, 0, 0, 0, 0, _
+    MakeBytecode dummyBytecode, MakeBytecodeParameters(nIdentifiers:=4), _
         4, 1, 10, _
         1, 1, 11, _
         3, 1, 12, _
-        2, 1, 13
+        2, 1, 13, _
+        REOP_SAVE, 0, _
+        REOP_SAVE, 1, _
+        REOP_MATCH
     RegexReplace.ParseFormatString parsed, replacer, dummyBytecode, pattern
     ReDim Preserve parsed.Buffer(0 To parsed.Length - 1)
     

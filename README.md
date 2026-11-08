@@ -207,7 +207,7 @@ Loop
 
 `InitializeMatcherState` starts iteration from the beginning and sets the three matching options. `ResetMatcherState matcherState` restarts iteration while preserving those options. A newly declared matcher state, as used in Example 3, starts at the beginning with all options set to `False`.
 
-For patterns that require more matching work, you can adjust `regex.stepsLimit` after `InitializeRegex`. This branch defaults to `RegexDfsMatcher.DEFAULT_STEPS_LIMIT` (currently `100000000`) steps for a DFS search. Setting a nondefault budget selects DFS for the public matching methods so that the limit is honored. Reaching the limit returns no match by default; `MatchNext(..., raiseOnLimit:=True)` instead raises `REGEX_ERR_STEP_LIMIT` and selects DFS even with the default budget.
+You can adjust `regex.stepsLimit` after `InitializeRegex` to limit each DFS search. It defaults to `RegexDfsMatcher.DEFAULT_STEPS_LIMIT` (currently `100000000`) steps. When DFS reaches the limit, it returns no match by default; `MatchNext(..., raiseOnLimit:=True)` instead raises `REGEX_ERR_STEP_LIMIT`.
 
 ## <a id='singlefile'></a>Building a single-file version of the regex engine
 

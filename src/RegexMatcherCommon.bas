@@ -156,26 +156,8 @@ End Function
 ' Conservatively recognize an unavoidable leading ^, not a ^ in one alternative.
 Public Function LeadingStartAnchor(ByRef bytecode() As Long) As Long
     Dim p As Long
-    If Not HasSearchPrefix(bytecode) Then Exit Function
-    p = bytecode(RegexBytecode.BYTECODE_IDX_START_ACTUAL)
-    Do While bytecode(p) = RegexBytecode.REOP_SAVE
-        p = p + 2
-    Loop
+    p = bytecode(RegexBytecode.BYTECODE_IDX_START_AFTER_CAPTURES)
     If (bytecode(p) And RegexBytecode.REOP_OPCODE_MASK) = RegexBytecode.REOP_ASSERT_START Then LeadingStartAnchor = bytecode(p)
-End Function
-
-' Recognize the compiler's unanchored-search prefix. Handwritten bytecode with a
-' different entry sequence must retain its original VM behavior.
-Public Function HasSearchPrefix(ByRef bytecode() As Long) As Boolean
-    Dim p As Long
-    p = bytecode(RegexBytecode.BYTECODE_IDX_START_WITH_PREFIX)
-    If bytecode(RegexBytecode.BYTECODE_IDX_START_ACTUAL) <> p + 5 Then Exit Function
-    If bytecode(p) <> RegexBytecode.REOP_SPLIT2 Then Exit Function
-    If bytecode(p + 1) <> 3 Then Exit Function
-    If bytecode(p + 2) <> (RegexBytecode.REOP_DOT Or RegexBytecode.MODIFIER_S_MASK) Then Exit Function
-    If bytecode(p + 3) <> RegexBytecode.REOP_JUMP Then Exit Function
-    If bytecode(p + 4) <> -5 Then Exit Function
-    HasSearchPrefix = True
 End Function
 
 Public Sub InitializeLiteralMatcher(ByRef literal As LiteralMatcherTy, ByRef bytecode() As Long)
@@ -207,11 +189,8 @@ Private Function GetLiteralLayout( _
     ' string operations cannot implement the regex's Unicode case folding.
     If bytecode(RegexBytecode.BYTECODE_IDX_MAX_PROPER_CAPTURE_SLOT) <> 1 Then Exit Function
     If bytecode(RegexBytecode.BYTECODE_IDX_N_IDENTIFIERS) <> 0 Then Exit Function
-    If Not HasSearchPrefix(bytecode) Then Exit Function
-    p = bytecode(RegexBytecode.BYTECODE_IDX_START_ACTUAL)
-    If bytecode(p) <> RegexBytecode.REOP_SAVE Then Exit Function
-    If bytecode(p + 1) <> 0 Then Exit Function
-    p = p + 2
+    ' Current compiler output starts with SAVE 0 for the entire match.
+    p = bytecode(RegexBytecode.BYTECODE_IDX_START_ACTUAL) + 2
     If (bytecode(p) And RegexBytecode.REOP_OPCODE_MASK) = RegexBytecode.REOP_ASSERT_START Then
         startAnchorOp = bytecode(p): p = p + 1
     End If
@@ -231,9 +210,9 @@ Private Function GetLiteralLayout( _
     If (bytecode(p) And RegexBytecode.REOP_OPCODE_MASK) = RegexBytecode.REOP_ASSERT_END Then
         endAnchorOp = bytecode(p): p = p + 1
     End If
+    ' With no subcaptures, SAVE here is the compiler's final SAVE 1; MATCH.
+    ' Any other instruction means the pattern has more than a literal body.
     If bytecode(p) <> RegexBytecode.REOP_SAVE Then Exit Function
-    If bytecode(p + 1) <> 1 Then Exit Function
-    If bytecode(p + 2) <> RegexBytecode.REOP_MATCH Then Exit Function
 
     GetLiteralLayout = True
 End Function

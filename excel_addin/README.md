@@ -229,7 +229,7 @@ returns three rows:
 | Result exceeds 32,767 characters per cell or worksheet row/column limits | #NUM! |
 | Input cell contains an error | That error propagates |
 
-The engine's default execution limit applies to each search for the next match.
+The engine's execution limit applies to each DFS search for the next match.
 Rx functions report exhaustion rather than treating it as a missing match.
 
 ## Examples

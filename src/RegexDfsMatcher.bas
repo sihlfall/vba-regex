@@ -342,39 +342,27 @@ Private Function DfsRunThreads( _
     RegexMatcherCommon.InitializeInputBuffer inputBuffer, inputStr
     inputLength = inputBuffer.Length
     searchDotPc = -1
-    ' Optimize only the compiler's search prefix, retaining normal backtracking
-    ' within each candidate. Leave explicit VM step budgets unchanged.
+    ' Optimize the compiler's search prefix, retaining normal backtracking within
+    ' each candidate. Leave explicit VM step budgets unchanged.
     If stepsLimit = DEFAULT_STEPS_LIMIT Then
-        If RegexMatcherCommon.HasSearchPrefix(bytecode) Then
-            literalPc = bytecode(RegexBytecode.BYTECODE_IDX_START_ACTUAL)
-            Do
-                Select Case bytecode(literalPc) And RegexBytecode.REOP_OPCODE_MASK
-                Case RegexBytecode.REOP_SAVE
-                    literalPc = literalPc + 2
-                Case RegexBytecode.REOP_SET_NAMED
-                    literalPc = literalPc + 3
-                Case Else
-                    Exit Do
-                End Select
-            Loop
-            op = bytecode(literalPc)
-            If (op And RegexBytecode.REOP_OPCODE_MASK) = RegexBytecode.REOP_ASSERT_START Then
-                searchAnchor = True
-                searchMultiline = (op - (multiline And RegexBytecode.MODIFIER_M_WRITE) And RegexBytecode.MODIFIER_M_ACTIVE) <> 0
-                searchDotPc = pc + 2
-            ElseIf (op And RegexBytecode.REOP_OPCODE_MASK) = RegexBytecode.REOP_RANGES Or _
-                (op And RegexBytecode.REOP_OPCODE_MASK) = RegexBytecode.REOP_INVRANGES Then
-                searchRanges = literalPc
-                searchDotPc = pc + 2
-            ElseIf (op And RegexBytecode.MODIFIER_I_ACTIVE) = 0 Then
-                Select Case op And RegexBytecode.REOP_OPCODE_MASK
-                Case RegexBytecode.REOP_CHAR
-                    searchChar = ChrW(bytecode(literalPc + 1))
-                Case RegexBytecode.REOP_STRING
-                    searchChar = ChrW(bytecode(literalPc + 2))
-                End Select
-                If Len(searchChar) > 0 Then searchDotPc = pc + 2
-            End If
+        literalPc = bytecode(RegexBytecode.BYTECODE_IDX_START_AFTER_CAPTURES)
+        op = bytecode(literalPc)
+        If (op And RegexBytecode.REOP_OPCODE_MASK) = RegexBytecode.REOP_ASSERT_START Then
+            searchAnchor = True
+            searchMultiline = (op - (multiline And RegexBytecode.MODIFIER_M_WRITE) And RegexBytecode.MODIFIER_M_ACTIVE) <> 0
+            searchDotPc = pc + 2
+        ElseIf (op And RegexBytecode.REOP_OPCODE_MASK) = RegexBytecode.REOP_RANGES Or _
+            (op And RegexBytecode.REOP_OPCODE_MASK) = RegexBytecode.REOP_INVRANGES Then
+            searchRanges = literalPc
+            searchDotPc = pc + 2
+        ElseIf (op And RegexBytecode.MODIFIER_I_ACTIVE) = 0 Then
+            Select Case op And RegexBytecode.REOP_OPCODE_MASK
+            Case RegexBytecode.REOP_CHAR
+                searchChar = ChrW(bytecode(literalPc + 1))
+            Case RegexBytecode.REOP_STRING
+                searchChar = ChrW(bytecode(literalPc + 2))
+            End Select
+            If Len(searchChar) > 0 Then searchDotPc = pc + 2
         End If
     End If
     
