@@ -55,6 +55,7 @@ Public Sub ParseFormatString(ByRef parsedFormat As ArrayBuffer.Ty, ByRef formatS
                 If curPos = formatStringLen Then GoTo InvalidReplacementString
                 lastPos = curPos + 1
                 curPos = InStr(lastPos, formatString, ">", vbBinaryCompare)
+                If curPos = 0 Then GoTo InvalidReplacementString ' no closing ">"
                 If curPos = lastPos Then GoTo InvalidReplacementString ' empty identifier
                 
                 identifierId = RegexBytecode.GetIdentifierId(bytecode, pattern, Mid$(formatString, lastPos, curPos - lastPos))
@@ -88,6 +89,7 @@ Public Sub ParseFormatString(ByRef parsedFormat As ArrayBuffer.Ty, ByRef formatS
                     If c < UNICODE_DIGIT_0 Then Exit Do
                     If c > UNICODE_DIGIT_9 Then Exit Do
                 Loop
+                If num = 0 Then GoTo InvalidReplacementString ' captures are numbered from 1
                 ArrayBuffer.AppendTwo parsedFormat, REPL_NUMBERED, num
             End Select
         End If

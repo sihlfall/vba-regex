@@ -234,3 +234,29 @@ Private Sub RegexReplace0020()
     Assert.SequenceEquals expected, parsed.Buffer
 End Sub
 
+'@TestMethod("RegexReplace")
+Private Sub RegexReplace0030()
+    ' $0 is rejected: captures are numbered from 1 (it raised error 9)
+    Dim parsed As ArrayBuffer.Ty, dummyBytecode() As Long, errNumber As Long
+
+    On Error Resume Next
+    RegexReplace.ParseFormatString parsed, "a$0b", dummyBytecode, ""
+    errNumber = Err.Number
+    On Error GoTo 0
+
+    Assert.AreEqual CLng(RegexErrors.REGEX_ERR_INVALID_REPLACEMENT_STRING), errNumber
+End Sub
+
+'@TestMethod("RegexReplace")
+Private Sub RegexReplace0031()
+    ' $<name without a closing > is rejected (it raised error 5)
+    Dim parsed As ArrayBuffer.Ty, dummyBytecode() As Long, errNumber As Long
+
+    On Error Resume Next
+    RegexReplace.ParseFormatString parsed, "a$<name", dummyBytecode, "(?<name>x)"
+    errNumber = Err.Number
+    On Error GoTo 0
+
+    Assert.AreEqual CLng(RegexErrors.REGEX_ERR_INVALID_REPLACEMENT_STRING), errNumber
+End Sub
+
