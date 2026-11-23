@@ -297,7 +297,7 @@ Private Function Lift_StaticRegexReplace( _
         
     If Not (regex.isFine And s.isFine And replaceBy.isFine And multiline.isFine) Then GoTo ErrorBranch
         
-    Lift_StaticRegexReplace = StaticRegexSingle.Replace( _
+    Lift_StaticRegexReplace = StaticRegexSingle.MatchReplace( _
         regex.regex, _
         replaceBy.s, _
         s.s, _

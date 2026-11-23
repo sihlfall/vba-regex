@@ -282,7 +282,7 @@ NoMatch:
     MatchNext = False
 End Function
 
-Public Function Replace( _
+Public Function MatchReplace( _
     ByRef regex As RegexTy, _
     ByRef replacer As String, _
     ByRef haystack As String, _
@@ -307,7 +307,7 @@ Public Function Replace( _
     
     StaticStringBuilder.AppendStr resultBuilder, Mid$(haystack, lastEndPos)
     
-    Replace = StaticStringBuilder.GetStr(resultBuilder)
+    MatchReplace = StaticStringBuilder.GetStr(resultBuilder)
 End Function
 
 Public Function SplitByRegex( _
