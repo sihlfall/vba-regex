@@ -690,7 +690,7 @@ Private Sub StaticRegex_Replace_001()
     StaticRegex.InitializeRegex r, "(\d*)(\D*)"
     expected = "123"
     
-    actual = StaticRegex.Replace(r, replacer:=replacer, haystack:=haystack, localMatch:=False)
+    actual = StaticRegex.MatchReplace(r, replacer:=replacer, haystack:=haystack, localMatch:=False)
     Assert.AreEqual expected, actual
 
 TestExit:
@@ -713,7 +713,7 @@ Private Sub StaticRegex_Replace_002()
     StaticRegex.InitializeRegex r, "(\d*)(\D?)"
     expected = "123bc"
     
-    actual = StaticRegex.Replace(r, replacer:=replacer, haystack:=haystack, localMatch:=True)
+    actual = StaticRegex.MatchReplace(r, replacer:=replacer, haystack:=haystack, localMatch:=True)
     Assert.AreEqual expected, actual
 
 TestExit:
@@ -735,7 +735,7 @@ Private Sub StaticRegex_Replace_003()
     StaticRegex.InitializeRegex r, "(\d*)(\D?)"
     expected = "123"
     
-    actual = StaticRegex.Replace(r, replacer:=replacer, haystack:=haystack, localMatch:=False)
+    actual = StaticRegex.MatchReplace(r, replacer:=replacer, haystack:=haystack, localMatch:=False)
     Assert.AreEqual expected, actual
 
 TestExit:
@@ -757,9 +757,9 @@ Private Sub StaticRegex_Replace_004()
 
     StaticRegex.InitializeRegex r, "(?<month>\w{3})-(?<day>\d{1,2})-(?<year>\d{4})"
     
-    Assert.AreEqual expected, StaticRegex.Replace(r, replacer:="$1", haystack:=inputString, localMatch:=False)
+    Assert.AreEqual expected, StaticRegex.MatchReplace(r, replacer:="$1", haystack:=inputString, localMatch:=False)
     
-    Assert.AreEqual expected, StaticRegex.Replace(r, replacer:="$<month>", haystack:=inputString, localMatch:=False)
+    Assert.AreEqual expected, StaticRegex.MatchReplace(r, replacer:="$<month>", haystack:=inputString, localMatch:=False)
 
 TestExit:
     Exit Sub
@@ -1200,16 +1200,16 @@ Private Sub StaticRegex_Readme_Example7_Replace()
         "(?<month>\w{3})-(?<day>\d{1,2})-(?<year>\d{4})"
     expected = "On 4 Jul 1776, independence was declared. " & _
         "On 30 Apr 1789, George Washington became the first president."
-    Assert.AreEqual expected, StaticRegex.Replace( _
+    Assert.AreEqual expected, StaticRegex.MatchReplace( _
         regex, replacer:="$<day> $<month> $<year>", haystack:=exampleString)
 
     expected = "On 4 Jul 1776, independence was declared. " & _
         "On Apr-30-1789, George Washington became the first president."
-    Assert.AreEqual expected, StaticRegex.Replace( _
+    Assert.AreEqual expected, StaticRegex.MatchReplace( _
         regex, replacer:="$<day> $<month> $<year>", haystack:=exampleString, localMatch:=True)
-    Assert.AreEqual "No dates here.", StaticRegex.Replace( _
+    Assert.AreEqual "No dates here.", StaticRegex.MatchReplace( _
         regex, replacer:="$<day> $<month> $<year>", haystack:="No dates here.")
-    Assert.AreEqual "Jul-4-1776|Jul|Jul|$", StaticRegex.Replace( _
+    Assert.AreEqual "Jul-4-1776|Jul|Jul|$", StaticRegex.MatchReplace( _
         regex, replacer:="$&|$1|$<month>|$$", haystack:="Jul-4-1776")
 
 TestExit:
@@ -1610,8 +1610,8 @@ Private Sub StaticRegex_Replace_LongOffsets()
     replacement = String$(70000, "y")
     text = prefix & "aqaend"
     expected = prefix & replacement & "a:a:a" & "q" & replacement & "a:a:a" & "end"
-    Assert.AreEqual expected, StaticRegex.Replace(regex, replacement & "$<letter>:$1:$&", text)
-    Assert.AreEqual prefix & prefix & ":endend", StaticRegex.Replace(regex, "$`:$'", prefix & "aend")
+    Assert.AreEqual expected, StaticRegex.MatchReplace(regex, replacement & "$<letter>:$1:$&", text)
+    Assert.AreEqual prefix & prefix & ":endend", StaticRegex.MatchReplace(regex, "$`:$'", prefix & "aend")
 End Sub
 
 '@TestMethod("StaticRegex")

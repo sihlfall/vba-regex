@@ -336,7 +336,7 @@ Public Function Replace(ByRef sHaystack As String, ByRef sReplacer As String) As
         Exit Function
     End If
 
-    Replace = StaticRegex.Replace(This.regex, sReplacer, sHaystack, localMatch:=Not This.isGlobal, multiline:=This.isMultiline)
+    Replace = StaticRegex.MatchReplace(This.regex, sReplacer, sHaystack, localMatch:=Not This.isGlobal, multiline:=This.isMultiline)
 End Function
 
 'Given a haystack and a format string, generate a string containing all matches in the format provided.

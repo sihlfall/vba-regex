@@ -142,14 +142,14 @@ Now results will be a _number of matches_ × _number of format strings_ array of
 Using the date regex and `exampleString` from above, we can reformat both dates:
 
 ```vbnet
-Debug.Print StaticRegex.Replace( _
+Debug.Print StaticRegex.MatchReplace( _
    regex, replacer:="$<day> $<month> $<year>", haystack:=exampleString _
 )
 
 ' prints: On 4 Jul 1776, independence was declared. On 30 Apr 1789, George Washington became the first president.
 ```
 
-`Replace` returns a new string, replacing all matches by default. Pass `localMatch:=True` to replace only the first match. If there are no matches, it returns the original string. The replacement uses the same format syntax as `MatchThenJoin` and `MatchThenList`: for example, `$&` inserts the entire match, `$1` inserts the first capturing group, `$<month>` inserts a named capture, and `$$` inserts a literal dollar sign.
+`MatchReplace` returns a new string, replacing all matches by default. Pass `localMatch:=True` to replace only the first match. If there are no matches, it returns the original string. The replacement uses the same format syntax as `MatchThenJoin` and `MatchThenList`: for example, `$&` inserts the entire match, `$1` inserts the first capturing group, `$<month>` inserts a named capture, and `$$` inserts a literal dollar sign.
 
 #### Example 8: Splitting a string at regex matches
 
@@ -179,9 +179,9 @@ The Boolean options below default to `False`.
 | Option | Where to set it | Effect when `True` |
 | --- | --- | --- |
 | `caseInsensitive` | `InitializeRegex` | Ignores case when matching. Set this when compiling the pattern. |
-| `multiline` | `Test`, `Match`, `Replace`, `SplitByRegex`, `MatchThenJoin`, `MatchThenList`, or `InitializeMatcherState` | Allows `^` and `$` to match line boundaries within the string as well as the start and end of the string. |
+| `multiline` | `Test`, `Match`, `MatchReplace`, `SplitByRegex`, `MatchThenJoin`, `MatchThenList`, or `InitializeMatcherState` | Allows `^` and `$` to match line boundaries within the string as well as the start and end of the string. |
 | `dotAll` | Same as `multiline` | Allows `.` to match line terminators as well as other characters. |
-| `localMatch` | `Replace`, `SplitByRegex`, `MatchThenJoin`, `MatchThenList`, or `InitializeMatcherState` | Processes only the first match. By default, these operations process all successive, non-overlapping matches. |
+| `localMatch` | `MatchReplace`, `SplitByRegex`, `MatchThenJoin`, `MatchThenList`, or `InitializeMatcherState` | Processes only the first match. By default, these operations process all successive, non-overlapping matches. |
 
 For example, to search without regard to case and allow a match to span multiple lines:
 
